@@ -6,5 +6,6 @@ Built With
 HTML
 CSS
 JavaScript
-Website
+
+Website:
 https://www.majorstylejunction.com
