@@ -87,9 +87,103 @@ header {
   text-transform: uppercase;
 }
 
-.brand-link img {
-  height: 36px;
-  width: auto;
+/* Matching Space Grotesk Typographic Logo System */
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-dark);
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  padding: 6px 10px;
+  border-radius: 7px;
+  line-height: 1;
+}
+
+.hero-logo-lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 28px;
+  padding: 18px 30px;
+  background: #ffffff;
+  border: 2px solid var(--bg-dark);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(9, 9, 11, 0.06);
+}
+
+.hero-logo-lockup .monogram {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  color: var(--bg-dark);
+}
+
+.hero-logo-lockup .wordmark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.emblem-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.emblem-lockup .emblem-box {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 42px;
+  letter-spacing: 0.12em;
+  color: var(--bg-dark);
+  border: 2.5px solid var(--bg-dark);
+  padding: 12px 24px;
+  border-radius: 12px;
+  line-height: 1;
+  background: #ffffff;
+}
+
+.emblem-lockup .emblem-sub {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-main);
+  margin-top: 14px;
+}
+
+.bag-typo-thumb {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-studio);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--bg-dark);
+  flex-shrink: 0;
 }
 
 nav {
@@ -139,13 +233,16 @@ nav a.active {
   border-radius: 999px;
 }
 
-/* Light Studio Hero Section (High Contrast for Black Logo) */
+/* Light Studio Hero Section */
 .hero {
   background: radial-gradient(circle at top center, #ffffff 0%, #f4f4f5 80%);
   color: var(--text-main);
   text-align: center;
   padding: 80px 24px 92px;
   border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .hero-eyebrow {
@@ -166,13 +263,6 @@ nav a.active {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #e4e4e7;
-}
-
-.hero .logo {
-  max-width: 240px;
-  margin: 0 auto 24px;
-  display: block;
-  filter: drop-shadow(0 8px 18px rgba(9, 9, 11, 0.08));
 }
 
 .hero h1 {
@@ -347,7 +437,6 @@ nav a.active {
   border-color: #d4d4d8;
 }
 
-/* Light Studio Backdrop for Product Cards */
 .product-media {
   position: relative;
   height: 280px;
@@ -532,7 +621,6 @@ nav a.active {
   margin-bottom: 16px;
 }
 
-/* Light Studio Backdrop for Secondary Emblem */
 .about-logo-card {
   background: var(--bg-studio);
   border: 1px solid var(--border-subtle);
@@ -541,11 +629,6 @@ nav a.active {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.about-logo-card img {
-  max-width: 220px;
-  width: 100%;
 }
 
 /* VIP Drop Newsletter */
@@ -769,7 +852,6 @@ textarea {
   align-items: center;
 }
 
-/* Light Studio Backdrop for Quick-View Modal */
 .qv-media {
   background: var(--bg-studio);
   border: 1px solid var(--border-subtle);
@@ -936,7 +1018,6 @@ textarea {
   border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Light Studio Thumbnail for Bag Items */
 .bag-item img {
   width: 64px;
   height: 64px;

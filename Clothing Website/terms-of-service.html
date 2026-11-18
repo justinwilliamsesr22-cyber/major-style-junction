@@ -3,52 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Service - Major Style Junction</title>
   <link rel="stylesheet" href="style.css">
+  <title>Terms of Service | Major Style Junction</title>
 </head>
 <body>
 
   <div class="announcement-bar">
-    <p>Free shipping on all orders over $100</p>
+    Free Shipping on All Orders Over $100 • Limited Batch Streetwear
   </div>
 
   <header>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="shop.html">Shop</a>
-      <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="nav-inner">
+      <a href="index.html" class="brand-link">
+        <span class="logo-mark">MSJ</span>
+        <span>Major Style Junction</span>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <button type="button" class="bag-trigger" onclick="openCartDrawer()">
+          <span>Bag</span>
+          <span class="bag-badge js-bag-count">0</span>
+        </button>
+      </nav>
+    </div>
   </header>
 
   <main class="container">
-    <h1>Terms of Service</h1>
-    <p class="revision-date"><strong>Last Updated:</strong> August 15, 2026</p>
+    <div class="legal-card">
+      <h1>Terms of Service</h1>
+      <p class="revision-date"><strong>Last Updated:</strong> August 15, 2026</p>
 
-    <h2>Introduction</h2>
-    <p>Welcome to Major Style Junction. By accessing or using our website, you agree to comply with and be bound by the following terms and conditions.</p>
+      <h2>1. Orders &amp; Availability</h2>
+      <p>All apparel drops are produced in limited batches. Submitting an order request reserves your requested sizes while we confirm stock and send your payment invoice.</p>
 
-    <h2>Use of the Website</h2>
-    <p>You agree to use this website only for lawful purposes and in a manner that does not infringe the rights of, restrict, or inhibit anyone else's use and enjoyment of the site.</p>
+      <h2>2. Shipping &amp; Free Shipping Offer</h2>
+      <p>Orders totaling $100 or more qualify for complimentary standard shipping within the United States. Tracking numbers are emailed once your package ships.</p>
 
-    <h2>Products and Purchases</h2>
-    <p>All purchases made through our shop are subject to product availability. We reserve the right to refuse or cancel any order for any reason.</p>
+      <h2>3. Returns &amp; Exchanges</h2>
+      <p>Unworn, unwashed garments with original tags attached may be returned or exchanged within 30 days of delivery. Custom-printed batch orders are final sale unless defective.</p>
 
-    <h2>Limitation of Liability</h2>
-    <p>Major Style Junction shall not be liable for any direct, indirect, incidental, or consequential damages resulting from the use or inability to use our website or products.</p>
+      <h2>4. Intellectual Property</h2>
+      <p>All Major Style Junction logos, artwork, and original garment designs are the exclusive property of Major Style Junction.</p>
 
-    <h2>Contact Us</h2>
-    <p>If you have any questions about these Terms of Service, please contact us at <a href="mailto:MajorStyleJunction@MajorStyleJunction.onmicrosoft.com">MajorStyleJunction@MajorStyleJunction.onmicrosoft.com</a></p>
+      <h2>5. Contact</h2>
+      <p>Questions regarding these terms may be sent to <a href="mailto:MajorStyleJunction@MajorStyleJunction.com" style="color: var(--text-main); font-weight: 600;">MajorStyleJunction@MajorStyleJunction.com</a>.</p>
+    </div>
   </main>
 
   <footer>
-    <p>&copy; 2026 Major Style Junction</p>
-    <p>Contact: <a href="mailto:MajorStyleJunction@MajorStyleJunction.com">MajorStyleJunction@MajorStyleJunction.com</a></p>
-    <div class="footer-links">
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
+    <div class="footer-inner">
+      <span class="footer-brand">MAJOR STYLE JUNCTION</span>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Major Style Junction. All rights reserved.</span>
+      <span>Email: <a href="mailto:MajorStyleJunction@MajorStyleJunction.com">MajorStyleJunction@MajorStyleJunction.com</a></span>
     </div>
   </footer>
 
+  <script src="products.js"></script>
 </body>
 </html>

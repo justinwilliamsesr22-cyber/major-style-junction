@@ -15,7 +15,7 @@
   <header>
     <div class="nav-inner">
       <a href="index.html" class="brand-link">
-        <img src="img/logo2tran.png" alt="Major Style Junction">
+        <span class="logo-mark">MSJ</span>
         <span>Major Style Junction</span>
       </a>
       <nav>
@@ -23,7 +23,10 @@
         <a href="shop.html">Shop</a>
         <a href="about.html" class="active">About</a>
         <a href="contact.html">Contact</a>
-        <a href="shop.html" class="nav-cta">Shop Drops</a>
+        <button type="button" class="bag-trigger" onclick="openCartDrawer()">
+          <span>Bag</span>
+          <span class="bag-badge js-bag-count">0</span>
+        </button>
       </nav>
     </div>
   </header>
@@ -36,10 +39,13 @@
         <p>Welcome to Major Style Junction, where bold fashion meets everyday wear. We are dedicated to bringing you unique, high-quality styles that let your personality stand out.</p>
         <p>It all started with a simple belief: what you wear should be an extension of who you are. At Major Style Junction, we focus on daring, high-quality streetwear that demands attention—valuing heavyweight blanks, crisp direct-to-film prints, and superior craftsmanship over mass production.</p>
         <p style="font-weight: 600; color: var(--text-main);">Wear your story with confidence.</p>
-        <a href="shop.html" class="btn" style="background: var(--bg-dark); color: #fff; margin-top: 12px;">Explore Current Drops</a>
+        <a href="shop.html" class="btn" style="margin-top: 12px;">Explore Current Drops</a>
       </div>
       <div class="about-logo-card">
-        <img src="img/7tran.png" alt="Major Style Junction Logo">
+        <div class="emblem-lockup">
+          <div class="emblem-box">MSJ</div>
+          <span class="emblem-sub">Major Style Junction</span>
+        </div>
       </div>
     </div>
   </main>
@@ -61,5 +67,6 @@
     </div>
   </footer>
 
+  <script src="products.js"></script>
 </body>
 </html>

@@ -15,7 +15,7 @@
   <header>
     <div class="nav-inner">
       <a href="index.html" class="brand-link">
-        <img src="img/logo2tran.png" alt="Major Style Junction">
+        <span class="logo-mark">MSJ</span>
         <span>Major Style Junction</span>
       </a>
       <nav>
@@ -23,22 +23,39 @@
         <a href="shop.html" class="active">Shop</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
-        <a href="shop.html" class="nav-cta">Shop Drops</a>
+        <button type="button" class="bag-trigger" onclick="openCartDrawer()">
+          <span>Bag</span>
+          <span class="bag-badge js-bag-count">0</span>
+        </button>
       </nav>
     </div>
   </header>
 
   <main class="container">
-    <div class="section-head">
+    <div class="section-head" style="margin-bottom: 20px;">
       <div>
         <span class="section-kicker">Official Catalog</span>
         <h1>Shop the Collection</h1>
       </div>
+      <button type="button" class="size-guide-link" onclick="openSizeGuide()">View Size &amp; Fit Guide</button>
+    </div>
+
+    <div class="catalog-controls">
       <div class="filter-bar" id="shop-filters">
-        <button type="button" class="filter-btn active" onclick="filterCatalog('all', this)">All Pieces</button>
-        <button type="button" class="filter-btn" onclick="filterCatalog('tees', this)">Graphic Tees</button>
-        <button type="button" class="filter-btn" onclick="filterCatalog('hoodies', this)">Hoodies</button>
-        <button type="button" class="filter-btn" onclick="filterCatalog('accessories', this)">Accessories</button>
+        <button type="button" class="filter-btn active" onclick="setCategory('all', this)">All Pieces</button>
+        <button type="button" class="filter-btn" onclick="setCategory('tees', this)">Graphic Tees</button>
+        <button type="button" class="filter-btn" onclick="setCategory('hoodies', this)">Hoodies</button>
+        <button type="button" class="filter-btn" onclick="setCategory('accessories', this)">Accessories</button>
+      </div>
+
+      <div class="search-sort-group">
+        <input type="text" id="catalog-search" placeholder="Search tees, hoodies..." oninput="applyCatalogFilters()">
+        <select id="catalog-sort" onchange="applyCatalogFilters()">
+          <option value="featured">Sort: Featured</option>
+          <option value="instock">Availability: In Stock Only</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+        </select>
       </div>
     </div>
 
@@ -62,34 +79,28 @@
     </div>
   </footer>
 
-  <!-- Quick Order / Size Reservation Modal -->
-  <div id="order-modal" class="modal-overlay" onclick="if(event.target===this) closeOrderModal()">
-    <div class="modal-box">
-      <button type="button" class="modal-close" onclick="closeOrderModal()" aria-label="Close">&times;</button>
-      <span class="section-kicker">Order / Drop Reservation</span>
-      <h3 id="modal-item-name">Item Name</h3>
-      <p id="modal-item-price" class="modal-subtitle">$0</p>
-      <form id="modal-order-form">
-        <input type="hidden" id="modal-hidden-product" name="product">
-        <select id="modal-size-select" name="size" required></select>
-        <input type="text" name="customer_name" placeholder="Your Full Name" required>
-        <input type="email" name="customer_email" placeholder="Your Email Address" required>
-        <textarea name="shipping_notes" placeholder="Shipping city/zip or any special request" style="min-height: 80px;"></textarea>
-        <button type="submit" class="btn-card">Submit Order Request</button>
-        <p id="modal-form-status" class="modal-status"></p>
-      </form>
-    </div>
-  </div>
-
   <script src="products.js"></script>
   <script>
-    renderProducts("full-catalog-grid", "all");
+    let currentCategory = "all";
 
-    function filterCatalog(category, btn) {
+    function setCategory(category, btn) {
+      currentCategory = category;
       document.querySelectorAll("#shop-filters .filter-btn").forEach((el) => el.classList.remove("active"));
       btn.classList.add("active");
-      renderProducts("full-catalog-grid", category);
+      applyCatalogFilters();
     }
+
+    function applyCatalogFilters() {
+      const searchVal = document.getElementById("catalog-search").value;
+      const sortVal = document.getElementById("catalog-sort").value;
+      renderProducts("full-catalog-grid", {
+        category: currentCategory,
+        search: searchVal,
+        sort: sortVal
+      });
+    }
+
+    applyCatalogFilters();
   </script>
 </body>
 </html>

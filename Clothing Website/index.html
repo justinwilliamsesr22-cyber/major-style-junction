@@ -17,7 +17,7 @@
   <header>
     <div class="nav-inner">
       <a href="index.html" class="brand-link">
-        <img src="img/logo2tran.png" alt="Major Style Junction">
+        <span class="logo-mark">MSJ</span>
         <span>Major Style Junction</span>
       </a>
       <nav>
@@ -25,14 +25,20 @@
         <a href="shop.html">Shop</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
-        <a href="shop.html" class="nav-cta">Shop Drops</a>
+        <button type="button" class="bag-trigger" onclick="openCartDrawer()">
+          <span>Bag</span>
+          <span class="bag-badge js-bag-count">0</span>
+        </button>
       </nav>
     </div>
   </header>
 
   <section class="hero">
     <span class="hero-eyebrow">Official Storefront • Drop 01</span>
-    <img src="img/logo2tran.png" alt="Major Style Junction Logo" class="logo">
+    <div class="hero-logo-lockup" aria-label="Major Style Junction">
+      <span class="monogram">MSJ</span>
+      <span class="wordmark">Major Style Junction</span>
+    </div>
     <h1>Bold Fashion Meets Everyday Wear.</h1>
     <p>Unapologetic streetwear engineered with heavyweight blanks, crisp direct-to-film prints, and superior craftsmanship.</p>
     <div class="hero-actions">
@@ -63,7 +69,10 @@
         <a href="about.html" class="filter-btn" style="text-decoration:none; display:inline-block; margin-top:8px;">Read Our Full Story</a>
       </div>
       <div class="about-logo-card">
-        <img src="img/7tran.png" alt="Major Style Junction Emblem">
+        <div class="emblem-lockup">
+          <div class="emblem-box">MSJ</div>
+          <span class="emblem-sub">Major Style Junction</span>
+        </div>
       </div>
     </div>
   </section>
@@ -106,12 +115,12 @@
   <section class="container" style="padding-top: 0;">
     <div class="contact-card">
       <span class="section-kicker">Direct Desk</span>
-      <h2 style="margin-bottom: 8px;">Questions or Custom Inquiries</h2>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 22px;">Need sizing guidance or bulk custom print info? Send a direct note below.</p>
+      <h2 style="margin-bottom: 8px;">Questions or Custom DTF Inquiries</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 22px;">Need sizing guidance or custom print quotes for your brand or event? Send a direct note below.</p>
       <form action="https://formspree.io/f/myeypbka" method="POST">
         <input type="text" name="name" placeholder="Your Name" required>
         <input type="email" name="email" placeholder="Your Email" required>
-        <textarea name="message" placeholder="Your Message (include size or item questions)" required></textarea>
+        <textarea name="message" placeholder="Your Message (include size, item, or custom print quantity)" required></textarea>
         <button type="submit" class="btn-card">Send Message</button>
       </form>
     </div>
@@ -134,28 +143,9 @@
     </div>
   </footer>
 
-  <!-- Quick Order / Size Reservation Modal -->
-  <div id="order-modal" class="modal-overlay" onclick="if(event.target===this) closeOrderModal()">
-    <div class="modal-box">
-      <button type="button" class="modal-close" onclick="closeOrderModal()" aria-label="Close">&times;</button>
-      <span class="section-kicker">Order / Drop Reservation</span>
-      <h3 id="modal-item-name">Item Name</h3>
-      <p id="modal-item-price" class="modal-subtitle">$0</p>
-      <form id="modal-order-form">
-        <input type="hidden" id="modal-hidden-product" name="product">
-        <select id="modal-size-select" name="size" required></select>
-        <input type="text" name="customer_name" placeholder="Your Full Name" required>
-        <input type="email" name="customer_email" placeholder="Your Email Address" required>
-        <textarea name="shipping_notes" placeholder="Shipping city/zip or any special request" style="min-height: 80px;"></textarea>
-        <button type="submit" class="btn-card">Submit Order Request</button>
-        <p id="modal-form-status" class="modal-status"></p>
-      </form>
-    </div>
-  </div>
-
   <script src="products.js"></script>
   <script>
-    renderProducts("featured-products-grid", "all", 3);
+    renderProducts("featured-products-grid", { category: "all", limit: 3 });
   </script>
 </body>
 </html>
