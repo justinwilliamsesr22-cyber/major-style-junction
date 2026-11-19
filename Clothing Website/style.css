@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
 
 :root {
   --bg-page: #fafafa;
@@ -37,8 +37,9 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: -0.02em;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
 /* Announcement Bar */
@@ -77,29 +78,27 @@ header {
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   color: var(--text-main);
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 0.03em;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-/* Matching Space Grotesk Typographic Logo System */
+/* Clean Borderless Montserrat Logo System */
 .logo-mark {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background-color: var(--bg-dark);
-  color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  padding: 6px 10px;
-  border-radius: 7px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--bg-dark);
+  padding-right: 12px;
+  border-right: 1.5px solid #d4d4d8;
   line-height: 1;
 }
 
@@ -108,33 +107,30 @@ header {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 28px;
-  padding: 18px 30px;
-  background: #ffffff;
-  border: 2px solid var(--bg-dark);
-  border-radius: 14px;
-  box-shadow: 0 10px 24px rgba(9, 9, 11, 0.06);
+  margin: 0 auto 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .hero-logo-lockup .monogram {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 34px;
-  letter-spacing: 0.14em;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 56px;
+  letter-spacing: 0.08em;
   line-height: 1;
   color: var(--bg-dark);
 }
 
 .hero-logo-lockup .wordmark {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 11px;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-top: 7px;
-  padding-top: 7px;
-  border-top: 1px solid var(--border-subtle);
+  margin-top: 8px;
 }
 
 .emblem-lockup {
@@ -143,30 +139,29 @@ header {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 24px;
+  padding: 16px;
 }
 
 .emblem-lockup .emblem-box {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 42px;
-  letter-spacing: 0.12em;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 52px;
+  letter-spacing: 0.08em;
   color: var(--bg-dark);
-  border: 2.5px solid var(--bg-dark);
-  padding: 12px 24px;
-  border-radius: 12px;
+  border: none;
+  padding: 0;
+  background: transparent;
   line-height: 1;
-  background: #ffffff;
 }
 
 .emblem-lockup .emblem-sub {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.22em;
+  font-size: 11px;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--text-main);
-  margin-top: 14px;
+  color: var(--text-muted);
+  margin-top: 10px;
 }
 
 .bag-typo-thumb {
@@ -176,12 +171,11 @@ header {
   align-items: center;
   justify-content: center;
   background: var(--bg-studio);
-  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.08em;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.04em;
   color: var(--bg-dark);
   flex-shrink: 0;
 }
@@ -189,7 +183,7 @@ header {
 nav {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 nav a {
@@ -203,6 +197,28 @@ nav a {
 nav a:hover,
 nav a.active {
   color: var(--text-main);
+}
+
+.account-trigger {
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1px solid #d4d4d8;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-trigger:hover {
+  background: #f4f4f5;
+  border-color: var(--bg-dark);
+}
+
+.account-trigger.signed-in {
+  background: #f4f4f5;
+  border-color: var(--bg-dark);
 }
 
 .bag-trigger {
@@ -266,8 +282,8 @@ nav a.active {
 }
 
 .hero h1 {
-  font-size: clamp(2.2rem, 5vw, 3.75rem);
-  font-weight: 700;
+  font-size: clamp(2.2rem, 5vw, 3.65rem);
+  font-weight: 900;
   line-height: 1.08;
   max-width: 780px;
   margin: 0 auto 18px;
@@ -740,6 +756,7 @@ nav a.active {
 
 input[type="text"],
 input[type="email"],
+input[type="password"],
 select,
 textarea {
   width: 100%;
@@ -763,6 +780,83 @@ textarea:focus {
 textarea {
   min-height: 115px;
   resize: vertical;
+}
+
+/* Customer Account Portal & Order History */
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.order-history-list {
+  display: grid;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.acct-empty {
+  padding: 24px;
+  background: #fafafa;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.order-history-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: #fafafa;
+}
+
+.order-history-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.order-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.order-badge {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.order-items-line {
+  font-size: 13px;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.order-ship-line {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.order-history-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
 }
 
 /* Legal Document Pages */
@@ -1023,7 +1117,6 @@ textarea {
   height: 64px;
   object-fit: contain;
   background: var(--bg-studio);
-  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 6px;
 }
@@ -1105,7 +1198,7 @@ textarea {
   font-size: 15px;
 }
 
-/* Footer */
+/* Footer & MSJ Cloud Tech Support Bar */
 footer {
   background-color: var(--bg-dark);
   color: #a1a1aa;
@@ -1128,8 +1221,8 @@ footer {
 
 .footer-brand {
   color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
   font-size: 16px;
   letter-spacing: 0.04em;
 }
@@ -1163,6 +1256,20 @@ footer a:hover {
   font-size: 13px;
 }
 
+.footer-tech-bar {
+  max-width: 1180px;
+  margin: 18px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid #18181b;
+  font-size: 12px;
+  color: #71717a;
+}
+
+.footer-tech-bar a {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .nav-inner {
@@ -1171,7 +1278,7 @@ footer a:hover {
   }
 
   nav {
-    gap: 14px;
+    gap: 12px;
     flex-wrap: wrap;
     justify-content: center;
   }

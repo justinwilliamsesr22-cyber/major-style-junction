@@ -1,14 +1,13 @@
 // ============================================================
-// MAJOR STYLE JUNCTION — CENTRAL INVENTORY & STORE ENGINE
-// To add or edit items: update MSJ_PRODUCTS below and push.
-// Use image: "typographic" for the Space Grotesk MSJ logo card,
-// or replace with a photo path like "img/hoodie-black.jpg".
+// MAJOR STYLE JUNCTION — CENTRAL INVENTORY, BAG & ACCOUNT ENGINE
 // ============================================================
 
 const MSJ_CONFIG = {
   freeShippingThreshold: 100,
   formspreeOrderEndpoint: "https://formspree.io/f/myeypbka",
-  supportEmail: "MajorStyleJunction@MajorStyleJunction.com"
+  supportEmail: "MajorStyleJunction@MajorStyleJunction.com",
+  techSupportEmail: "cloud@majorstylejunction.com",
+  techSupportSite: "https://cloud.majorstylejunction.com"
 };
 
 const MSJ_PRODUCTS = [
@@ -54,13 +53,279 @@ const MSJ_PRODUCTS = [
 ];
 
 // ============================================================
-// SHOPPING BAG STATE (Persists in browser localStorage)
+// CUSTOMER ACCOUNT, SAVED SHIPPING & ORDER HISTORY STATE
 // ============================================================
 
+const ACCOUNTS_DB_KEY = "msj_customer_accounts_v1";
+const SESSION_KEY = "msj_active_customer_email_v1";
 const CART_STORAGE_KEY = "msj_shopping_bag_v1";
+
 let msjCart = [];
+let currentUser = null;
 let activeQuickViewProduct = null;
 let selectedQuickViewSize = "L";
+
+function getAccountsDB() {
+  try {
+    const raw = localStorage.getItem(ACCOUNTS_DB_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveAccountsDB(db) {
+  try {
+    localStorage.setItem(ACCOUNTS_DB_KEY, JSON.stringify(db));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function encodePass(str) {
+  return btoa(unescape(encodeURIComponent(str.trim())));
+}
+
+function loadCurrentUser() {
+  try {
+    const email = localStorage.getItem(SESSION_KEY);
+    if (!email) {
+      currentUser = null;
+    } else {
+      const db = getAccountsDB();
+      currentUser = db[email.toLowerCase()] || null;
+    }
+  } catch {
+    currentUser = null;
+  }
+  updateAccountUI();
+}
+
+function updateAccountUI() {
+  document.querySelectorAll(".js-account-btn").forEach((btn) => {
+    if (currentUser) {
+      const firstName = currentUser.name.split(" ")[0] || "Account";
+      btn.textContent = `Account (${firstName})`;
+      btn.classList.add("signed-in");
+    } else {
+      btn.textContent = "Sign In";
+      btn.classList.remove("signed-in");
+    }
+  });
+
+  const loggedOutView = document.getElementById("msj-auth-logged-out");
+  const loggedInView = document.getElementById("msj-auth-logged-in");
+  if (!loggedOutView || !loggedInView) return;
+
+  if (currentUser) {
+    loggedOutView.style.display = "none";
+    loggedInView.style.display = "block";
+    document.getElementById("acct-welcome-name").textContent = currentUser.name;
+    document.getElementById("acct-welcome-email").textContent = currentUser.email;
+
+    // Populate saved profile & shipping inputs
+    document.getElementById("prof-name").value = currentUser.name || "";
+    document.getElementById("prof-phone").value = currentUser.phone || "";
+    document.getElementById("prof-size").value = currentUser.preferredSize || "L";
+    document.getElementById("prof-street").value = currentUser.street || "";
+    document.getElementById("prof-city-zip").value = currentUser.cityZip || "";
+
+    renderOrderHistory();
+  } else {
+    loggedOutView.style.display = "block";
+    loggedInView.style.display = "none";
+  }
+}
+
+function handleRegisterAccount(e) {
+  e.preventDefault();
+  const statusEl = document.getElementById("auth-status-msg");
+  const name = document.getElementById("reg-name").value.trim();
+  const email = document.getElementById("reg-email").value.trim().toLowerCase();
+  const password = document.getElementById("reg-password").value;
+  const preferredSize = document.getElementById("reg-size").value;
+
+  const db = getAccountsDB();
+  if (db[email]) {
+    statusEl.style.color = "#ef4444";
+    statusEl.textContent = "An account with this email already exists. Switch to Sign In.";
+    return;
+  }
+
+  db[email] = {
+    name,
+    email,
+    passHash: encodePass(password),
+    preferredSize,
+    phone: "",
+    street: "",
+    cityZip: "",
+    orders: []
+  };
+
+  saveAccountsDB(db);
+  localStorage.setItem(SESSION_KEY, email);
+  loadCurrentUser();
+  statusEl.textContent = "";
+}
+
+function handleSignInAccount(e) {
+  e.preventDefault();
+  const statusEl = document.getElementById("auth-status-msg");
+  const email = document.getElementById("login-email").value.trim().toLowerCase();
+  const password = document.getElementById("login-password").value;
+
+  const db = getAccountsDB();
+  const record = db[email];
+
+  if (!record || record.passHash !== encodePass(password)) {
+    statusEl.style.color = "#ef4444";
+    statusEl.textContent = "Invalid email or password. Please check your credentials.";
+    return;
+  }
+
+  localStorage.setItem(SESSION_KEY, email);
+  loadCurrentUser();
+  statusEl.textContent = "";
+}
+
+function handleSaveProfile(e) {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const db = getAccountsDB();
+  const record = db[currentUser.email];
+  if (!record) return;
+
+  record.name = document.getElementById("prof-name").value.trim();
+  record.phone = document.getElementById("prof-phone").value.trim();
+  record.preferredSize = document.getElementById("prof-size").value;
+  record.street = document.getElementById("prof-street").value.trim();
+  record.cityZip = document.getElementById("prof-city-zip").value.trim();
+
+  saveAccountsDB(db);
+  loadCurrentUser();
+
+  const msg = document.getElementById("prof-save-msg");
+  msg.style.color = "#10b981";
+  msg.textContent = "Saved! Your shipping address and size will auto-fill at checkout.";
+  setTimeout(() => {
+    msg.textContent = "";
+  }, 3500);
+}
+
+function handleSignOut() {
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null;
+  updateAccountUI();
+}
+
+function switchAuthTab(tabName) {
+  const loginForm = document.getElementById("msj-login-form");
+  const regForm = document.getElementById("msj-register-form");
+  const tabLogin = document.getElementById("tab-btn-login");
+  const tabReg = document.getElementById("tab-btn-register");
+  document.getElementById("auth-status-msg").textContent = "";
+
+  if (tabName === "register") {
+    loginForm.style.display = "none";
+    regForm.style.display = "flex";
+    tabLogin.classList.remove("active");
+    tabReg.classList.add("active");
+  } else {
+    loginForm.style.display = "flex";
+    regForm.style.display = "none";
+    tabLogin.classList.add("active");
+    tabReg.classList.remove("active");
+  }
+}
+
+function switchAccountPanel(panelName) {
+  const ordersPanel = document.getElementById("acct-panel-orders");
+  const profilePanel = document.getElementById("acct-panel-profile");
+  const btnOrders = document.getElementById("acct-tab-orders");
+  const btnProfile = document.getElementById("acct-tab-profile");
+
+  if (panelName === "profile") {
+    ordersPanel.style.display = "none";
+    profilePanel.style.display = "block";
+    btnOrders.classList.remove("active");
+    btnProfile.classList.add("active");
+  } else {
+    ordersPanel.style.display = "block";
+    profilePanel.style.display = "none";
+    btnOrders.classList.add("active");
+    btnProfile.classList.remove("active");
+  }
+}
+
+function renderOrderHistory() {
+  const listEl = document.getElementById("acct-order-history-list");
+  if (!listEl || !currentUser) return;
+
+  const orders = currentUser.orders || [];
+  if (orders.length === 0) {
+    listEl.innerHTML = `
+      <div class="acct-empty">
+        <p>No saved orders yet. When you complete an order request while signed in, it will appear here for easy tracking and one-click reordering.</p>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = orders
+    .map(
+      (ord, index) => `
+      <div class="order-history-card">
+        <div class="order-history-top">
+          <div>
+            <strong>Order #${ord.orderNumber}</strong>
+            <span class="order-date">${ord.date}</span>
+          </div>
+          <span class="order-badge">${ord.status}</span>
+        </div>
+        <p class="order-items-line">${ord.itemsSummary}</p>
+        <p class="order-ship-line">Ship to: ${ord.shippingAddress}</p>
+        <div class="order-history-bottom">
+          <strong>Total: ${ord.subtotal}</strong>
+          <button type="button" class="size-guide-link" onclick="reorderPastPurchase(${index})">Reorder Items</button>
+        </div>
+      </div>
+    `
+    )
+    .join("");
+}
+
+function reorderPastPurchase(orderIndex) {
+  if (!currentUser || !currentUser.orders || !currentUser.orders[orderIndex]) return;
+  const pastItems = currentUser.orders[orderIndex].rawItems || [];
+  pastItems.forEach((item) => {
+    for (let i = 0; i < item.qty; i++) {
+      addToBag(item.id, item.size);
+    }
+  });
+  closeAccountModal();
+  openCartDrawer();
+}
+
+function openAccountModal(defaultTab = "login") {
+  const modal = document.getElementById("msj-account-modal");
+  if (!modal) return;
+  if (!currentUser) {
+    switchAuthTab(defaultTab);
+  }
+  updateAccountUI();
+  modal.classList.add("active");
+}
+
+function closeAccountModal() {
+  const modal = document.getElementById("msj-account-modal");
+  if (modal) modal.classList.remove("active");
+}
+
+// ============================================================
+// SHOPPING BAG STATE (Persists in browser localStorage)
+// ============================================================
 
 function renderTypographicGraphic(subLabel = "MAJOR STYLE JUNCTION") {
   return `
@@ -213,7 +478,28 @@ function updateCartUI() {
 
 function openCartDrawer() {
   const drawer = document.getElementById("msj-cart-drawer");
-  if (drawer) drawer.classList.add("active");
+  if (!drawer) return;
+
+  // Auto-fill checkout fields if customer is signed in
+  const noteEl = document.getElementById("msj-bag-account-note");
+  const nameInput = document.getElementById("bag-cust-name");
+  const emailInput = document.getElementById("bag-cust-email");
+  const addrInput = document.getElementById("bag-cust-address");
+
+  if (currentUser && nameInput && emailInput && addrInput) {
+    if (!nameInput.value) nameInput.value = currentUser.name || "";
+    if (!emailInput.value) emailInput.value = currentUser.email || "";
+    const fullSavedAddr = [currentUser.street, currentUser.cityZip].filter(Boolean).join(", ");
+    if (!addrInput.value && fullSavedAddr) addrInput.value = fullSavedAddr;
+
+    if (noteEl) {
+      noteEl.innerHTML = `Signed in as <strong>${currentUser.name}</strong> — this order will save to your account history.`;
+    }
+  } else if (noteEl) {
+    noteEl.innerHTML = `<button type="button" class="size-guide-link" onclick="closeCartDrawer(); openAccountModal('login');">Sign in</button> to auto-fill shipping &amp; save order history.`;
+  }
+
+  drawer.classList.add("active");
 }
 
 function closeCartDrawer() {
@@ -330,7 +616,13 @@ function openQuickView(productId) {
   if (!item || !modal) return;
 
   activeQuickViewProduct = item;
-  selectedQuickViewSize = item.sizes.includes("L") ? "L" : item.sizes[0];
+  const preferred = currentUser && currentUser.preferredSize;
+  selectedQuickViewSize =
+    preferred && item.sizes.includes(preferred)
+      ? preferred
+      : item.sizes.includes("L")
+      ? "L"
+      : item.sizes[0];
 
   const qvMedia = document.getElementById("qv-media-box");
   if (qvMedia) {
@@ -401,14 +693,119 @@ function closeSizeGuide() {
 }
 
 // ============================================================
-// AUTO-INJECT STOREFRONT MODALS & SLIDE-OUT BAG ON EVERY PAGE
+// AUTO-INJECT NAV ACCOUNT BUTTON, TECH SUPPORT FOOTER & MODALS
 // ============================================================
+
+function injectNavAndFooterLinks() {
+  // Inject Sign In / Account button right before Bag button in header nav
+  const nav = document.querySelector("header nav");
+  const bagTrigger = nav && nav.querySelector(".bag-trigger");
+  if (nav && bagTrigger && !nav.querySelector(".js-account-btn")) {
+    const acctBtn = document.createElement("button");
+    acctBtn.type = "button";
+    acctBtn.className = "account-trigger js-account-btn";
+    acctBtn.textContent = "Sign In";
+    acctBtn.onclick = () => openAccountModal("login");
+    nav.insertBefore(acctBtn, bagTrigger);
+  }
+
+  // Inject MSJ Cloud Tech Support bar in footer
+  const footer = document.querySelector("footer");
+  if (footer && !footer.querySelector(".footer-tech-bar")) {
+    const techBar = document.createElement("div");
+    techBar.className = "footer-tech-bar";
+    techBar.innerHTML = `
+      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a></span>
+    `;
+    footer.appendChild(techBar);
+  }
+}
 
 function injectStorefrontOverlays() {
   if (document.getElementById("msj-cart-drawer")) return;
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = `
+    <!-- Customer Account Sign-In & Saved Purchases Modal -->
+    <div id="msj-account-modal" class="modal-overlay" onclick="if(event.target===this) closeAccountModal()">
+      <div class="modal-box" style="max-width: 540px;">
+        <button type="button" class="modal-close" onclick="closeAccountModal()" aria-label="Close">&times;</button>
+
+        <!-- Logged Out: Sign In / Create Account -->
+        <div id="msj-auth-logged-out">
+          <span class="section-kicker">Customer Portal</span>
+          <h3 style="font-size:24px;margin-bottom:6px;">Member Sign In</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Sign in to save your shipping address, preferred size, and purchase history.</p>
+
+          <div class="auth-tabs">
+            <button type="button" id="tab-btn-login" class="filter-btn active" onclick="switchAuthTab('login')">Sign In</button>
+            <button type="button" id="tab-btn-register" class="filter-btn" onclick="switchAuthTab('register')">Create Account</button>
+          </div>
+
+          <form id="msj-login-form" onsubmit="handleSignInAccount(event)" style="display:flex;flex-direction:column;gap:12px;">
+            <input type="email" id="login-email" placeholder="Email Address" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button type="submit" class="btn-card">Sign In to Account</button>
+          </form>
+
+          <form id="msj-register-form" onsubmit="handleRegisterAccount(event)" style="display:none;flex-direction:column;gap:12px;">
+            <input type="text" id="reg-name" placeholder="Full Name" required>
+            <input type="email" id="reg-email" placeholder="Email Address" required>
+            <input type="password" id="reg-password" placeholder="Create Password (min 6 characters)" minlength="6" required>
+            <select id="reg-size">
+              <option value="S">Preferred Size: Small (S)</option>
+              <option value="M">Preferred Size: Medium (M)</option>
+              <option value="L" selected>Preferred Size: Large (L)</option>
+              <option value="XL">Preferred Size: XL</option>
+              <option value="2XL">Preferred Size: 2XL</option>
+            </select>
+            <button type="submit" class="btn-card">Create Free Account</button>
+          </form>
+
+          <p id="auth-status-msg" class="modal-status" style="margin-top:10px;"></p>
+        </div>
+
+        <!-- Logged In: Order History & Saved Shipping Vault -->
+        <div id="msj-auth-logged-in" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-right:32px;margin-bottom:16px;">
+            <div>
+              <span class="section-kicker">Member Account</span>
+              <h3 id="acct-welcome-name" style="font-size:22px;">Customer Name</h3>
+              <p id="acct-welcome-email" style="font-size:13px;color:var(--text-muted);">email@example.com</p>
+            </div>
+            <button type="button" class="filter-btn" onclick="handleSignOut()">Sign Out</button>
+          </div>
+
+          <div class="auth-tabs">
+            <button type="button" id="acct-tab-orders" class="filter-btn active" onclick="switchAccountPanel('orders')">Order History</button>
+            <button type="button" id="acct-tab-profile" class="filter-btn" onclick="switchAccountPanel('profile')">Saved Shipping &amp; Size</button>
+          </div>
+
+          <div id="acct-panel-orders">
+            <div id="acct-order-history-list" class="order-history-list"></div>
+          </div>
+
+          <div id="acct-panel-profile" style="display:none;">
+            <form onsubmit="handleSaveProfile(event)" style="display:flex;flex-direction:column;gap:12px;">
+              <input type="text" id="prof-name" placeholder="Full Name" required>
+              <input type="text" id="prof-phone" placeholder="Phone Number (for delivery updates)">
+              <input type="text" id="prof-street" placeholder="Default Street Address &amp; Apt #">
+              <input type="text" id="prof-city-zip" placeholder="City, State &amp; Zip Code">
+              <select id="prof-size">
+                <option value="S">Preferred Size: Small (S)</option>
+                <option value="M">Preferred Size: Medium (M)</option>
+                <option value="L">Preferred Size: Large (L)</option>
+                <option value="XL">Preferred Size: XL</option>
+                <option value="2XL">Preferred Size: 2XL</option>
+              </select>
+              <button type="submit" class="btn-card">Save Shipping &amp; Size</button>
+              <p id="prof-save-msg" class="modal-status"></p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Product Quick-View Modal -->
     <div id="msj-quickview-modal" class="modal-overlay" onclick="if(event.target===this) closeQuickView()">
       <div class="modal-box modal-box-wide">
@@ -493,14 +890,15 @@ function injectStorefrontOverlays() {
         <div id="msj-bag-items" class="drawer-body"></div>
 
         <div id="msj-bag-checkout-area" class="drawer-footer">
+          <p id="msj-bag-account-note" style="font-size:12px;color:var(--text-muted);margin-bottom:10px;"></p>
           <div class="bag-subtotal-row">
             <span>Estimated Subtotal</span>
             <strong id="msj-bag-subtotal">$0.00</strong>
           </div>
           <form id="msj-bag-checkout-form">
-            <input type="text" name="customer_name" placeholder="Full Name" required>
-            <input type="email" name="customer_email" placeholder="Email Address (for invoice & tracking)" required>
-            <input type="text" name="shipping_address" placeholder="Shipping City, State & Zip Code" required>
+            <input type="text" id="bag-cust-name" name="customer_name" placeholder="Full Name" required>
+            <input type="email" id="bag-cust-email" name="customer_email" placeholder="Email Address (for invoice & tracking)" required>
+            <input type="text" id="bag-cust-address" name="shipping_address" placeholder="Street Address, City, State & Zip" required>
             <button type="submit" class="btn-card">Complete Order Request</button>
             <p id="msj-bag-status" class="modal-status"></p>
           </form>
@@ -524,6 +922,7 @@ function injectStorefrontOverlays() {
       const orderSummary = msjCart
         .map((i) => `${i.qty}x ${i.name} [Size: ${i.size}] ($${i.price * i.qty})`)
         .join(" | ");
+      const shippingAddress = document.getElementById("bag-cust-address").value.trim();
 
       const payload = new FormData(checkoutForm);
       payload.append("order_items", orderSummary);
@@ -541,8 +940,38 @@ function injectStorefrontOverlays() {
         });
 
         if (res.ok) {
+          // Save purchase record to signed-in customer's account
+          if (currentUser) {
+            const db = getAccountsDB();
+            const record = db[currentUser.email];
+            if (record) {
+              if (!record.cityZip && shippingAddress) {
+                record.cityZip = shippingAddress;
+              }
+              record.orders = record.orders || [];
+              record.orders.unshift({
+                orderNumber: `MSJ-${Math.floor(1000 + Math.random() * 9000)}`,
+                date: new Date().toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric"
+                }),
+                status: "Request Submitted",
+                itemsSummary: orderSummary,
+                shippingAddress,
+                subtotal: `$${subtotal.toFixed(2)}`,
+                rawItems: msjCart.map((i) => ({ id: i.id, size: i.size, qty: i.qty }))
+              });
+              saveAccountsDB(db);
+              loadCurrentUser();
+            }
+          }
+
           statusEl.style.color = "#10b981";
-          statusEl.textContent = "Order request received! Check your email for confirmation and payment link.";
+          statusEl.innerHTML = currentUser
+            ? "Order confirmed &amp; saved to your Account Order History! Check your email for invoice details."
+            : `Order confirmed! <button type="button" class="size-guide-link" onclick="closeCartDrawer(); openAccountModal('register');">Create an account</button> to save your details for next time.`;
+
           msjCart = [];
           saveCart();
           checkoutForm.reset();
@@ -562,6 +991,8 @@ function injectStorefrontOverlays() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  injectNavAndFooterLinks();
   injectStorefrontOverlays();
+  loadCurrentUser();
   loadCart();
 });
