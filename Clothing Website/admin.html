@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Admin | Major Style Junction</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="announcement-bar">
+    MSJ Storefront Admin Portal • Live Supabase Inventory Control
+  </div>
+
+  <header>
+    <div class="nav-inner">
+      <a href="index.html" class="brand-link">
+        <span class="logo-mark">MSJ</span>
+        <span>Major Style Junction — Admin</span>
+      </a>
+      <nav>
+        <a href="index.html">View Live Site</a>
+        <a href="shop.html">View Shop</a>
+        <button type="button" id="admin-signout-btn" class="filter-btn" style="display:none;" onclick="adminSignOut()">Sign Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ADMIN LOGIN VIEW -->
+    <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
+      <span class="section-kicker">Owner Access Only</span>
+      <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to add drops, upload photos, and manage stock.</p>
+      <form id="admin-login-form">
+        <input type="email" id="admin-email" placeholder="Admin Email" required>
+        <input type="password" id="admin-password" placeholder="Admin Password" required>
+        <button type="submit" class="btn-card">Sign In to Dashboard</button>
+        <p id="admin-login-msg" class="modal-status" style="margin-top: 10px;"></p>
+      </form>
+    </div>
+
+    <!-- ADMIN DASHBOARD VIEW -->
+    <div id="admin-dashboard-view" style="display: none;">
+      <div class="contact-card" style="max-width: 760px; margin-bottom: 36px;">
+        <span class="section-kicker">New Release</span>
+        <h2 style="margin-bottom: 16px;">Add New Product / Drop</h2>
+
+        <form id="new-product-form">
+          <input type="text" id="prod-name" placeholder="Product Name (e.g., MSJ Chrome Eagle Heavyweight Tee)" required>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+            <select id="prod-category">
+              <option value="tees">Category: Graphic Tees</option>
+              <option value="hoodies">Category: Hoodies</option>
+              <option value="accessories">Category: Accessories</option>
+            </select>
+
+            <input type="number" id="prod-price" placeholder="Price ($)" min="1" step="0.01" required>
+
+            <select id="prod-status">
+              <option value="In Stock">Status: In Stock</option>
+              <option value="Low Stock">Status: Low Stock</option>
+              <option value="Coming Soon">Status: Coming Soon</option>
+              <option value="Sold Out">Status: Sold Out</option>
+            </select>
+
+            <input type="text" id="prod-badge" placeholder="Badge (e.g., Drop 02, Limited)" value="Drop 02">
+          </div>
+
+          <div style="margin: 12px 0;">
+            <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Available Sizes:</label>
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px;">
+              <label><input type="checkbox" class="size-cb" value="S" checked> S</label>
+              <label><input type="checkbox" class="size-cb" value="M" checked> M</label>
+              <label><input type="checkbox" class="size-cb" value="L" checked> L</label>
+              <label><input type="checkbox" class="size-cb" value="XL" checked> XL</label>
+              <label><input type="checkbox" class="size-cb" value="2XL" checked> 2XL</label>
+            </div>
+          </div>
+
+          <div style="margin: 12px 0;">
+            <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Product Photo (Optional — leave blank to use MSJ Emblem):</label>
+            <input type="file" id="prod-image-file" accept="image/*">
+          </div>
+
+          <input type="text" id="prod-fit" placeholder="Fit Notes" value="Boxy streetwear fit — true to size with slightly dropped shoulders.">
+          <input type="text" id="prod-care" placeholder="Fabric & Care" value="100% combed ring-spun cotton. Machine wash cold inside-out.">
+          <textarea id="prod-desc" placeholder="Product Description" required></textarea>
+
+          <button type="submit" id="create-prod-btn" class="btn-card">Publish Product to Live Store</button>
+          <p id="create-prod-msg" class="modal-status" style="margin-top: 10px;"></p>
+        </form>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Live Catalog</span>
+          <h2>Manage Current Inventory</h2>
+        </div>
+      </div>
+      <div id="admin-inventory-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    const loginView = document.getElementById("admin-login-view");
+    const dashView = document.getElementById("admin-dashboard-view");
+    const signoutBtn = document.getElementById("admin-signout-btn");
+
+    async function checkAdminSession() {
+      const { data: { session } } = await msjSupabase.auth.getSession();
+      if (session) {
+        loginView.style.display = "none";
+        dashView.style.display = "block";
+        signoutBtn.style.display = "inline-block";
+        loadAdminInventory();
+      } else {
+        loginView.style.display = "block";
+        dashView.style.display = "none";
+        signoutBtn.style.display = "none";
+      }
+    }
+
+    document.getElementById("admin-login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("admin-login-msg");
+      const email = document.getElementById("admin-email").value.trim();
+      const password = document.getElementById("admin-password").value;
+
+      const { error } = await msjSupabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        msg.style.color = "#ef4444";
+        msg.textContent = error.message;
+      } else {
+        msg.textContent = "";
+        checkAdminSession();
+      }
+    });
+
+    async function adminSignOut() {
+      await msjSupabase.auth.signOut();
+      checkAdminSession();
+    }
+
+    document.getElementById("new-product-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("create-prod-btn");
+      const msg = document.getElementById("create-prod-msg");
+      btn.disabled = true;
+      btn.textContent = "Publishing...";
+      msg.textContent = "";
+
+      try {
+        let imageUrl = "typographic";
+        const fileInput = document.getElementById("prod-image-file");
+
+        if (fileInput.files && fileInput.files[0]) {
+          const file = fileInput.files[0];
+          const cleanName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          const { error: uploadErr } = await msjSupabase.storage
+            .from("msj-products")
+            .upload(cleanName, file);
+
+          if (uploadErr) throw uploadErr;
+
+          const { data: urlData } = msjSupabase.storage
+            .from("msj-products")
+            .getPublicUrl(cleanName);
+
+          imageUrl = urlData.publicUrl;
+        }
+
+        const selectedSizes = Array.from(document.querySelectorAll(".size-cb:checked")).map(cb => cb.value);
+
+        const { error: insertErr } = await msjSupabase.from("products").insert([{
+          name: document.getElementById("prod-name").value.trim(),
+          category: document.getElementById("prod-category").value,
+          price: parseFloat(document.getElementById("prod-price").value),
+          status: document.getElementById("prod-status").value,
+          badge: document.getElementById("prod-badge").value.trim() || "Drop 01",
+          image: imageUrl,
+          sizes: selectedSizes.length ? selectedSizes : ["S", "M", "L", "XL"],
+          fit: document.getElementById("prod-fit").value.trim(),
+          care: document.getElementById("prod-care").value.trim(),
+          description: document.getElementById("prod-desc").value.trim()
+        }]);
+
+        if (insertErr) throw insertErr;
+
+        msg.style.color = "#10b981";
+        msg.textContent = "Product published! It is now live on majorstylejunction.com.";
+        e.target.reset();
+        loadAdminInventory();
+      } catch (err) {
+        msg.style.color = "#ef4444";
+        msg.textContent = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Publish Product to Live Store";
+      }
+    });
+
+    async function loadAdminInventory() {
+      const list = document.getElementById("admin-inventory-list");
+      const { data, error } = await msjSupabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        list.innerHTML = `<p style="color:#ef4444;">Failed to load products: ${error.message}</p>`;
+        return;
+      }
+
+      list.innerHTML = data.map(item => `
+        <div class="contact-card" style="max-width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px 22px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${item.image && item.image !== "typographic"
+              ? `<img src="${item.image}" alt="${item.name}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 8px;">`
+              : `<div class="bag-typo-thumb">MSJ</div>`
+            }
+            <div>
+              <strong>${item.name}</strong>
+              <p style="font-size: 13px; color: var(--text-muted);">$${item.price} • ${item.category.toUpperCase()} • Sizes: ${(item.sizes || []).join(", ")}</p>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <select onchange="updateProductStatus('${item.id}', this.value)" style="padding: 8px 12px; border-radius: 8px;">
+              ${["In Stock", "Low Stock", "Coming Soon", "Sold Out"].map(st =>
+                `<option value="${st}" ${item.status === st ? "selected" : ""}>${st}</option>`
+              ).join("")}
+            </select>
+
+            <button type="button" class="filter-btn" onclick="updateProductPrice('${item.id}', ${item.price})">Edit Price</button>
+            <button type="button" class="filter-btn" style="color: #ef4444;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function updateProductStatus(id, newStatus) {
+      const { error } = await msjSupabase.from("products").update({ status: newStatus }).eq("id", id);
+      if (error) alert("Error updating status: " + error.message);
+    }
+
+    async function updateProductPrice(id, currentPrice) {
+      const input = prompt("Enter new price ($):", currentPrice);
+      if (!input || isNaN(parseFloat(input))) return;
+      const { error } = await msjSupabase.from("products").update({ price: parseFloat(input) }).eq("id", id);
+      if (error) alert("Error updating price: " + error.message);
+      loadAdminInventory();
+    }
+
+    async function deleteProduct(id, name) {
+      if (!confirm(`Delete "${name}" from the store?`)) return;
+      const { error } = await msjSupabase.from("products").delete().eq("id", id);
+      if (error) alert("Error deleting product: " + error.message);
+      loadAdminInventory();
+    }
+
+    checkAdminSession();
+  </script>
+</body>
+</html>

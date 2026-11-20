@@ -14,9 +14,9 @@ const MSJ_PRODUCTS = [
   {
     id: "msj-001",
     name: "MSJ Signature Heavyweight Tee",
-    category: "tees", // Options: "tees", "hoodies", "accessories"
+    category: "tees",
     price: 38,
-    status: "In Stock", // Options: "In Stock", "Low Stock", "Coming Soon", "Sold Out"
+    status: "In Stock",
     badge: "Drop 01",
     image: "typographic",
     sizes: ["S", "M", "L", "XL", "2XL"],
@@ -51,6 +51,24 @@ const MSJ_PRODUCTS = [
     description: "Vibrant full-color DTF graphic print pressed in-house with soft-hand finish."
   }
 ];
+
+let LIVE_PRODUCTS = [...MSJ_PRODUCTS];
+const activeGridRenders = {};
+
+async function syncProductsFromSupabase() {
+  if (!window.msjSupabase) return;
+  const { data, error } = await window.msjSupabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (!error && Array.isArray(data) && data.length > 0) {
+    LIVE_PRODUCTS = data;
+    Object.entries(activeGridRenders).forEach(([containerId, opts]) => {
+      renderProducts(containerId, opts);
+    });
+  }
+}
 
 // ============================================================
 // CUSTOMER ACCOUNT, SAVED SHIPPING & ORDER HISTORY STATE
@@ -123,7 +141,6 @@ function updateAccountUI() {
     document.getElementById("acct-welcome-name").textContent = currentUser.name;
     document.getElementById("acct-welcome-email").textContent = currentUser.email;
 
-    // Populate saved profile & shipping inputs
     document.getElementById("prof-name").value = currentUser.name || "";
     document.getElementById("prof-phone").value = currentUser.phone || "";
     document.getElementById("prof-size").value = currentUser.preferredSize || "L";
@@ -356,7 +373,7 @@ function saveCart() {
 }
 
 function addToBag(productId, size) {
-  const product = MSJ_PRODUCTS.find((p) => p.id === productId);
+  const product = LIVE_PRODUCTS.find((p) => p.id === productId);
   if (!product) return;
 
   const chosenSize = size || product.sizes[0] || "OS";
@@ -480,7 +497,6 @@ function openCartDrawer() {
   const drawer = document.getElementById("msj-cart-drawer");
   if (!drawer) return;
 
-  // Auto-fill checkout fields if customer is signed in
   const noteEl = document.getElementById("msj-bag-account-note");
   const nameInput = document.getElementById("bag-cust-name");
   const emailInput = document.getElementById("bag-cust-email");
@@ -512,6 +528,7 @@ function closeCartDrawer() {
 // ============================================================
 
 function renderProducts(containerId, options = {}) {
+  activeGridRenders[containerId] = options;
   const grid = document.getElementById(containerId);
   if (!grid) return;
 
@@ -522,7 +539,7 @@ function renderProducts(containerId, options = {}) {
     limit = null
   } = options;
 
-  let items = [...MSJ_PRODUCTS];
+  let items = [...LIVE_PRODUCTS];
 
   if (category !== "all") {
     items = items.filter((item) => item.category === category);
@@ -611,7 +628,7 @@ function renderProducts(containerId, options = {}) {
 // ============================================================
 
 function openQuickView(productId) {
-  const item = MSJ_PRODUCTS.find((p) => p.id === productId);
+  const item = LIVE_PRODUCTS.find((p) => p.id === productId);
   const modal = document.getElementById("msj-quickview-modal");
   if (!item || !modal) return;
 
@@ -697,7 +714,6 @@ function closeSizeGuide() {
 // ============================================================
 
 function injectNavAndFooterLinks() {
-  // Inject Sign In / Account button right before Bag button in header nav
   const nav = document.querySelector("header nav");
   const bagTrigger = nav && nav.querySelector(".bag-trigger");
   if (nav && bagTrigger && !nav.querySelector(".js-account-btn")) {
@@ -709,7 +725,6 @@ function injectNavAndFooterLinks() {
     nav.insertBefore(acctBtn, bagTrigger);
   }
 
-  // Inject MSJ Cloud Tech Support bar in footer
   const footer = document.querySelector("footer");
   if (footer && !footer.querySelector(".footer-tech-bar")) {
     const techBar = document.createElement("div");
@@ -940,7 +955,6 @@ function injectStorefrontOverlays() {
         });
 
         if (res.ok) {
-          // Save purchase record to signed-in customer's account
           if (currentUser) {
             const db = getAccountsDB();
             const record = db[currentUser.email];
@@ -995,4 +1009,5 @@ document.addEventListener("DOMContentLoaded", () => {
   injectStorefrontOverlays();
   loadCurrentUser();
   loadCart();
+  syncProductsFromSupabase();
 });
