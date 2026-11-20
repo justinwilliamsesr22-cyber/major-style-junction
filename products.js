@@ -1,9 +1,10 @@
 // ============================================================
-// MAJOR STYLE JUNCTION — CENTRAL INVENTORY, BAG & ACCOUNT ENGINE
+// MAJOR STYLE JUNCTION — FULL-STACK COMMERCE & STOREFRONT ENGINE
 // ============================================================
 
 const MSJ_CONFIG = {
   freeShippingThreshold: 100,
+  flatShippingRate: 8.95,
   formspreeOrderEndpoint: "https://formspree.io/f/myeypbka",
   supportEmail: "MajorStyleJunction@MajorStyleJunction.com",
   techSupportEmail: "cloud@majorstylejunction.com",
@@ -20,6 +21,7 @@ const MSJ_PRODUCTS = [
     badge: "Drop 01",
     image: "typographic",
     sizes: ["S", "M", "L", "XL", "2XL"],
+    size_stock: { S: 10, M: 10, L: 10, XL: 10, "2XL": 10 },
     fit: "Boxy streetwear fit — true to size with slightly dropped shoulders.",
     care: "100% combed ring-spun cotton (6.5 oz). Machine wash cold inside-out; hang dry to preserve DTF artwork.",
     description: "Heavyweight 100% combed cotton blank featuring high-definition direct-to-film chest artwork."
@@ -33,6 +35,7 @@ const MSJ_PRODUCTS = [
     badge: "Limited Run",
     image: "typographic",
     sizes: ["S", "M", "L", "XL", "2XL"],
+    size_stock: { S: 10, M: 10, L: 10, XL: 10, "2XL": 10 },
     fit: "Relaxed heavyweight silhouette — size up for an oversized look.",
     care: "14oz preshrunk cotton fleece. Double-lined hood, no drawcords. Wash cold inside-out.",
     description: "14oz heavyweight fleece hoodie built for structured drape and everyday durability."
@@ -46,6 +49,7 @@ const MSJ_PRODUCTS = [
     badge: "Drop 01",
     image: "typographic",
     sizes: ["S", "M", "L", "XL", "2XL"],
+    size_stock: { S: 10, M: 10, L: 10, XL: 10, "2XL": 10 },
     fit: "Standard streetwear cut — pre-shrunk for consistent sizing.",
     care: "100% ring-spun cotton. Soft-hand full-color DTF graphic print. Do not iron directly over graphic.",
     description: "Vibrant full-color DTF graphic print pressed in-house with soft-hand finish."
@@ -54,6 +58,28 @@ const MSJ_PRODUCTS = [
 
 let LIVE_PRODUCTS = [...MSJ_PRODUCTS];
 const activeGridRenders = {};
+let appliedPromo = null;
+
+function getProductStockMap(item) {
+  if (item && item.size_stock && typeof item.size_stock === "object") {
+    return item.size_stock;
+  }
+  const fallbackQty = item && (item.status || "").toLowerCase() === "sold out" ? 0 : 10;
+  return { S: fallbackQty, M: fallbackQty, L: fallbackQty, XL: fallbackQty, "2XL": fallbackQty };
+}
+
+function getSizeAvailableQty(item, size) {
+  if (!item) return 0;
+  if ((item.status || "").toLowerCase() === "sold out") return 0;
+  const map = getProductStockMap(item);
+  return Number(map[size] ?? 0);
+}
+
+function getProductTotalStock(item) {
+  if (!item || (item.status || "").toLowerCase() === "sold out") return 0;
+  const map = getProductStockMap(item);
+  return Object.values(map).reduce((sum, n) => sum + Number(n || 0), 0);
+}
 
 async function syncProductsFromSupabase() {
   if (!window.msjSupabase) return;
@@ -284,7 +310,7 @@ function renderOrderHistory() {
   if (orders.length === 0) {
     listEl.innerHTML = `
       <div class="acct-empty">
-        <p>No saved orders yet. When you complete an order request while signed in, it will appear here for easy tracking and one-click reordering.</p>
+        <p>No saved orders yet. When you place an order while signed in, it will appear here for tracking and one-click reordering.</p>
       </div>
     `;
     return;
@@ -305,7 +331,10 @@ function renderOrderHistory() {
         <p class="order-ship-line">Ship to: ${ord.shippingAddress}</p>
         <div class="order-history-bottom">
           <strong>Total: ${ord.subtotal}</strong>
-          <button type="button" class="size-guide-link" onclick="reorderPastPurchase(${index})">Reorder Items</button>
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="size-guide-link" onclick="closeAccountModal(); openTrackModal('${ord.orderNumber}', '${currentUser.email}')">Track Status</button>
+            <button type="button" class="size-guide-link" onclick="reorderPastPurchase(${index})">Reorder</button>
+          </div>
         </div>
       </div>
     `
@@ -341,7 +370,7 @@ function closeAccountModal() {
 }
 
 // ============================================================
-// SHOPPING BAG STATE (Persists in browser localStorage)
+// SHOPPING BAG, PROMO CODE & STOCK VALIDATION ENGINE
 // ============================================================
 
 function renderTypographicGraphic(subLabel = "MAJOR STYLE JUNCTION") {
@@ -376,18 +405,29 @@ function addToBag(productId, size) {
   const product = LIVE_PRODUCTS.find((p) => p.id === productId);
   if (!product) return;
 
-  const chosenSize = size || product.sizes[0] || "OS";
+  const chosenSize = size || "L";
+  const maxAvailable = getSizeAvailableQty(product, chosenSize);
+
+  if (maxAvailable <= 0) {
+    alert(`Sorry, Size ${chosenSize} is currently sold out.`);
+    return;
+  }
+
   const existingIndex = msjCart.findIndex(
     (entry) => entry.id === productId && entry.size === chosenSize
   );
 
   if (existingIndex > -1) {
+    if (msjCart[existingIndex].qty >= maxAvailable) {
+      alert(`Only ${maxAvailable} unit(s) available in Size ${chosenSize}.`);
+      return;
+    }
     msjCart[existingIndex].qty += 1;
   } else {
     msjCart.push({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: Number(product.price),
       image: product.image,
       status: product.status,
       size: chosenSize,
@@ -401,9 +441,20 @@ function addToBag(productId, size) {
 }
 
 function updateBagQty(index, delta) {
-  if (!msjCart[index]) return;
-  msjCart[index].qty += delta;
-  if (msjCart[index].qty <= 0) {
+  const entry = msjCart[index];
+  if (!entry) return;
+
+  if (delta > 0) {
+    const product = LIVE_PRODUCTS.find((p) => p.id === entry.id);
+    const maxAvailable = product ? getSizeAvailableQty(product, entry.size) : 99;
+    if (entry.qty + delta > maxAvailable) {
+      alert(`Only ${maxAvailable} unit(s) left in Size ${entry.size}.`);
+      return;
+    }
+  }
+
+  entry.qty += delta;
+  if (entry.qty <= 0) {
     msjCart.splice(index, 1);
   }
   saveCart();
@@ -414,9 +465,71 @@ function removeBagItem(index) {
   saveCart();
 }
 
+function calculateBagTotals() {
+  const subtotal = msjCart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+  let discount = 0;
+
+  if (appliedPromo && subtotal > 0) {
+    if (appliedPromo.discount_type === "percent") {
+      discount = subtotal * (Number(appliedPromo.discount_value) / 100);
+    } else {
+      discount = Math.min(subtotal, Number(appliedPromo.discount_value));
+    }
+  }
+
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const shipping = discountedSubtotal === 0 || discountedSubtotal >= MSJ_CONFIG.freeShippingThreshold
+    ? 0
+    : MSJ_CONFIG.flatShippingRate;
+  const total = discountedSubtotal + shipping;
+
+  return { subtotal, discount, discountedSubtotal, shipping, total };
+}
+
+async function applyPromoCode() {
+  const input = document.getElementById("bag-promo-input");
+  const msg = document.getElementById("bag-promo-msg");
+  if (!input || !msg) return;
+
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    appliedPromo = null;
+    msg.textContent = "";
+    updateCartUI();
+    return;
+  }
+
+  if (!window.msjSupabase) {
+    msg.style.color = "#ef4444";
+    msg.textContent = "Promo validation unavailable offline.";
+    return;
+  }
+
+  const { data, error } = await window.msjSupabase
+    .from("promo_codes")
+    .select("*")
+    .eq("code", code)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error || !data) {
+    appliedPromo = null;
+    msg.style.color = "#ef4444";
+    msg.textContent = "Invalid or expired promo code.";
+  } else {
+    appliedPromo = data;
+    msg.style.color = "#10b981";
+    msg.textContent =
+      data.discount_type === "percent"
+        ? `Code ${data.code} applied (${data.discount_value}% off)!`
+        : `Code ${data.code} applied ($${Number(data.discount_value).toFixed(2)} off)!`;
+  }
+  updateCartUI();
+}
+
 function updateCartUI() {
   const totalCount = msjCart.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = msjCart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const { subtotal, discount, discountedSubtotal, shipping, total } = calculateBagTotals();
 
   document.querySelectorAll(".js-bag-count").forEach((el) => {
     el.textContent = totalCount;
@@ -424,6 +537,10 @@ function updateCartUI() {
 
   const itemsContainer = document.getElementById("msj-bag-items");
   const subtotalEl = document.getElementById("msj-bag-subtotal");
+  const discountRow = document.getElementById("msj-bag-discount-row");
+  const discountEl = document.getElementById("msj-bag-discount");
+  const shippingCostEl = document.getElementById("msj-bag-shipping-cost");
+  const totalEl = document.getElementById("msj-bag-total");
   const shippingTextEl = document.getElementById("msj-shipping-text");
   const shippingFillEl = document.getElementById("msj-shipping-fill");
   const checkoutSection = document.getElementById("msj-bag-checkout-area");
@@ -431,23 +548,29 @@ function updateCartUI() {
   if (!itemsContainer) return;
 
   const threshold = MSJ_CONFIG.freeShippingThreshold;
-  const pct = Math.min(100, Math.round((subtotal / threshold) * 100));
+  const pct = Math.min(100, Math.round((discountedSubtotal / threshold) * 100));
   if (shippingFillEl) shippingFillEl.style.width = `${pct}%`;
 
   if (shippingTextEl) {
-    if (subtotal === 0) {
+    if (discountedSubtotal === 0) {
       shippingTextEl.innerHTML = `Add <strong>$${threshold}</strong> to unlock <strong>FREE Standard Shipping</strong>.`;
-    } else if (subtotal < threshold) {
-      const remaining = threshold - subtotal;
+    } else if (discountedSubtotal < threshold) {
+      const remaining = threshold - discountedSubtotal;
       shippingTextEl.innerHTML = `You're <strong>$${remaining.toFixed(2)}</strong> away from <strong>FREE Shipping!</strong>`;
     } else {
       shippingTextEl.innerHTML = `Unlocked: <strong>FREE Standard Shipping</strong> applied to your order.`;
     }
   }
 
-  if (subtotalEl) {
-    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+  if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+  if (discountRow && discountEl) {
+    discountRow.style.display = discount > 0 ? "flex" : "none";
+    discountEl.textContent = `-$${discount.toFixed(2)}`;
   }
+  if (shippingCostEl) {
+    shippingCostEl.textContent = shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`;
+  }
+  if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
 
   if (msjCart.length === 0) {
     itemsContainer.innerHTML = `
@@ -477,14 +600,14 @@ function updateCartUI() {
               <h4>${item.name}</h4>
               <button type="button" class="bag-remove" onclick="removeBagItem(${idx})" aria-label="Remove item">&times;</button>
             </div>
-            <p class="bag-item-meta">Size: <strong>${item.size}</strong> • $${item.price} each</p>
+            <p class="bag-item-meta">Size: <strong>${item.size}</strong> • $${Number(item.price).toFixed(2)} each</p>
             <div class="bag-item-controls">
               <div class="qty-box">
                 <button type="button" onclick="updateBagQty(${idx}, -1)" aria-label="Decrease quantity">-</button>
                 <span>${item.qty}</span>
                 <button type="button" onclick="updateBagQty(${idx}, 1)" aria-label="Increase quantity">+</button>
               </div>
-              <span class="bag-item-total">$${(item.price * item.qty).toFixed(2)}</span>
+              <span class="bag-item-total">$${(Number(item.price) * item.qty).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -560,7 +683,7 @@ function renderProducts(containerId, options = {}) {
   } else if (sort === "price-desc") {
     items.sort((a, b) => b.price - a.price);
   } else if (sort === "instock") {
-    items = items.filter((item) => item.status.toLowerCase() === "in stock");
+    items = items.filter((item) => getProductTotalStock(item) > 0 && item.status.toLowerCase() !== "sold out");
   }
 
   if (limit) {
@@ -574,16 +697,19 @@ function renderProducts(containerId, options = {}) {
 
   grid.innerHTML = items
     .map((item) => {
-      const isSoldOut = item.status.toLowerCase() === "sold out";
+      const totalStock = getProductTotalStock(item);
+      const isSoldOut = item.status.toLowerCase() === "sold out" || totalStock === 0;
+      const displayStatus = isSoldOut ? "Sold Out" : item.status;
+
       const statusClass = isSoldOut
         ? "status-soldout"
-        : item.status.toLowerCase() === "in stock"
+        : displayStatus.toLowerCase() === "in stock"
         ? "status-instock"
         : "status-soon";
 
       const btnLabel = isSoldOut
         ? "Sold Out"
-        : item.status.toLowerCase() === "coming soon"
+        : displayStatus.toLowerCase() === "coming soon"
         ? "Quick View & Reserve"
         : "Select Size & Add to Bag";
 
@@ -592,11 +718,21 @@ function renderProducts(containerId, options = {}) {
           ? renderTypographicGraphic(item.badge)
           : `<img src="${item.image}" alt="${item.name}" loading="lazy">`;
 
+      const allSizes = ["S", "M", "L", "XL", "2XL"];
+      const sizePillsHtml = allSizes
+        .map((s) => {
+          const qty = getSizeAvailableQty(item, s);
+          return qty > 0
+            ? `<span>${s}</span>`
+            : `<span style="opacity:0.35;text-decoration:line-through;">${s}</span>`;
+        })
+        .join("");
+
       return `
         <article class="product-card">
           <div class="product-media" onclick="openQuickView('${item.id}')" style="cursor:pointer;">
             <span class="product-badge">${item.badge}</span>
-            <span class="product-status ${statusClass}">${item.status}</span>
+            <span class="product-status ${statusClass}">${displayStatus}</span>
             ${mediaContent}
             <span class="quickview-hint">Quick View</span>
           </div>
@@ -606,9 +742,7 @@ function renderProducts(containerId, options = {}) {
               <span class="product-price">$${item.price}</span>
             </div>
             <p class="product-desc">${item.description}</p>
-            <div class="size-pills">
-              ${item.sizes.map((s) => `<span>${s}</span>`).join("")}
-            </div>
+            <div class="size-pills">${sizePillsHtml}</div>
             <button
               type="button"
               class="btn-card ${isSoldOut ? "btn-disabled" : ""}"
@@ -633,13 +767,16 @@ function openQuickView(productId) {
   if (!item || !modal) return;
 
   activeQuickViewProduct = item;
+  const allSizes = ["S", "M", "L", "XL", "2XL"];
+  const inStockSizes = allSizes.filter((sz) => getSizeAvailableQty(item, sz) > 0);
   const preferred = currentUser && currentUser.preferredSize;
+
   selectedQuickViewSize =
-    preferred && item.sizes.includes(preferred)
+    preferred && inStockSizes.includes(preferred)
       ? preferred
-      : item.sizes.includes("L")
+      : inStockSizes.includes("L")
       ? "L"
-      : item.sizes[0];
+      : inStockSizes[0] || "L";
 
   const qvMedia = document.getElementById("qv-media-box");
   if (qvMedia) {
@@ -649,9 +786,12 @@ function openQuickView(productId) {
         : `<img src="${item.image}" alt="${item.name}">`;
   }
 
-  document.getElementById("qv-badge").textContent = `${item.badge} • ${item.status}`;
+  const totalStock = getProductTotalStock(item);
+  const isSoldOut = item.status.toLowerCase() === "sold out" || totalStock === 0;
+
+  document.getElementById("qv-badge").textContent = `${item.badge} • ${isSoldOut ? "Sold Out" : item.status}`;
   document.getElementById("qv-title").textContent = item.name;
-  document.getElementById("qv-price").textContent = `$${item.price}.00`;
+  document.getElementById("qv-price").textContent = `$${Number(item.price).toFixed(2)}`;
   document.getElementById("qv-desc").textContent = item.description;
   document.getElementById("qv-fit").textContent = item.fit || "True to streetwear sizing.";
   document.getElementById("qv-care").textContent = item.care || "Machine wash cold inside-out.";
@@ -659,7 +799,6 @@ function openQuickView(productId) {
   renderQuickViewSizes();
 
   const addBtn = document.getElementById("qv-add-btn");
-  const isSoldOut = item.status.toLowerCase() === "sold out";
   addBtn.disabled = isSoldOut;
   addBtn.textContent = isSoldOut
     ? "Sold Out"
@@ -672,21 +811,39 @@ function openQuickView(productId) {
 
 function renderQuickViewSizes() {
   const container = document.getElementById("qv-size-buttons");
+  const stockNote = document.getElementById("qv-stock-indicator");
   if (!container || !activeQuickViewProduct) return;
 
-  container.innerHTML = activeQuickViewProduct.sizes
-    .map(
-      (sz) => `
+  const allSizes = ["S", "M", "L", "XL", "2XL"];
+  container.innerHTML = allSizes
+    .map((sz) => {
+      const qty = getSizeAvailableQty(activeQuickViewProduct, sz);
+      const disabled = qty <= 0;
+      return `
       <button
         type="button"
-        class="qv-size-btn ${sz === selectedQuickViewSize ? "selected" : ""}"
-        onclick="selectQuickViewSize('${sz}')"
+        class="qv-size-btn ${sz === selectedQuickViewSize && !disabled ? "selected" : ""}"
+        ${disabled ? 'disabled style="opacity:0.35;text-decoration:line-through;cursor:not-allowed;"' : `onclick="selectQuickViewSize('${sz}')"`}
       >
         ${sz}
       </button>
-    `
-    )
+    `;
+    })
     .join("");
+
+  if (stockNote) {
+    const selectedQty = getSizeAvailableQty(activeQuickViewProduct, selectedQuickViewSize);
+    if (selectedQty <= 0) {
+      stockNote.style.color = "#ef4444";
+      stockNote.textContent = `Size ${selectedQuickViewSize}: Sold Out`;
+    } else if (selectedQty <= 3) {
+      stockNote.style.color = "#d97706";
+      stockNote.textContent = `Low stock — only ${selectedQty} left in Size ${selectedQuickViewSize}!`;
+    } else {
+      stockNote.style.color = "#10b981";
+      stockNote.textContent = `In Stock (${selectedQty} available in Size ${selectedQuickViewSize})`;
+    }
+  }
 }
 
 function selectQuickViewSize(sz) {
@@ -710,13 +867,237 @@ function closeSizeGuide() {
 }
 
 // ============================================================
-// AUTO-INJECT NAV ACCOUNT BUTTON, TECH SUPPORT FOOTER & MODALS
+// SELF-SERVICE CUSTOMER ORDER TRACKER MODAL
+// ============================================================
+
+function openTrackModal(prefillOrder = "", prefillEmail = "") {
+  const modal = document.getElementById("msj-track-modal");
+  if (!modal) return;
+  if (prefillOrder) document.getElementById("track-order-num").value = prefillOrder;
+  if (prefillEmail) document.getElementById("track-order-email").value = prefillEmail;
+  modal.classList.add("active");
+  if (prefillOrder && prefillEmail) {
+    handleLookupOrder();
+  }
+}
+
+function closeTrackModal() {
+  const modal = document.getElementById("msj-track-modal");
+  if (modal) modal.classList.remove("active");
+}
+
+async function handleLookupOrder(e) {
+  if (e) e.preventDefault();
+  const orderNum = document.getElementById("track-order-num").value.trim().replace(/^#/, "");
+  const email = document.getElementById("track-order-email").value.trim();
+  const resultEl = document.getElementById("track-order-result");
+
+  resultEl.innerHTML = `<p style="font-size:13px;color:var(--text-muted);">Searching order records...</p>`;
+
+  if (!window.msjSupabase) {
+    resultEl.innerHTML = `<p style="color:#ef4444;font-size:13px;">Tracking service unavailable offline.</p>`;
+    return;
+  }
+
+  const { data, error } = await window.msjSupabase.rpc("lookup_customer_order", {
+    p_order_number: orderNum,
+    p_email: email
+  });
+
+  if (error || !data || data.length === 0) {
+    resultEl.innerHTML = `<p style="color:#ef4444;font-size:13px;">No matching order found. Check your Order Number (e.g., MSJ-4821) and email address.</p>`;
+    return;
+  }
+
+  const ord = data[0];
+  const itemsList = (ord.items || [])
+    .map((i) => `<li>${i.qty}x ${i.name} (Size: <strong>${i.size}</strong>)</li>`)
+    .join("");
+
+  resultEl.innerHTML = `
+    <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin-top:12px;font-size:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong>Order #${ord.order_number}</strong>
+        <span class="order-badge">${ord.fulfillment_status}</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">Payment: <strong>${ord.payment_status}</strong> • Total: <strong>$${Number(ord.total).toFixed(2)}</strong></p>
+      ${
+        ord.tracking_number
+          ? `<p style="background:#fff;padding:10px;border-radius:8px;margin-bottom:10px;"><strong>${ord.tracking_carrier || "Carrier"} Tracking:</strong> ${ord.tracking_number}</p>`
+          : `<p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Tracking number will appear here as soon as your package is scanned for dispatch.</p>`
+      }
+      <ul style="padding-left:18px;font-size:13px;">${itemsList}</ul>
+    </div>
+  `;
+}
+
+// ============================================================
+// CHECKOUT HANDLERS (STRIPE CHECKOUT + DIRECT DATABASE ORDER)
+// ============================================================
+
+function generateOrderNumber() {
+  return `MSJ-${Math.floor(100000 + Math.random() * 900000)}`;
+}
+
+async function processStripeCheckout() {
+  const statusEl = document.getElementById("msj-bag-status");
+  const stripeBtn = document.getElementById("msj-stripe-btn");
+  const { total } = calculateBagTotals();
+
+  stripeBtn.disabled = true;
+  stripeBtn.textContent = "Connecting to Secure Checkout...";
+  statusEl.textContent = "";
+
+  try {
+    const res = await fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: msjCart,
+        promoCode: appliedPromo ? appliedPromo.code : "",
+        customerEmail: currentUser ? currentUser.email : document.getElementById("bag-cust-email").value.trim()
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+      return;
+    }
+
+    // If Stripe keys are not yet configured on Vercel, guide user cleanly to Direct Order Request
+    statusEl.style.color = "#d97706";
+    statusEl.textContent = data.error || `Card checkout is being activated ($${total.toFixed(2)}). Use "Complete Order Request" below to lock in your items now.`;
+  } catch {
+    statusEl.style.color = "#d97706";
+    statusEl.textContent = `Card checkout is being activated. Use "Complete Order Request" below to lock in your items now.`;
+  } finally {
+    stripeBtn.disabled = false;
+    stripeBtn.textContent = "Pay Now with Card / Apple Pay";
+  }
+}
+
+async function submitDirectOrderToDatabase(e) {
+  e.preventDefault();
+  const statusEl = document.getElementById("msj-bag-status");
+  const btn = document.getElementById("msj-direct-order-btn");
+  btn.disabled = true;
+  btn.textContent = "Locking In Order...";
+
+  const customerName = document.getElementById("bag-cust-name").value.trim();
+  const customerEmail = document.getElementById("bag-cust-email").value.trim();
+  const shippingAddress = document.getElementById("bag-cust-address").value.trim();
+  const { subtotal, discount, shipping, total } = calculateBagTotals();
+  const orderNumber = generateOrderNumber();
+
+  const orderSummary = msjCart
+    .map((i) => `${i.qty}x ${i.name} [Size: ${i.size}] ($${(i.price * i.qty).toFixed(2)})`)
+    .join(" | ");
+
+  try {
+    // 1. Save order to live Supabase `orders` table
+    if (window.msjSupabase) {
+      const { error: orderErr } = await window.msjSupabase.from("orders").insert([{
+        order_number: orderNumber,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        shipping_address: shippingAddress,
+        items: msjCart,
+        subtotal,
+        discount_amount: discount,
+        promo_code: appliedPromo ? appliedPromo.code : "",
+        shipping_cost: shipping,
+        total,
+        payment_status: "Pending Invoice",
+        fulfillment_status: "Unfulfilled"
+      }]);
+
+      if (orderErr) throw orderErr;
+
+      // 2. Atomically deduct per-size stock in Supabase
+      for (const item of msjCart) {
+        if (item.id && !item.id.startsWith("msj-")) {
+          await window.msjSupabase.rpc("decrement_product_stock", {
+            p_product_id: item.id,
+            p_size: item.size,
+            p_qty: item.qty
+          });
+        }
+      }
+
+      // 3. Increment promo code use count if applied
+      if (appliedPromo) {
+        await window.msjSupabase.rpc("increment_promo_use", { p_code: appliedPromo.code });
+      }
+    }
+
+    // 4. Send email notification via Formspree
+    const payload = new FormData();
+    payload.append("order_number", orderNumber);
+    payload.append("customer_name", customerName);
+    payload.append("customer_email", customerEmail);
+    payload.append("shipping_address", shippingAddress);
+    payload.append("order_items", orderSummary);
+    payload.append("order_total", `$${total.toFixed(2)}`);
+    await fetch(MSJ_CONFIG.formspreeOrderEndpoint, {
+      method: "POST",
+      body: payload,
+      headers: { Accept: "application/json" }
+    }).catch(() => {});
+
+    // 5. Save to local member account history if logged in
+    if (currentUser) {
+      const db = getAccountsDB();
+      const record = db[currentUser.email];
+      if (record) {
+        if (!record.cityZip && shippingAddress) record.cityZip = shippingAddress;
+        record.orders = record.orders || [];
+        record.orders.unshift({
+          orderNumber,
+          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          status: "Unfulfilled",
+          itemsSummary: orderSummary,
+          shippingAddress,
+          subtotal: `$${total.toFixed(2)}`,
+          rawItems: msjCart.map((i) => ({ id: i.id, size: i.size, qty: i.qty }))
+        });
+        saveAccountsDB(db);
+        loadCurrentUser();
+      }
+    }
+
+    statusEl.style.color = "#10b981";
+    statusEl.innerHTML = `Order <strong>#${orderNumber}</strong> confirmed &amp; stock reserved! <button type="button" class="size-guide-link" onclick="closeCartDrawer(); openTrackModal('${orderNumber}', '${customerEmail}');">Track Order Status</button>`;
+
+    msjCart = [];
+    appliedPromo = null;
+    saveCart();
+    syncProductsFromSupabase();
+    document.getElementById("msj-bag-checkout-form").reset();
+  } catch (err) {
+    statusEl.style.color = "#ef4444";
+    statusEl.textContent = "Could not submit order: " + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Complete Order Request";
+  }
+}
+
+// ============================================================
+// AUTO-INJECT NAV LINKS, FOOTER BAR & OVERLAYS
 // ============================================================
 
 function injectNavAndFooterLinks() {
   const nav = document.querySelector("header nav");
   const bagTrigger = nav && nav.querySelector(".bag-trigger");
   if (nav && bagTrigger && !nav.querySelector(".js-account-btn")) {
+    const trackBtn = document.createElement("button");
+    trackBtn.type = "button";
+    trackBtn.className = "account-trigger";
+    trackBtn.textContent = "Track Order";
+    trackBtn.onclick = () => openTrackModal();
+    nav.insertBefore(trackBtn, bagTrigger);
+
     const acctBtn = document.createElement("button");
     acctBtn.type = "button";
     acctBtn.className = "account-trigger js-account-btn";
@@ -730,7 +1111,7 @@ function injectNavAndFooterLinks() {
     const techBar = document.createElement("div");
     techBar.className = "footer-tech-bar";
     techBar.innerHTML = `
-      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="admin.html">Admin</a></span>
+      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="admin.html">Admin</a></span>
     `;
     footer.appendChild(techBar);
   }
@@ -741,12 +1122,27 @@ function injectStorefrontOverlays() {
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = `
+    <!-- Track Order Modal -->
+    <div id="msj-track-modal" class="modal-overlay" onclick="if(event.target===this) closeTrackModal()">
+      <div class="modal-box" style="max-width: 480px;">
+        <button type="button" class="modal-close" onclick="closeTrackModal()" aria-label="Close">&times;</button>
+        <span class="section-kicker">Live Fulfillment Status</span>
+        <h3 style="font-size:22px;margin-bottom:6px;">Track Your Order</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Enter your Order Number and checkout email to view packing status and carrier tracking.</p>
+        <form onsubmit="handleLookupOrder(event)" style="display:flex;flex-direction:column;gap:10px;">
+          <input type="text" id="track-order-num" placeholder="Order Number (e.g., MSJ-482910)" required>
+          <input type="email" id="track-order-email" placeholder="Checkout Email Address" required>
+          <button type="submit" class="btn-card">Check Order Status</button>
+        </form>
+        <div id="track-order-result"></div>
+      </div>
+    </div>
+
     <!-- Customer Account Sign-In & Saved Purchases Modal -->
     <div id="msj-account-modal" class="modal-overlay" onclick="if(event.target===this) closeAccountModal()">
       <div class="modal-box" style="max-width: 540px;">
         <button type="button" class="modal-close" onclick="closeAccountModal()" aria-label="Close">&times;</button>
 
-        <!-- Logged Out: Sign In / Create Account -->
         <div id="msj-auth-logged-out">
           <span class="section-kicker">Customer Portal</span>
           <h3 style="font-size:24px;margin-bottom:6px;">Member Sign In</h3>
@@ -780,7 +1176,6 @@ function injectStorefrontOverlays() {
           <p id="auth-status-msg" class="modal-status" style="margin-top:10px;"></p>
         </div>
 
-        <!-- Logged In: Order History & Saved Shipping Vault -->
         <div id="msj-auth-logged-in" style="display:none;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-right:32px;margin-bottom:16px;">
             <div>
@@ -838,12 +1233,13 @@ function injectStorefrontOverlays() {
               <button type="button" class="size-guide-link" onclick="openSizeGuide()">Size &amp; Fit Guide</button>
             </div>
             <div id="qv-size-buttons" class="qv-size-grid"></div>
+            <p id="qv-stock-indicator" style="font-size:12px;font-weight:600;margin-top:8px;"></p>
 
             <button
               type="button"
               id="qv-add-btn"
               class="btn-card"
-              style="margin-top:18px;padding:14px;"
+              style="margin-top:14px;padding:14px;"
               onclick="if(activeQuickViewProduct) addToBag(activeQuickViewProduct.id, selectedQuickViewSize)"
             >
               Add to Bag
@@ -905,16 +1301,41 @@ function injectStorefrontOverlays() {
         <div id="msj-bag-items" class="drawer-body"></div>
 
         <div id="msj-bag-checkout-area" class="drawer-footer">
-          <p id="msj-bag-account-note" style="font-size:12px;color:var(--text-muted);margin-bottom:10px;"></p>
-          <div class="bag-subtotal-row">
-            <span>Estimated Subtotal</span>
-            <strong id="msj-bag-subtotal">$0.00</strong>
+          <p id="msj-bag-account-note" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></p>
+
+          <!-- Promo Code Bar -->
+          <div style="display:flex;gap:8px;margin-bottom:6px;">
+            <input type="text" id="bag-promo-input" placeholder="Promo Code (e.g., MSJ10)" style="margin:0;padding:8px 10px;font-size:13px;text-transform:uppercase;">
+            <button type="button" class="filter-btn" onclick="applyPromoCode()" style="white-space:nowrap;">Apply</button>
           </div>
-          <form id="msj-bag-checkout-form">
+          <p id="bag-promo-msg" style="font-size:12px;margin-bottom:8px;"></p>
+
+          <div class="bag-subtotal-row" style="margin-bottom:4px;font-size:13px;">
+            <span>Subtotal</span>
+            <span id="msj-bag-subtotal">$0.00</span>
+          </div>
+          <div id="msj-bag-discount-row" class="bag-subtotal-row" style="display:none;margin-bottom:4px;font-size:13px;color:#10b981;">
+            <span>Promo Discount</span>
+            <span id="msj-bag-discount">-$0.00</span>
+          </div>
+          <div class="bag-subtotal-row" style="margin-bottom:6px;font-size:13px;">
+            <span>Shipping</span>
+            <span id="msj-bag-shipping-cost">$0.00</span>
+          </div>
+          <div class="bag-subtotal-row" style="border-top:1px solid var(--border,#e4e4e7);padding-top:8px;">
+            <span>Total</span>
+            <strong id="msj-bag-total">$0.00</strong>
+          </div>
+
+          <button type="button" id="msj-stripe-btn" class="btn-card" style="background:#635bff;margin-bottom:8px;" onclick="processStripeCheckout()">
+            Pay Now with Card / Apple Pay
+          </button>
+
+          <form id="msj-bag-checkout-form" onsubmit="submitDirectOrderToDatabase(event)">
             <input type="text" id="bag-cust-name" name="customer_name" placeholder="Full Name" required>
-            <input type="email" id="bag-cust-email" name="customer_email" placeholder="Email Address (for invoice & tracking)" required>
+            <input type="email" id="bag-cust-email" name="customer_email" placeholder="Email Address (for order tracking & receipt)" required>
             <input type="text" id="bag-cust-address" name="shipping_address" placeholder="Street Address, City, State & Zip" required>
-            <button type="submit" class="btn-card">Complete Order Request</button>
+            <button type="submit" id="msj-direct-order-btn" class="filter-btn" style="width:100%;padding:11px;">Complete Order Request (Reserve Stock)</button>
             <p id="msj-bag-status" class="modal-status"></p>
           </form>
         </div>
@@ -923,84 +1344,20 @@ function injectStorefrontOverlays() {
   `;
 
   document.body.appendChild(wrapper);
+}
 
-  const checkoutForm = document.getElementById("msj-bag-checkout-form");
-  if (checkoutForm) {
-    checkoutForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const statusEl = document.getElementById("msj-bag-status");
-      const btn = checkoutForm.querySelector("button[type='submit']");
-      btn.disabled = true;
-      btn.textContent = "Submitting Order...";
-
-      const subtotal = msjCart.reduce((sum, item) => sum + item.price * item.qty, 0);
-      const orderSummary = msjCart
-        .map((i) => `${i.qty}x ${i.name} [Size: ${i.size}] ($${i.price * i.qty})`)
-        .join(" | ");
-      const shippingAddress = document.getElementById("bag-cust-address").value.trim();
-
-      const payload = new FormData(checkoutForm);
-      payload.append("order_items", orderSummary);
-      payload.append("order_subtotal", `$${subtotal.toFixed(2)}`);
-      payload.append(
-        "shipping_tier",
-        subtotal >= MSJ_CONFIG.freeShippingThreshold ? "FREE Shipping Unlocked ($100+)" : "Standard Shipping"
-      );
-
-      try {
-        const res = await fetch(MSJ_CONFIG.formspreeOrderEndpoint, {
-          method: "POST",
-          body: payload,
-          headers: { Accept: "application/json" }
-        });
-
-        if (res.ok) {
-          if (currentUser) {
-            const db = getAccountsDB();
-            const record = db[currentUser.email];
-            if (record) {
-              if (!record.cityZip && shippingAddress) {
-                record.cityZip = shippingAddress;
-              }
-              record.orders = record.orders || [];
-              record.orders.unshift({
-                orderNumber: `MSJ-${Math.floor(1000 + Math.random() * 9000)}`,
-                date: new Date().toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric"
-                }),
-                status: "Request Submitted",
-                itemsSummary: orderSummary,
-                shippingAddress,
-                subtotal: `$${subtotal.toFixed(2)}`,
-                rawItems: msjCart.map((i) => ({ id: i.id, size: i.size, qty: i.qty }))
-              });
-              saveAccountsDB(db);
-              loadCurrentUser();
-            }
-          }
-
-          statusEl.style.color = "#10b981";
-          statusEl.innerHTML = currentUser
-            ? "Order confirmed &amp; saved to your Account Order History! Check your email for invoice details."
-            : `Order confirmed! <button type="button" class="size-guide-link" onclick="closeCartDrawer(); openAccountModal('register');">Create an account</button> to save your details for next time.`;
-
-          msjCart = [];
-          saveCart();
-          checkoutForm.reset();
-        } else {
-          statusEl.style.color = "#ef4444";
-          statusEl.textContent = `Could not submit automatically. Email ${MSJ_CONFIG.supportEmail}.`;
-        }
-      } catch {
-        statusEl.style.color = "#ef4444";
-        statusEl.textContent = "Network error. Please try again.";
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Complete Order Request";
-      }
-    });
+function checkPostCheckoutBanner() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("checkout") === "success") {
+    msjCart = [];
+    appliedPromo = null;
+    saveCart();
+    const orderNum = params.get("order") || "";
+    const banner = document.createElement("div");
+    banner.style.cssText = "background:#10b981;color:#fff;text-align:center;padding:12px 16px;font-size:14px;font-weight:600;";
+    banner.innerHTML = `Payment received! Your order ${orderNum ? `(#${orderNum})` : ""} is confirmed and queued for packing.`;
+    document.body.prepend(banner);
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 }
 
@@ -1009,5 +1366,6 @@ document.addEventListener("DOMContentLoaded", () => {
   injectStorefrontOverlays();
   loadCurrentUser();
   loadCart();
+  checkPostCheckoutBanner();
   syncProductsFromSupabase();
 });

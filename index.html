@@ -82,10 +82,11 @@
       <span class="hero-eyebrow">VIP Access</span>
       <h2>Get First Access to New Drops</h2>
       <p>Sign up to receive release alerts, restock notifications, and exclusive subscriber-only offers before pieces sell out.</p>
-      <form action="https://majorstylejunction.us3.list-manage.com/subscribe/post?u=58b8d91d1d1e1f8e6daf37176&id=17ac9734ab&f_id=009ec6e0f0" method="post" id="mc-embedded-subscribe-form" target="_blank">
-        <input type="email" name="EMAIL" placeholder="Enter your email address" required>
-        <button type="submit" name="subscribe" id="mc-embedded-subscribe">Join List</button>
+      <form id="msj-vip-newsletter-form">
+        <input type="email" id="vip-newsletter-email" placeholder="Enter your email address" required>
+        <button type="submit" id="vip-newsletter-btn">Join List</button>
       </form>
+      <p id="vip-newsletter-msg" style="margin-top: 12px; font-size: 14px; font-weight: 600;"></p>
     </div>
   </section>
 
@@ -148,6 +149,44 @@
   <script src="products.js"></script>
   <script>
     renderProducts("featured-products-grid", { category: "all", limit: 3 });
+
+    document.getElementById("msj-vip-newsletter-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById("vip-newsletter-email");
+      const btn = document.getElementById("vip-newsletter-btn");
+      const msg = document.getElementById("vip-newsletter-msg");
+
+      btn.disabled = true;
+      btn.textContent = "Joining...";
+      msg.textContent = "";
+
+      try {
+        const res = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: emailInput.value.trim(),
+            tag: "VIP Drop List"
+          })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.style.color = "#10b981";
+          msg.textContent = "You're on the VIP Drop List! Watch your inbox for early access.";
+          emailInput.value = "";
+        } else {
+          msg.style.color = "#ef4444";
+          msg.textContent = data.error || "Something went wrong. Please try again.";
+        }
+      } catch {
+        msg.style.color = "#ef4444";
+        msg.textContent = "Network error. Please try again.";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Join List";
+      }
+    });
   </script>
 </body>
 </html>

@@ -3,13 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inventory Admin | Major Style Junction</title>
+  <title>Store Command Center | Major Style Junction</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--surface, #fff);
+      border: 1px solid var(--border, #e4e4e7);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted, #71717a);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--text-muted, #71717a);
+      margin-top: 4px;
+    }
+    .admin-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 26px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border, #e4e4e7);
+    }
+    .size-stock-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 10px 0 16px;
+    }
+    .size-stock-cell {
+      background: #f4f4f5;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .size-stock-cell label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .size-stock-cell input {
+      width: 100%;
+      text-align: center;
+      padding: 6px;
+      margin: 0;
+      font-weight: 700;
+    }
+    .order-card {
+      background: var(--surface, #fff);
+      border: 1px solid var(--border, #e4e4e7);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .order-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border, #e4e4e7);
+    }
+    .pill-paid {
+      background: #dcfce7;
+      color: #166534;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pill-pending {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pill-shipped {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .tracking-bar {
+      display: grid;
+      grid-template-columns: 140px 1fr 160px auto;
+      gap: 10px;
+      align-items: center;
+    }
+    @media (max-width: 720px) {
+      .tracking-bar {
+        grid-template-columns: 1fr;
+      }
+      .size-stock-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
 </head>
 <body>
 
   <div class="announcement-bar">
-    MSJ Storefront Admin Portal • Live Supabase Inventory Control
+    MSJ Storefront Command Center • Live Inventory, Orders &amp; Fulfillment
   </div>
 
   <header>
@@ -19,8 +141,8 @@
         <span>Major Style Junction — Admin</span>
       </a>
       <nav>
-        <a href="index.html">View Live Site</a>
-        <a href="shop.html">View Shop</a>
+        <a href="index.html">Live Site</a>
+        <a href="shop.html">Shop</a>
         <button type="button" id="admin-signout-btn" class="filter-btn" style="display:none;" onclick="adminSignOut()">Sign Out</button>
       </nav>
     </div>
@@ -31,81 +153,236 @@
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
       <span class="section-kicker">Owner Access Only</span>
       <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to add drops, upload photos, and manage stock.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage orders, inventory, photos, and promo codes.</p>
       <form id="admin-login-form">
         <input type="email" id="admin-email" placeholder="Admin Email" required>
         <input type="password" id="admin-password" placeholder="Admin Password" required>
-        <button type="submit" class="btn-card">Sign In to Dashboard</button>
+        <button type="submit" class="btn-card">Sign In to Command Center</button>
         <p id="admin-login-msg" class="modal-status" style="margin-top: 10px;"></p>
       </form>
     </div>
 
     <!-- ADMIN DASHBOARD VIEW -->
     <div id="admin-dashboard-view" style="display: none;">
-      <div class="contact-card" style="max-width: 760px; margin-bottom: 36px;">
-        <span class="section-kicker">New Release</span>
-        <h2 style="margin-bottom: 16px;">Add New Product / Drop</h2>
 
-        <form id="new-product-form">
-          <input type="text" id="prod-name" placeholder="Product Name (e.g., MSJ Chrome Eagle Heavyweight Tee)" required>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-            <select id="prod-category">
-              <option value="tees">Category: Graphic Tees</option>
-              <option value="hoodies">Category: Hoodies</option>
-              <option value="accessories">Category: Accessories</option>
-            </select>
-
-            <input type="number" id="prod-price" placeholder="Price ($)" min="1" step="0.01" required>
-
-            <select id="prod-status">
-              <option value="In Stock">Status: In Stock</option>
-              <option value="Low Stock">Status: Low Stock</option>
-              <option value="Coming Soon">Status: Coming Soon</option>
-              <option value="Sold Out">Status: Sold Out</option>
-            </select>
-
-            <input type="text" id="prod-badge" placeholder="Badge (e.g., Drop 02, Limited)" value="Drop 02">
-          </div>
-
-          <div style="margin: 12px 0;">
-            <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Available Sizes:</label>
-            <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px;">
-              <label><input type="checkbox" class="size-cb" value="S" checked> S</label>
-              <label><input type="checkbox" class="size-cb" value="M" checked> M</label>
-              <label><input type="checkbox" class="size-cb" value="L" checked> L</label>
-              <label><input type="checkbox" class="size-cb" value="XL" checked> XL</label>
-              <label><input type="checkbox" class="size-cb" value="2XL" checked> 2XL</label>
-            </div>
-          </div>
-
-          <div style="margin: 12px 0;">
-            <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Product Photo (Optional — leave blank to use MSJ Emblem):</label>
-            <input type="file" id="prod-image-file" accept="image/*">
-          </div>
-
-          <input type="text" id="prod-fit" placeholder="Fit Notes" value="Boxy streetwear fit — true to size with slightly dropped shoulders.">
-          <input type="text" id="prod-care" placeholder="Fabric & Care" value="100% combed ring-spun cotton. Machine wash cold inside-out.">
-          <textarea id="prod-desc" placeholder="Product Description" required></textarea>
-
-          <button type="submit" id="create-prod-btn" class="btn-card">Publish Product to Live Store</button>
-          <p id="create-prod-msg" class="modal-status" style="margin-top: 10px;"></p>
-        </form>
-      </div>
-
-      <div class="section-head">
-        <div>
-          <span class="section-kicker">Live Catalog</span>
-          <h2>Manage Current Inventory</h2>
+      <!-- EXECUTIVE KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Sales Volume</span>
+          <div class="kpi-value" id="kpi-revenue">$0.00</div>
+          <p class="kpi-sub" id="kpi-paid-sub">$0.00 confirmed paid</p>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Orders to Ship</span>
+          <div class="kpi-value" id="kpi-unfulfilled">0</div>
+          <p class="kpi-sub" id="kpi-total-orders">0 total orders</p>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Catalog Pieces</span>
+          <div class="kpi-value" id="kpi-products">0</div>
+          <p class="kpi-sub" id="kpi-units">0 total units in stock</p>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Low-Stock Alerts</span>
+          <div class="kpi-value" id="kpi-lowstock" style="color: #d97706;">0</div>
+          <p class="kpi-sub">Sizes with 3 or fewer units</p>
         </div>
       </div>
-      <div id="admin-inventory-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+
+      <!-- NAVIGATION TABS -->
+      <div class="admin-tabs">
+        <button type="button" id="tab-orders" class="filter-btn active" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
+        <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; Products</button>
+        <button type="button" id="tab-new" class="filter-btn" onclick="switchAdminTab('new')">+ Add New Drop</button>
+        <button type="button" id="tab-promos" class="filter-btn" onclick="switchAdminTab('promos')">Promo Codes</button>
+      </div>
+
+      <!-- TAB 1: ORDERS & FULFILLMENT -->
+      <section id="panel-orders">
+        <div class="section-head" style="margin-bottom: 18px;">
+          <div>
+            <span class="section-kicker">Fulfillment Queue</span>
+            <h2>Customer Orders</h2>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <select id="order-filter-status" onchange="renderOrdersList()" style="padding: 8px 12px; border-radius: 8px;">
+              <option value="all">Show: All Orders</option>
+              <option value="Unfulfilled">Unfulfilled Only</option>
+              <option value="Packing">Packing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+            <button type="button" class="filter-btn" onclick="loadAllAdminData()">Refresh</button>
+          </div>
+        </div>
+        <div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 16px;"></div>
+      </section>
+
+      <!-- TAB 2: INVENTORY & FULL PRODUCT EDITOR -->
+      <section id="panel-inventory" style="display: none;">
+        <div class="section-head" style="margin-bottom: 18px;">
+          <div>
+            <span class="section-kicker">Live Catalog</span>
+            <h2>Manage Inventory, Photos &amp; Size Stock</h2>
+          </div>
+        </div>
+        <div id="admin-inventory-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+      </section>
+
+      <!-- TAB 3: ADD NEW DROP -->
+      <section id="panel-new" style="display: none;">
+        <div class="contact-card" style="max-width: 760px;">
+          <span class="section-kicker">New Release</span>
+          <h2 style="margin-bottom: 16px;">Publish New Product / Drop</h2>
+
+          <form id="new-product-form">
+            <input type="text" id="prod-name" placeholder="Product Name (e.g., MSJ Chrome Eagle Heavyweight Tee)" required>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+              <select id="prod-category">
+                <option value="tees">Category: Graphic Tees</option>
+                <option value="hoodies">Category: Hoodies</option>
+                <option value="accessories">Category: Accessories</option>
+              </select>
+
+              <input type="number" id="prod-price" placeholder="Price ($)" min="1" step="0.01" required>
+
+              <select id="prod-status">
+                <option value="In Stock">Status: In Stock</option>
+                <option value="Low Stock">Status: Low Stock</option>
+                <option value="Coming Soon">Status: Coming Soon</option>
+                <option value="Sold Out">Status: Sold Out</option>
+              </select>
+
+              <input type="text" id="prod-badge" placeholder="Badge (e.g., Drop 02, Limited)" value="Drop 02">
+            </div>
+
+            <label style="display:block; font-size: 13px; font-weight: 700; margin-top: 12px;">Starting Inventory Count by Size (Set 0 for unavailable sizes):</label>
+            <div class="size-stock-grid">
+              <div class="size-stock-cell"><label>S</label><input type="number" id="new-stock-S" min="0" value="10"></div>
+              <div class="size-stock-cell"><label>M</label><input type="number" id="new-stock-M" min="0" value="15"></div>
+              <div class="size-stock-cell"><label>L</label><input type="number" id="new-stock-L" min="0" value="15"></div>
+              <div class="size-stock-cell"><label>XL</label><input type="number" id="new-stock-XL" min="0" value="10"></div>
+              <div class="size-stock-cell"><label>2XL</label><input type="number" id="new-stock-2XL" min="0" value="5"></div>
+            </div>
+
+            <div style="margin: 12px 0;">
+              <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Product Photo (Optional — leave blank to use MSJ Emblem):</label>
+              <input type="file" id="prod-image-file" accept="image/*">
+            </div>
+
+            <input type="text" id="prod-fit" placeholder="Fit Notes" value="Boxy streetwear fit — true to size with slightly dropped shoulders.">
+            <input type="text" id="prod-care" placeholder="Fabric & Care" value="100% combed ring-spun cotton. Machine wash cold inside-out.">
+            <textarea id="prod-desc" placeholder="Product Description" required></textarea>
+
+            <button type="submit" id="create-prod-btn" class="btn-card">Publish Product to Live Store</button>
+            <p id="create-prod-msg" class="modal-status" style="margin-top: 10px;"></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 4: PROMO CODES -->
+      <section id="panel-promos" style="display: none;">
+        <div class="contact-card" style="max-width: 680px; margin-bottom: 24px;">
+          <span class="section-kicker">Marketing &amp; Drops</span>
+          <h2 style="margin-bottom: 14px;">Create Promo / Discount Code</h2>
+          <form id="new-promo-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+            <input type="text" id="promo-code-input" placeholder="Code (e.g., VIP20)" style="text-transform: uppercase; margin: 0;" required>
+            <select id="promo-type-input" style="margin: 0;">
+              <option value="percent">Percent Off (%)</option>
+              <option value="fixed">Fixed Amount ($)</option>
+            </select>
+            <input type="number" id="promo-val-input" placeholder="Amount (e.g., 20)" min="1" step="0.01" style="margin: 0;" required>
+            <button type="submit" class="btn-card" style="margin: 0;">Create Code</button>
+          </form>
+        </div>
+        <div id="admin-promos-list" style="display: flex; flex-direction: column; gap: 12px; max-width: 680px;"></div>
+      </section>
+
     </div>
   </main>
+
+  <!-- FULL EDIT PRODUCT MODAL -->
+  <div id="edit-product-modal" class="modal-overlay" onclick="if(event.target===this) closeEditModal()">
+    <div class="modal-box" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+      <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
+      <span class="section-kicker">Full Product Editor</span>
+      <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Product, Photo &amp; Size Stock</h3>
+
+      <form id="edit-product-form">
+        <input type="hidden" id="edit-prod-id">
+        <input type="hidden" id="edit-prod-existing-image">
+
+        <label style="font-size:12px; font-weight:700;">Product Name</label>
+        <input type="text" id="edit-prod-name" required>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+          <div>
+            <label style="font-size:12px; font-weight:700;">Category</label>
+            <select id="edit-prod-category">
+              <option value="tees">Graphic Tees</option>
+              <option value="hoodies">Hoodies</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700;">Price ($)</label>
+            <input type="number" id="edit-prod-price" min="1" step="0.01" required>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700;">Status</label>
+            <select id="edit-prod-status">
+              <option value="In Stock">In Stock</option>
+              <option value="Low Stock">Low Stock</option>
+              <option value="Coming Soon">Coming Soon</option>
+              <option value="Sold Out">Sold Out</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700;">Badge</label>
+            <input type="text" id="edit-prod-badge">
+          </div>
+        </div>
+
+        <label style="display:block; font-size: 12px; font-weight: 700; margin-top: 8px;">Inventory Count by Size:</label>
+        <div class="size-stock-grid">
+          <div class="size-stock-cell"><label>S</label><input type="number" id="edit-stock-S" min="0"></div>
+          <div class="size-stock-cell"><label>M</label><input type="number" id="edit-stock-M" min="0"></div>
+          <div class="size-stock-cell"><label>L</label><input type="number" id="edit-stock-L" min="0"></div>
+          <div class="size-stock-cell"><label>XL</label><input type="number" id="edit-stock-XL" min="0"></div>
+          <div class="size-stock-cell"><label>2XL</label><input type="number" id="edit-stock-2XL" min="0"></div>
+        </div>
+
+        <div style="margin: 10px 0;">
+          <label style="display:block; font-size: 12px; font-weight: 700; margin-bottom: 4px;">Upload New Photo (Replaces current image):</label>
+          <input type="file" id="edit-prod-image-file" accept="image/*">
+          <label style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;">
+            <input type="checkbox" id="edit-reset-emblem"> Revert to default MSJ typographic emblem
+          </label>
+        </div>
+
+        <label style="font-size:12px; font-weight:700;">Fit Notes</label>
+        <input type="text" id="edit-prod-fit">
+
+        <label style="font-size:12px; font-weight:700;">Fabric &amp; Care</label>
+        <input type="text" id="edit-prod-care">
+
+        <label style="font-size:12px; font-weight:700;">Description</label>
+        <textarea id="edit-prod-desc" required></textarea>
+
+        <button type="submit" id="save-edit-btn" class="btn-card">Save All Product Changes</button>
+        <p id="edit-prod-msg" class="modal-status" style="margin-top: 8px;"></p>
+      </form>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>
+    let cachedProducts = [];
+    let cachedOrders = [];
+    let cachedPromos = [];
+
     const loginView = document.getElementById("admin-login-view");
     const dashView = document.getElementById("admin-dashboard-view");
     const signoutBtn = document.getElementById("admin-signout-btn");
@@ -116,7 +393,7 @@
         loginView.style.display = "none";
         dashView.style.display = "block";
         signoutBtn.style.display = "inline-block";
-        loadAdminInventory();
+        loadAllAdminData();
       } else {
         loginView.style.display = "block";
         dashView.style.display = "none";
@@ -145,6 +422,377 @@
       checkAdminSession();
     }
 
+    function switchAdminTab(tabName) {
+      ["orders", "inventory", "new", "promos"].forEach(t => {
+        document.getElementById(`panel-${t}`).style.display = t === tabName ? "block" : "none";
+        document.getElementById(`tab-${t}`).classList.toggle("active", t === tabName);
+      });
+    }
+
+    async function loadAllAdminData() {
+      const [prodRes, ordRes, promoRes] = await Promise.all([
+        msjSupabase.from("products").select("*").order("created_at", { ascending: false }),
+        msjSupabase.from("orders").select("*").order("created_at", { ascending: false }),
+        msjSupabase.from("promo_codes").select("*").order("created_at", { ascending: false })
+      ]);
+
+      cachedProducts = prodRes.data || [];
+      cachedOrders = ordRes.data || [];
+      cachedPromos = promoRes.data || [];
+
+      updateKPIs();
+      renderOrdersList();
+      renderInventoryList();
+      renderPromosList();
+    }
+
+    function getStockMap(item) {
+      return item.size_stock || { S: 10, M: 10, L: 10, XL: 10, "2XL": 10 };
+    }
+
+    function updateKPIs() {
+      const validOrders = cachedOrders.filter(o => o.fulfillment_status !== "Cancelled");
+      const totalRev = validOrders.reduce((s, o) => s + Number(o.total || 0), 0);
+      const paidRev = validOrders
+        .filter(o => (o.payment_status || "").toLowerCase().includes("paid"))
+        .reduce((s, o) => s + Number(o.total || 0), 0);
+      const unfulfilledCount = cachedOrders.filter(o => o.fulfillment_status === "Unfulfilled").length;
+
+      let totalUnits = 0;
+      let lowStockAlerts = 0;
+      cachedProducts.forEach(p => {
+        const map = getStockMap(p);
+        Object.values(map).forEach(qty => {
+          const n = Number(qty || 0);
+          totalUnits += n;
+          if (n > 0 && n <= 3) lowStockAlerts++;
+        });
+      });
+
+      document.getElementById("kpi-revenue").textContent = `$${totalRev.toFixed(2)}`;
+      document.getElementById("kpi-paid-sub").textContent = `$${paidRev.toFixed(2)} confirmed paid`;
+      document.getElementById("kpi-unfulfilled").textContent = unfulfilledCount;
+      document.getElementById("kpi-total-orders").textContent = `${cachedOrders.length} total orders`;
+      document.getElementById("kpi-products").textContent = cachedProducts.length;
+      document.getElementById("kpi-units").textContent = `${totalUnits} units across all sizes`;
+      document.getElementById("kpi-lowstock").textContent = lowStockAlerts;
+    }
+
+    // ============================================================
+    // ORDERS & FULFILLMENT
+    // ============================================================
+
+    function renderOrdersList() {
+      const list = document.getElementById("admin-orders-list");
+      const filter = document.getElementById("order-filter-status").value;
+      const filtered = filter === "all"
+        ? cachedOrders
+        : cachedOrders.filter(o => o.fulfillment_status === filter);
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="contact-card" style="max-width:100%;"><p style="color:var(--text-muted);">No orders match this filter yet. Once shoppers complete checkout on your site, every order appears here automatically.</p></div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(ord => {
+        const isPaid = (ord.payment_status || "").toLowerCase().includes("paid");
+        const itemsHtml = (ord.items || []).map(i =>
+          `<li><strong>${i.qty}x</strong> ${i.name} — Size: <strong>${i.size}</strong> ($${(Number(i.price) * Number(i.qty)).toFixed(2)})</li>`
+        ).join("");
+        const dateStr = new Date(ord.created_at).toLocaleString("en-US", {
+          month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit"
+        });
+
+        return `
+          <div class="order-card">
+            <div class="order-card-header">
+              <div>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <strong style="font-size:18px;">#${ord.order_number}</strong>
+                  <span class="${isPaid ? "pill-paid" : "pill-pending"}">${ord.payment_status}</span>
+                  <span class="pill-shipped">${ord.fulfillment_status}</span>
+                </div>
+                <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">${dateStr} • <strong>${ord.customer_name}</strong> (${ord.customer_email})</p>
+              </div>
+              <div style="text-align:right;">
+                <strong style="font-size:20px;">$${Number(ord.total).toFixed(2)}</strong>
+                ${ord.promo_code ? `<p style="font-size:12px; color:#10b981;">Code: ${ord.promo_code} (-$${Number(ord.discount_amount).toFixed(2)})</p>` : ""}
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; font-size: 14px;">
+              <div>
+                <span class="kpi-label">Items Ordered</span>
+                <ul style="padding-left: 18px; margin-top: 4px;">${itemsHtml}</ul>
+              </div>
+              <div>
+                <span class="kpi-label">Ship To</span>
+                <p style="margin-top: 4px;">${ord.shipping_address}</p>
+                ${ord.customer_phone ? `<p style="font-size:13px; color:var(--text-muted);">Phone: ${ord.customer_phone}</p>` : ""}
+              </div>
+            </div>
+
+            <div class="tracking-bar">
+              <select id="carrier-${ord.id}" style="padding: 9px 10px; border-radius: 8px; margin:0;">
+                ${["USPS", "UPS", "FedEx", "DHL", "Local Pickup"].map(c =>
+                  `<option value="${c}" ${ord.tracking_carrier === c ? "selected" : ""}>${c}</option>`
+                ).join("")}
+              </select>
+
+              <input type="text" id="track-${ord.id}" value="${ord.tracking_number || ""}" placeholder="Enter Tracking Number..." style="margin:0;">
+
+              <select id="status-${ord.id}" style="padding: 9px 10px; border-radius: 8px; margin:0;">
+                ${["Unfulfilled", "Packing", "Shipped", "Delivered", "Cancelled"].map(st =>
+                  `<option value="${st}" ${ord.fulfillment_status === st ? "selected" : ""}>${st}</option>`
+                ).join("")}
+              </select>
+
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save Update</button>
+                ${!isPaid ? `<button type="button" class="filter-btn" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
+                <button type="button" class="filter-btn" onclick="printPackingSlip('${ord.id}')">Packing Slip</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function saveOrderFulfillment(orderId) {
+      const carrier = document.getElementById(`carrier-${orderId}`).value;
+      const tracking = document.getElementById(`track-${orderId}`).value.trim();
+      let status = document.getElementById(`status-${orderId}`).value;
+
+      if (tracking && status === "Unfulfilled") {
+        status = "Shipped";
+      }
+
+      const { error } = await msjSupabase
+        .from("orders")
+        .update({
+          tracking_carrier: carrier,
+          tracking_number: tracking,
+          fulfillment_status: status
+        })
+        .eq("id", orderId);
+
+      if (error) {
+        alert("Failed to update order: " + error.message);
+      } else {
+        loadAllAdminData();
+      }
+    }
+
+    async function markOrderPaid(orderId) {
+      await msjSupabase
+        .from("orders")
+        .update({ payment_status: "Paid (Manual)" })
+        .eq("id", orderId);
+      loadAllAdminData();
+    }
+
+    function printPackingSlip(orderId) {
+      const ord = cachedOrders.find(o => o.id === orderId);
+      if (!ord) return;
+      const win = window.open("", "_blank", "width=720,height=840");
+      const rows = (ord.items || []).map(i => `
+        <tr>
+          <td style="padding:10px;border-bottom:1px solid #ddd;">${i.name}</td>
+          <td style="padding:10px;border-bottom:1px solid #ddd;"><strong>${i.size}</strong></td>
+          <td style="padding:10px;border-bottom:1px solid #ddd;">${i.qty}</td>
+          <td style="padding:10px;border-bottom:1px solid #ddd;">$${(Number(i.price) * Number(i.qty)).toFixed(2)}</td>
+        </tr>
+      `).join("");
+
+      win.document.write(`
+        <html><head><title>Packing Slip #${ord.order_number}</title></head>
+        <body style="font-family:Arial,sans-serif;padding:36px;color:#111;">
+          <div style="display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:16px;">
+            <div>
+              <h1 style="margin:0;font-size:22px;">MAJOR STYLE JUNCTION</h1>
+              <p style="margin:4px 0 0;font-size:13px;color:#555;">Official Order Packing Slip</p>
+            </div>
+            <div style="text-align:right;">
+              <strong style="font-size:18px;">Order #${ord.order_number}</strong>
+              <p style="margin:4px 0 0;font-size:13px;">${new Date(ord.created_at).toLocaleDateString()}</p>
+            </div>
+          </div>
+          <div style="margin:24px 0;">
+            <strong>SHIP TO:</strong><br>
+            ${ord.customer_name}<br>
+            ${ord.shipping_address}<br>
+            ${ord.customer_email}
+          </div>
+          <table style="width:100%;border-collapse:collapse;text-align:left;">
+            <thead>
+              <tr style="background:#f4f4f5;">
+                <th style="padding:10px;">Item</th>
+                <th style="padding:10px;">Size</th>
+                <th style="padding:10px;">Qty</th>
+                <th style="padding:10px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div style="text-align:right;margin-top:20px;font-size:16px;">
+            <strong>Order Total: $${Number(ord.total).toFixed(2)} (${ord.payment_status})</strong>
+          </div>
+          <p style="margin-top:40px;font-size:12px;color:#666;border-top:1px solid #ddd;padding-top:12px;">
+            Thank you for repping Major Style Junction. Wash cold inside-out and hang dry to preserve DTF artwork.
+          </p>
+          <script>window.print();<\/script>
+        </body></html>
+      `);
+      win.document.close();
+    }
+
+    // ============================================================
+    // INVENTORY LIST & FULL EDIT MODAL
+    // ============================================================
+
+    function renderInventoryList() {
+      const list = document.getElementById("admin-inventory-list");
+      list.innerHTML = cachedProducts.map(item => {
+        const stock = getStockMap(item);
+        const stockBadges = ["S", "M", "L", "XL", "2XL"].map(sz => {
+          const count = Number(stock[sz] ?? 0);
+          const color = count === 0 ? "#ef4444" : count <= 3 ? "#d97706" : "#166534";
+          return `<span style="font-size:12px;font-weight:700;color:${color};background:#f4f4f5;padding:3px 8px;border-radius:6px;">${sz}: ${count}</span>`;
+        }).join(" ");
+
+        return `
+          <div class="contact-card" style="max-width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px 22px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              ${item.image && item.image !== "typographic"
+                ? `<img src="${item.image}" alt="${item.name}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 10px;">`
+                : `<div class="bag-typo-thumb">MSJ</div>`
+              }
+              <div>
+                <strong style="font-size:16px;">${item.name}</strong>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 3px 0 6px;">$${item.price} • ${item.category.toUpperCase()} • ${item.badge}</p>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">${stockBadges}</div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <select onchange="quickUpdateStatus('${item.id}', this.value)" style="padding: 8px 12px; border-radius: 8px; margin:0;">
+                ${["In Stock", "Low Stock", "Coming Soon", "Sold Out"].map(st =>
+                  `<option value="${st}" ${item.status === st ? "selected" : ""}>${st}</option>`
+                ).join("")}
+              </select>
+
+              <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="openEditModal('${item.id}')">Edit Product &amp; Photo</button>
+              <button type="button" class="filter-btn" style="color: #ef4444;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function quickUpdateStatus(id, newStatus) {
+      await msjSupabase.from("products").update({ status: newStatus }).eq("id", id);
+      loadAllAdminData();
+    }
+
+    function openEditModal(id) {
+      const item = cachedProducts.find(p => p.id === id);
+      if (!item) return;
+
+      const stock = getStockMap(item);
+      document.getElementById("edit-prod-id").value = item.id;
+      document.getElementById("edit-prod-existing-image").value = item.image || "typographic";
+      document.getElementById("edit-prod-name").value = item.name;
+      document.getElementById("edit-prod-category").value = item.category;
+      document.getElementById("edit-prod-price").value = item.price;
+      document.getElementById("edit-prod-status").value = item.status;
+      document.getElementById("edit-prod-badge").value = item.badge || "";
+      document.getElementById("edit-prod-fit").value = item.fit || "";
+      document.getElementById("edit-prod-care").value = item.care || "";
+      document.getElementById("edit-prod-desc").value = item.description || "";
+      document.getElementById("edit-prod-image-file").value = "";
+      document.getElementById("edit-reset-emblem").checked = false;
+      document.getElementById("edit-prod-msg").textContent = "";
+
+      ["S", "M", "L", "XL", "2XL"].forEach(sz => {
+        document.getElementById(`edit-stock-${sz}`).value = Number(stock[sz] ?? 0);
+      });
+
+      document.getElementById("edit-product-modal").classList.add("active");
+    }
+
+    function closeEditModal() {
+      document.getElementById("edit-product-modal").classList.remove("active");
+    }
+
+    document.getElementById("edit-product-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("save-edit-btn");
+      const msg = document.getElementById("edit-prod-msg");
+      btn.disabled = true;
+      btn.textContent = "Saving Changes...";
+
+      try {
+        const id = document.getElementById("edit-prod-id").value;
+        let imageUrl = document.getElementById("edit-prod-existing-image").value;
+
+        if (document.getElementById("edit-reset-emblem").checked) {
+          imageUrl = "typographic";
+        } else {
+          const fileInput = document.getElementById("edit-prod-image-file");
+          if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const cleanName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+            const { error: uploadErr } = await msjSupabase.storage
+              .from("msj-products")
+              .upload(cleanName, file);
+            if (uploadErr) throw uploadErr;
+
+            const { data: urlData } = msjSupabase.storage
+              .from("msj-products")
+              .getPublicUrl(cleanName);
+            imageUrl = urlData.publicUrl;
+          }
+        }
+
+        const sizeStock = {};
+        const availableSizes = [];
+        ["S", "M", "L", "XL", "2XL"].forEach(sz => {
+          const qty = Math.max(0, parseInt(document.getElementById(`edit-stock-${sz}`).value || "0", 10));
+          sizeStock[sz] = qty;
+          if (qty > 0) availableSizes.push(sz);
+        });
+
+        const { error } = await msjSupabase.from("products").update({
+          name: document.getElementById("edit-prod-name").value.trim(),
+          category: document.getElementById("edit-prod-category").value,
+          price: parseFloat(document.getElementById("edit-prod-price").value),
+          status: document.getElementById("edit-prod-status").value,
+          badge: document.getElementById("edit-prod-badge").value.trim(),
+          image: imageUrl,
+          size_stock: sizeStock,
+          sizes: availableSizes.length ? availableSizes : ["S", "M", "L", "XL", "2XL"],
+          fit: document.getElementById("edit-prod-fit").value.trim(),
+          care: document.getElementById("edit-prod-care").value.trim(),
+          description: document.getElementById("edit-prod-desc").value.trim()
+        }).eq("id", id);
+
+        if (error) throw error;
+
+        closeEditModal();
+        loadAllAdminData();
+      } catch (err) {
+        msg.style.color = "#ef4444";
+        msg.textContent = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save All Product Changes";
+      }
+    });
+
+    // ============================================================
+    // CREATE NEW PRODUCT
+    // ============================================================
+
     document.getElementById("new-product-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("create-prod-btn");
@@ -163,26 +811,31 @@
           const { error: uploadErr } = await msjSupabase.storage
             .from("msj-products")
             .upload(cleanName, file);
-
           if (uploadErr) throw uploadErr;
 
           const { data: urlData } = msjSupabase.storage
             .from("msj-products")
             .getPublicUrl(cleanName);
-
           imageUrl = urlData.publicUrl;
         }
 
-        const selectedSizes = Array.from(document.querySelectorAll(".size-cb:checked")).map(cb => cb.value);
+        const sizeStock = {};
+        const availableSizes = [];
+        ["S", "M", "L", "XL", "2XL"].forEach(sz => {
+          const qty = Math.max(0, parseInt(document.getElementById(`new-stock-${sz}`).value || "0", 10));
+          sizeStock[sz] = qty;
+          if (qty > 0) availableSizes.push(sz);
+        });
 
         const { error: insertErr } = await msjSupabase.from("products").insert([{
           name: document.getElementById("prod-name").value.trim(),
           category: document.getElementById("prod-category").value,
           price: parseFloat(document.getElementById("prod-price").value),
           status: document.getElementById("prod-status").value,
-          badge: document.getElementById("prod-badge").value.trim() || "Drop 01",
+          badge: document.getElementById("prod-badge").value.trim() || "Drop 02",
           image: imageUrl,
-          sizes: selectedSizes.length ? selectedSizes : ["S", "M", "L", "XL"],
+          size_stock: sizeStock,
+          sizes: availableSizes.length ? availableSizes : ["S", "M", "L", "XL", "2XL"],
           fit: document.getElementById("prod-fit").value.trim(),
           care: document.getElementById("prod-care").value.trim(),
           description: document.getElementById("prod-desc").value.trim()
@@ -191,9 +844,10 @@
         if (insertErr) throw insertErr;
 
         msg.style.color = "#10b981";
-        msg.textContent = "Product published! It is now live on majorstylejunction.com.";
+        msg.textContent = "Product published! Switching to Inventory tab...";
         e.target.reset();
-        loadAdminInventory();
+        await loadAllAdminData();
+        setTimeout(() => switchAdminTab("inventory"), 900);
       } catch (err) {
         msg.style.color = "#ef4444";
         msg.textContent = "Error: " + err.message;
@@ -203,63 +857,65 @@
       }
     });
 
-    async function loadAdminInventory() {
-      const list = document.getElementById("admin-inventory-list");
-      const { data, error } = await msjSupabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
+    async function deleteProduct(id, name) {
+      if (!confirm(`Delete "${name}" permanently from the store?`)) return;
+      await msjSupabase.from("products").delete().eq("id", id);
+      loadAllAdminData();
+    }
 
-      if (error) {
-        list.innerHTML = `<p style="color:#ef4444;">Failed to load products: ${error.message}</p>`;
-        return;
-      }
+    // ============================================================
+    // PROMO CODES MANAGER
+    // ============================================================
 
-      list.innerHTML = data.map(item => `
-        <div class="contact-card" style="max-width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px 22px;">
-          <div style="display: flex; align-items: center; gap: 14px;">
-            ${item.image && item.image !== "typographic"
-              ? `<img src="${item.image}" alt="${item.name}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 8px;">`
-              : `<div class="bag-typo-thumb">MSJ</div>`
-            }
-            <div>
-              <strong>${item.name}</strong>
-              <p style="font-size: 13px; color: var(--text-muted);">$${item.price} • ${item.category.toUpperCase()} • Sizes: ${(item.sizes || []).join(", ")}</p>
-            </div>
+    function renderPromosList() {
+      const list = document.getElementById("admin-promos-list");
+      list.innerHTML = cachedPromos.map(p => `
+        <div class="contact-card" style="max-width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:16px 20px;">
+          <div>
+            <strong style="font-size:17px; letter-spacing:0.05em;">${p.code}</strong>
+            <p style="font-size:13px; color:var(--text-muted);">
+              ${p.discount_type === "percent" ? `${p.discount_value}% Off` : `$${Number(p.discount_value).toFixed(2)} Off`} • Used ${p.uses_count} time(s)
+            </p>
           </div>
-
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <select onchange="updateProductStatus('${item.id}', this.value)" style="padding: 8px 12px; border-radius: 8px;">
-              ${["In Stock", "Low Stock", "Coming Soon", "Sold Out"].map(st =>
-                `<option value="${st}" ${item.status === st ? "selected" : ""}>${st}</option>`
-              ).join("")}
-            </select>
-
-            <button type="button" class="filter-btn" onclick="updateProductPrice('${item.id}', ${item.price})">Edit Price</button>
-            <button type="button" class="filter-btn" style="color: #ef4444;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="filter-btn" onclick="togglePromo('${p.id}', ${!p.active})">
+              ${p.active ? "Active (Click to Pause)" : "Paused (Click to Activate)"}
+            </button>
+            <button type="button" class="filter-btn" style="color:#ef4444;" onclick="deletePromo('${p.id}')">Delete</button>
           </div>
         </div>
       `).join("");
     }
 
-    async function updateProductStatus(id, newStatus) {
-      const { error } = await msjSupabase.from("products").update({ status: newStatus }).eq("id", id);
-      if (error) alert("Error updating status: " + error.message);
+    document.getElementById("new-promo-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const code = document.getElementById("promo-code-input").value.trim().toUpperCase();
+      const discount_type = document.getElementById("promo-type-input").value;
+      const discount_value = parseFloat(document.getElementById("promo-val-input").value);
+
+      const { error } = await msjSupabase.from("promo_codes").insert([{
+        code,
+        discount_type,
+        discount_value,
+        active: true
+      }]);
+
+      if (error) {
+        alert("Could not create promo code: " + error.message);
+      } else {
+        e.target.reset();
+        loadAllAdminData();
+      }
+    });
+
+    async function togglePromo(id, newState) {
+      await msjSupabase.from("promo_codes").update({ active: newState }).eq("id", id);
+      loadAllAdminData();
     }
 
-    async function updateProductPrice(id, currentPrice) {
-      const input = prompt("Enter new price ($):", currentPrice);
-      if (!input || isNaN(parseFloat(input))) return;
-      const { error } = await msjSupabase.from("products").update({ price: parseFloat(input) }).eq("id", id);
-      if (error) alert("Error updating price: " + error.message);
-      loadAdminInventory();
-    }
-
-    async function deleteProduct(id, name) {
-      if (!confirm(`Delete "${name}" from the store?`)) return;
-      const { error } = await msjSupabase.from("products").delete().eq("id", id);
-      if (error) alert("Error deleting product: " + error.message);
-      loadAdminInventory();
+    async function deletePromo(id) {
+      await msjSupabase.from("promo_codes").delete().eq("id", id);
+      loadAllAdminData();
     }
 
     checkAdminSession();
