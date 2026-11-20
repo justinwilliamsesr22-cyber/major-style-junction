@@ -730,7 +730,7 @@ function injectNavAndFooterLinks() {
     const techBar = document.createElement("div");
     techBar.className = "footer-tech-bar";
     techBar.innerHTML = `
-      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a></span>
+      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="admin.html">Admin</a></span>
     `;
     footer.appendChild(techBar);
   }
