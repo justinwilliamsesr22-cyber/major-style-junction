@@ -43,6 +43,9 @@ module.exports = async function handler(req, res) {
       .filter(Boolean)
       .join(", ");
 
+    const totalCollected = (session.amount_total || 0) / 100;
+    const estimatedStripeFee = totalCollected > 0 ? Number((totalCollected * 0.029 + 0.30).toFixed(2)) : 0;
+
     await supabase.from("orders").insert([{
       order_number: meta.order_number || `MSJ-${Date.now()}`,
       customer_name: shipping.name || session.customer_details?.name || "Customer",
@@ -51,10 +54,12 @@ module.exports = async function handler(req, res) {
       shipping_address: formattedAddress || "Address collected in Stripe",
       items,
       subtotal: Number(meta.subtotal || 0),
+      cogs_total: Number(meta.cogs_total || 0),
       discount_amount: Number(meta.discount_amount || 0),
       promo_code: meta.promo_code || "",
       shipping_cost: Number(meta.shipping_cost || 0),
-      total: (session.amount_total || 0) / 100,
+      payment_fee: estimatedStripeFee,
+      total: totalCollected,
       payment_status: "Paid (Stripe)",
       fulfillment_status: "Unfulfilled",
       stripe_session_id: session.id

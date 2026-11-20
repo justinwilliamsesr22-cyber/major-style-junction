@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Store Command Center | Major Style Junction</title>
+  <title>Executive Financial &amp; Store Command Center | Major Style Junction</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
     }
     .kpi-card {
       background: var(--surface, #fff);
       border: 1px solid var(--border, #e4e4e7);
       border-radius: 14px;
-      padding: 20px;
+      padding: 18px 20px;
     }
     .kpi-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -28,7 +29,7 @@
       margin-bottom: 6px;
     }
     .kpi-value {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
@@ -39,11 +40,92 @@
     }
     .admin-tabs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 26px;
+      margin-bottom: 24px;
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border, #e4e4e7);
+    }
+    .finance-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 0.6fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .panel-box {
+      background: var(--surface, #fff);
+      border: 1px solid var(--border, #e4e4e7);
+      border-radius: 16px;
+      padding: 22px;
+    }
+    .pnl-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .pnl-table td {
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border, #e4e4e7);
+    }
+    .pnl-table tr.pnl-subtotal td {
+      font-weight: 700;
+      background: #fafafa;
+      padding: 12px 6px;
+    }
+    .pnl-table tr.pnl-total td {
+      font-weight: 800;
+      font-size: 16px;
+      border-top: 2px solid #09090b;
+      border-bottom: none;
+      padding-top: 14px;
+    }
+    .budget-bucket {
+      background: #fafafa;
+      border: 1px solid var(--border, #e4e4e7);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .budget-bucket-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .budget-bar-track {
+      height: 8px;
+      background: #e4e4e7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .budget-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+    .pct-input-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pct-input-group label {
+      font-size: 11px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .pct-input-group input {
+      padding: 7px;
+      margin: 0;
+      text-align: center;
+      font-weight: 700;
     }
     .size-stock-grid {
       display: grid;
@@ -114,16 +196,36 @@
     }
     .tracking-bar {
       display: grid;
-      grid-template-columns: 140px 1fr 160px auto;
+      grid-template-columns: 120px 1fr 130px 140px auto;
       gap: 10px;
       align-items: center;
     }
-    @media (max-width: 720px) {
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px;
+      background: #f4f4f5;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border, #e4e4e7);
+    }
+    @media (max-width: 900px) {
+      .finance-grid, .charts-grid {
+        grid-template-columns: 1fr;
+      }
       .tracking-bar {
         grid-template-columns: 1fr;
       }
-      .size-stock-grid {
-        grid-template-columns: repeat(3, 1fr);
+      .pct-input-group {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -131,14 +233,14 @@
 <body>
 
   <div class="announcement-bar">
-    MSJ Storefront Command Center • Live Inventory, Orders &amp; Fulfillment
+    MSJ Executive Command Center • Financial Analytics, Budgeting, Orders &amp; Live Inventory
   </div>
 
   <header>
     <div class="nav-inner">
       <a href="index.html" class="brand-link">
         <span class="logo-mark">MSJ</span>
-        <span>Major Style Junction — Admin</span>
+        <span>Major Style Junction — CFO &amp; Admin</span>
       </a>
       <nav>
         <a href="index.html">Live Site</a>
@@ -153,7 +255,7 @@
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
       <span class="section-kicker">Owner Access Only</span>
       <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage orders, inventory, photos, and promo codes.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to access financial analytics, budgeting buckets, orders, and inventory.</p>
       <form id="admin-login-form">
         <input type="email" id="admin-email" placeholder="Admin Email" required>
         <input type="password" id="admin-password" placeholder="Admin Password" required>
@@ -165,47 +267,245 @@
     <!-- ADMIN DASHBOARD VIEW -->
     <div id="admin-dashboard-view" style="display: none;">
 
-      <!-- EXECUTIVE KPI CARDS -->
+      <!-- TOP TOOLBAR: DATE RANGE & ACCOUNTING EXPORTS -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+        <div>
+          <span class="section-kicker">Company Financial Health</span>
+          <h1 style="font-size: 28px;">Executive Command Center</h1>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <select id="analytics-period" onchange="refreshDashboardAnalytics()" style="padding: 9px 14px; border-radius: 8px; margin:0; font-weight:600;">
+            <option value="all">Period: All Time</option>
+            <option value="month">Period: This Calendar Month</option>
+            <option value="30d">Period: Last 30 Days</option>
+            <option value="7d">Period: Last 7 Days</option>
+            <option value="year">Period: Year to Date (2026)</option>
+          </select>
+          <button type="button" class="filter-btn" onclick="exportOrdersCSV()">Export Orders CSV</button>
+          <button type="button" class="filter-btn" onclick="exportExpensesCSV()">Export Expenses CSV</button>
+        </div>
+      </div>
+
+      <!-- 6 EXECUTIVE KPI CARDS -->
       <div class="kpi-grid">
         <div class="kpi-card">
-          <span class="kpi-label">Total Sales Volume</span>
-          <div class="kpi-value" id="kpi-revenue">$0.00</div>
-          <p class="kpi-sub" id="kpi-paid-sub">$0.00 confirmed paid</p>
+          <span class="kpi-label">Gross Revenue</span>
+          <div class="kpi-value" id="kpi-gross-rev">$0.00</div>
+          <p class="kpi-sub" id="kpi-paid-rev">$0.00 confirmed paid</p>
+        </div>
+        <div class="kpi-card" style="border-color: #10b981;">
+          <span class="kpi-label">True Net Profit</span>
+          <div class="kpi-value" id="kpi-net-profit" style="color: #10b981;">$0.00</div>
+          <p class="kpi-sub" id="kpi-net-margin">0.0% net profit margin</p>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label">Orders to Ship</span>
+          <span class="kpi-label">Total Costs &amp; Overhead</span>
+          <div class="kpi-value" id="kpi-total-costs">$0.00</div>
+          <p class="kpi-sub" id="kpi-costs-sub">COGS + Shipping + Expenses</p>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Avg. Order Value (AOV)</span>
+          <div class="kpi-value" id="kpi-aov">$0.00</div>
+          <p class="kpi-sub" id="kpi-order-count">0 orders in period</p>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Stock Retail Value</span>
+          <div class="kpi-value" id="kpi-stock-retail">$0.00</div>
+          <p class="kpi-sub" id="kpi-stock-cost">$0.00 capital tied in blanks</p>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Fulfillment Queue</span>
           <div class="kpi-value" id="kpi-unfulfilled">0</div>
-          <p class="kpi-sub" id="kpi-total-orders">0 total orders</p>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Catalog Pieces</span>
-          <div class="kpi-value" id="kpi-products">0</div>
-          <p class="kpi-sub" id="kpi-units">0 total units in stock</p>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Low-Stock Alerts</span>
-          <div class="kpi-value" id="kpi-lowstock" style="color: #d97706;">0</div>
-          <p class="kpi-sub">Sizes with 3 or fewer units</p>
+          <p class="kpi-sub" id="kpi-lowstock">0 low-stock size alerts</p>
         </div>
       </div>
 
       <!-- NAVIGATION TABS -->
       <div class="admin-tabs">
-        <button type="button" id="tab-orders" class="filter-btn active" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
-        <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; Products</button>
+        <button type="button" id="tab-analytics" class="filter-btn active" onclick="switchAdminTab('analytics')">Analytics &amp; Money Budget</button>
+        <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
+        <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; COGS</button>
+        <button type="button" id="tab-expenses" class="filter-btn" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
         <button type="button" id="tab-new" class="filter-btn" onclick="switchAdminTab('new')">+ Add New Drop</button>
         <button type="button" id="tab-promos" class="filter-btn" onclick="switchAdminTab('promos')">Promo Codes</button>
       </div>
 
-      <!-- TAB 1: ORDERS & FULFILLMENT -->
-      <section id="panel-orders">
+      <!-- ============================================================ -->
+      <!-- TAB 1: FINANCIAL ANALYTICS, P&L & PROFIT-FIRST BUDGETING     -->
+      <!-- ============================================================ -->
+      <section id="panel-analytics">
+        <!-- CHARTS ROW -->
+        <div class="charts-grid">
+          <div class="panel-box">
+            <span class="section-kicker">Cash Flow &amp; Growth</span>
+            <h3 style="margin-bottom: 14px;">Revenue vs. Costs &amp; Net Profit Trend</h3>
+            <div style="height: 270px; position: relative;">
+              <canvas id="revenueTrendChart"></canvas>
+            </div>
+          </div>
+          <div class="panel-box">
+            <span class="section-kicker">Product Mix</span>
+            <h3 style="margin-bottom: 14px;">Revenue by Category</h3>
+            <div style="height: 270px; position: relative;">
+              <canvas id="categoryMixChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- P&L STATEMENT + PROFIT-FIRST MONEY ALLOCATION ENGINE -->
+        <div class="finance-grid">
+          <!-- LIVE PROFIT & LOSS WATERFALL -->
+          <div class="panel-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+              <div>
+                <span class="section-kicker">Accounting Ledger</span>
+                <h3>Profit &amp; Loss (P&amp;L) Statement</h3>
+              </div>
+              <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="pnl-paid-only" onchange="refreshDashboardAnalytics()"> Paid Orders Only
+              </label>
+            </div>
+
+            <table class="pnl-table">
+              <tbody>
+                <tr>
+                  <td>Gross Merchandise Sales</td>
+                  <td style="text-align:right; font-weight:600;" id="pnl-merch">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">(−) Promo Code Discounts</td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-discounts">-$0.00</td>
+                </tr>
+                <tr>
+                  <td>(+) Shipping Collected from Customers</td>
+                  <td style="text-align:right;" id="pnl-ship-collected">$0.00</td>
+                </tr>
+                <tr class="pnl-subtotal">
+                  <td>Total Gross Receipts</td>
+                  <td style="text-align:right;" id="pnl-gross-receipts">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">(−) Cost of Goods Sold (Blanks + DTF Prints)</td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-cogs">-$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">(−) Outbound Shipping Label Costs</td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-ship-paid">-$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">(−) Payment Processing Fees</td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-fees">-$0.00</td>
+                </tr>
+                <tr class="pnl-subtotal">
+                  <td>Gross Profit <span id="pnl-gross-margin-badge" style="font-size:12px; color:#10b981; margin-left:6px;">(0% Margin)</span></td>
+                  <td style="text-align:right;" id="pnl-gross-profit">$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">(−) Operating &amp; Overhead Expenses</td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-expenses">-$0.00</td>
+                </tr>
+                <tr class="pnl-total">
+                  <td>TRUE NET PROFIT</td>
+                  <td style="text-align:right; color:#10b981;" id="pnl-net-profit">$0.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PROFIT-FIRST MONEY ALLOCATION & BUDGETING ENGINE -->
+          <div class="panel-box">
+            <span class="section-kicker">Smart Money Management</span>
+            <h3 style="margin-bottom: 6px;">Profit-First Income Allocator</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+              Automatically divides your <strong>True Net Profit</strong> into protected business accounts so taxes, restocks, and owner pay are always covered.
+            </p>
+
+            <div class="budget-bucket">
+              <div class="budget-bucket-top">
+                <strong>1. Inventory &amp; DTF Supply Vault (<span id="lbl-restock-pct">35</span>%)</strong>
+                <strong style="color:#2563eb; font-size:16px;" id="val-restock-amt">$0.00</strong>
+              </div>
+              <div class="budget-bar-track"><div id="bar-restock" class="budget-bar-fill" style="width:35%; background:#2563eb;"></div></div>
+              <p style="font-size:12px; color:var(--text-muted);" id="sub-restock-spent">Spent on blanks/ink in period: $0.00 • Remaining budget: $0.00</p>
+            </div>
+
+            <div class="budget-bucket">
+              <div class="budget-bucket-top">
+                <strong>2. LLC Tax Reserve Vault (<span id="lbl-tax-pct">25</span>%)</strong>
+                <strong style="color:#d97706; font-size:16px;" id="val-tax-amt">$0.00</strong>
+              </div>
+              <div class="budget-bar-track"><div id="bar-tax" class="budget-bar-fill" style="width:25%; background:#d97706;"></div></div>
+              <p style="font-size:12px; color:var(--text-muted);">Set aside for federal/state/self-employment taxes</p>
+            </div>
+
+            <div class="budget-bucket">
+              <div class="budget-bucket-top">
+                <strong>3. Owner Pay / Draw (<span id="lbl-owner-pct">25</span>%)</strong>
+                <strong style="color:#10b981; font-size:16px;" id="val-owner-amt">$0.00</strong>
+              </div>
+              <div class="budget-bar-track"><div id="bar-owner" class="budget-bar-fill" style="width:25%; background:#10b981;"></div></div>
+              <p style="font-size:12px; color:var(--text-muted);">Safe personal payout without starving business cash flow</p>
+            </div>
+
+            <div class="budget-bucket">
+              <div class="budget-bucket-top">
+                <strong>4. Marketing &amp; Brand Growth (<span id="lbl-mkt-pct">15</span>%)</strong>
+                <strong style="color:#7c3aed; font-size:16px;" id="val-mkt-amt">$0.00</strong>
+              </div>
+              <div class="budget-bar-track"><div id="bar-mkt" class="budget-bar-fill" style="width:15%; background:#7c3aed;"></div></div>
+              <p style="font-size:12px; color:var(--text-muted);" id="sub-mkt-spent">Spent on ads/promos in period: $0.00 • Remaining: $0.00</p>
+            </div>
+
+            <form id="budget-rules-form" style="border-top:1px solid var(--border,#e4e4e7); padding-top:12px; margin-top:12px;">
+              <span style="font-size:12px; font-weight:700;">Customize Allocation Splits (Must Equal 100%):</span>
+              <div class="pct-input-group">
+                <div><label>Restock %</label><input type="number" id="in-restock-pct" min="0" max="100" step="1" value="35"></div>
+                <div><label>Taxes %</label><input type="number" id="in-tax-pct" min="0" max="100" step="1" value="25"></div>
+                <div><label>Owner %</label><input type="number" id="in-owner-pct" min="0" max="100" step="1" value="25"></div>
+                <div><label>Growth %</label><input type="number" id="in-mkt-pct" min="0" max="100" step="1" value="15"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <span id="budget-save-msg" style="font-size:12px; font-weight:600;"></span>
+                <button type="submit" class="filter-btn active">Save Budget Rules</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- SKU PROFITABILITY LEADERBOARD -->
+        <div class="panel-box">
+          <span class="section-kicker">Unit Economics</span>
+          <h3 style="margin-bottom: 14px;">Product Profitability &amp; Best-Sellers Leaderboard</h3>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Retail Price</th>
+                  <th>Unit Cost (COGS)</th>
+                  <th>Profit / Unit</th>
+                  <th>Margin %</th>
+                  <th>Units Sold</th>
+                  <th>Total Net Profit Generated</th>
+                </tr>
+              </thead>
+              <tbody id="sku-profitability-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 2: ORDERS & FULFILLMENT (WITH LABEL COST TRACKING)       -->
+      <!-- ============================================================ -->
+      <section id="panel-orders" style="display: none;">
         <div class="section-head" style="margin-bottom: 18px;">
           <div>
-            <span class="section-kicker">Fulfillment Queue</span>
+            <span class="section-kicker">Fulfillment &amp; Margin Tracking</span>
             <h2>Customer Orders</h2>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <select id="order-filter-status" onchange="renderOrdersList()" style="padding: 8px 12px; border-radius: 8px;">
+            <select id="order-filter-status" onchange="renderOrdersList()" style="padding: 8px 12px; border-radius: 8px; margin:0;">
               <option value="all">Show: All Orders</option>
               <option value="Unfulfilled">Unfulfilled Only</option>
               <option value="Packing">Packing</option>
@@ -218,18 +518,73 @@
         <div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 16px;"></div>
       </section>
 
-      <!-- TAB 2: INVENTORY & FULL PRODUCT EDITOR -->
+      <!-- ============================================================ -->
+      <!-- TAB 3: INVENTORY & COGS                                      -->
+      <!-- ============================================================ -->
       <section id="panel-inventory" style="display: none;">
         <div class="section-head" style="margin-bottom: 18px;">
           <div>
-            <span class="section-kicker">Live Catalog</span>
-            <h2>Manage Inventory, Photos &amp; Size Stock</h2>
+            <span class="section-kicker">Live Catalog &amp; Unit Margins</span>
+            <h2>Manage Inventory, Photos &amp; COGS</h2>
           </div>
         </div>
         <div id="admin-inventory-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
       </section>
 
-      <!-- TAB 3: ADD NEW DROP -->
+      <!-- ============================================================ -->
+      <!-- TAB 4: BUSINESS EXPENSES & OVERHEAD LEDGER                   -->
+      <!-- ============================================================ -->
+      <section id="panel-expenses" style="display: none;">
+        <div class="contact-card" style="max-width: 860px; margin-bottom: 24px;">
+          <span class="section-kicker">Expense Tracking</span>
+          <h2 style="margin-bottom: 14px;">Log Business Expense or Supply Purchase</h2>
+          <form id="new-expense-form">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+              <input type="date" id="exp-date" required>
+              <select id="exp-category">
+                <option value="Blank Apparel Restock">Blank Apparel Restock</option>
+                <option value="DTF Ink, Film & Powder">DTF Ink, Film &amp; Powder</option>
+                <option value="Packaging & Poly Mailers">Packaging &amp; Poly Mailers</option>
+                <option value="Marketing & Ads">Marketing &amp; Ads</option>
+                <option value="Equipment & Heat Press">Equipment &amp; Heat Press</option>
+                <option value="Software, Domain & Hosting">Software, Domain &amp; Hosting</option>
+                <option value="Taxes & LLC Fees">Taxes &amp; LLC Fees</option>
+                <option value="Other Overhead">Other Overhead</option>
+              </select>
+              <input type="number" id="exp-amount" placeholder="Amount ($)" min="0.01" step="0.01" required>
+            </div>
+            <input type="text" id="exp-vendor" placeholder="Vendor & Item Description (e.g., Ninja Transfers / Bulk Heavyweight Blanks)" required>
+            <input type="text" id="exp-notes" placeholder="Optional Tax / Receipt Note (e.g., Invoice #1042)">
+            <button type="submit" class="btn-card">Record Expense</button>
+          </form>
+        </div>
+
+        <div class="panel-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3>Expense Ledger</h3>
+            <strong id="expense-ledger-total">Total Logged: $0.00</strong>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Vendor / Description</th>
+                  <th>Notes</th>
+                  <th>Amount</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="admin-expenses-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 5: ADD NEW DROP                                          -->
+      <!-- ============================================================ -->
       <section id="panel-new" style="display: none;">
         <div class="contact-card" style="max-width: 760px;">
           <span class="section-kicker">New Release</span>
@@ -238,14 +593,16 @@
           <form id="new-product-form">
             <input type="text" id="prod-name" placeholder="Product Name (e.g., MSJ Chrome Eagle Heavyweight Tee)" required>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
               <select id="prod-category">
                 <option value="tees">Category: Graphic Tees</option>
                 <option value="hoodies">Category: Hoodies</option>
                 <option value="accessories">Category: Accessories</option>
               </select>
 
-              <input type="number" id="prod-price" placeholder="Price ($)" min="1" step="0.01" required>
+              <input type="number" id="prod-price" placeholder="Retail Price ($)" min="1" step="0.01" oninput="updateNewMarginPreview()" required>
+
+              <input type="number" id="prod-cost" placeholder="Unit Cost / COGS ($)" min="0" step="0.01" value="11.50" oninput="updateNewMarginPreview()" required>
 
               <select id="prod-status">
                 <option value="In Stock">Status: In Stock</option>
@@ -253,11 +610,15 @@
                 <option value="Coming Soon">Status: Coming Soon</option>
                 <option value="Sold Out">Status: Sold Out</option>
               </select>
-
-              <input type="text" id="prod-badge" placeholder="Badge (e.g., Drop 02, Limited)" value="Drop 02">
             </div>
 
-            <label style="display:block; font-size: 13px; font-weight: 700; margin-top: 12px;">Starting Inventory Count by Size (Set 0 for unavailable sizes):</label>
+            <p id="new-margin-preview" style="font-size:13px; font-weight:700; color:#10b981; margin: 6px 0 12px;">
+              Enter a retail price to preview unit profit margin.
+            </p>
+
+            <input type="text" id="prod-badge" placeholder="Drop Badge (e.g., Drop 02, Limited)" value="Drop 02">
+
+            <label style="display:block; font-size: 13px; font-weight: 700; margin-top: 10px;">Starting Inventory Count by Size:</label>
             <div class="size-stock-grid">
               <div class="size-stock-cell"><label>S</label><input type="number" id="new-stock-S" min="0" value="10"></div>
               <div class="size-stock-cell"><label>M</label><input type="number" id="new-stock-M" min="0" value="15"></div>
@@ -267,7 +628,7 @@
             </div>
 
             <div style="margin: 12px 0;">
-              <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Product Photo (Optional — leave blank to use MSJ Emblem):</label>
+              <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Product Photo (Optional):</label>
               <input type="file" id="prod-image-file" accept="image/*">
             </div>
 
@@ -281,7 +642,9 @@
         </div>
       </section>
 
-      <!-- TAB 4: PROMO CODES -->
+      <!-- ============================================================ -->
+      <!-- TAB 6: PROMO CODES                                           -->
+      <!-- ============================================================ -->
       <section id="panel-promos" style="display: none;">
         <div class="contact-card" style="max-width: 680px; margin-bottom: 24px;">
           <span class="section-kicker">Marketing &amp; Drops</span>
@@ -302,12 +665,12 @@
     </div>
   </main>
 
-  <!-- FULL EDIT PRODUCT MODAL -->
+  <!-- FULL EDIT PRODUCT & COGS MODAL -->
   <div id="edit-product-modal" class="modal-overlay" onclick="if(event.target===this) closeEditModal()">
     <div class="modal-box" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
       <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
-      <span class="section-kicker">Full Product Editor</span>
-      <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Product, Photo &amp; Size Stock</h3>
+      <span class="section-kicker">Full Product &amp; Margin Editor</span>
+      <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Product, COGS, Photo &amp; Stock</h3>
 
       <form id="edit-product-form">
         <input type="hidden" id="edit-prod-id">
@@ -316,7 +679,7 @@
         <label style="font-size:12px; font-weight:700;">Product Name</label>
         <input type="text" id="edit-prod-name" required>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
           <div>
             <label style="font-size:12px; font-weight:700;">Category</label>
             <select id="edit-prod-category">
@@ -326,8 +689,12 @@
             </select>
           </div>
           <div>
-            <label style="font-size:12px; font-weight:700;">Price ($)</label>
-            <input type="number" id="edit-prod-price" min="1" step="0.01" required>
+            <label style="font-size:12px; font-weight:700;">Retail Price ($)</label>
+            <input type="number" id="edit-prod-price" min="1" step="0.01" oninput="updateEditMarginPreview()" required>
+          </div>
+          <div>
+            <label style="font-size:12px; font-weight:700;">Unit Cost / COGS ($)</label>
+            <input type="number" id="edit-prod-cost" min="0" step="0.01" oninput="updateEditMarginPreview()" required>
           </div>
           <div>
             <label style="font-size:12px; font-weight:700;">Status</label>
@@ -338,11 +705,12 @@
               <option value="Sold Out">Sold Out</option>
             </select>
           </div>
-          <div>
-            <label style="font-size:12px; font-weight:700;">Badge</label>
-            <input type="text" id="edit-prod-badge">
-          </div>
         </div>
+
+        <p id="edit-margin-preview" style="font-size:12px; font-weight:700; color:#10b981; margin: 4px 0 8px;"></p>
+
+        <label style="font-size:12px; font-weight:700;">Badge</label>
+        <input type="text" id="edit-prod-badge">
 
         <label style="display:block; font-size: 12px; font-weight: 700; margin-top: 8px;">Inventory Count by Size:</label>
         <div class="size-stock-grid">
@@ -381,11 +749,17 @@
   <script>
     let cachedProducts = [];
     let cachedOrders = [];
+    let cachedExpenses = [];
     let cachedPromos = [];
+    let budgetSettings = { restock_pct: 35, tax_pct: 25, owner_pct: 25, marketing_pct: 15 };
+    let trendChartInstance = null;
+    let categoryChartInstance = null;
 
     const loginView = document.getElementById("admin-login-view");
     const dashView = document.getElementById("admin-dashboard-view");
     const signoutBtn = document.getElementById("admin-signout-btn");
+
+    document.getElementById("exp-date").valueAsDate = new Date();
 
     async function checkAdminSession() {
       const { data: { session } } = await msjSupabase.auth.getSession();
@@ -423,26 +797,38 @@
     }
 
     function switchAdminTab(tabName) {
-      ["orders", "inventory", "new", "promos"].forEach(t => {
+      ["analytics", "orders", "inventory", "expenses", "new", "promos"].forEach(t => {
         document.getElementById(`panel-${t}`).style.display = t === tabName ? "block" : "none";
         document.getElementById(`tab-${t}`).classList.toggle("active", t === tabName);
       });
     }
 
     async function loadAllAdminData() {
-      const [prodRes, ordRes, promoRes] = await Promise.all([
+      const [prodRes, ordRes, expRes, promoRes, budgetRes] = await Promise.all([
         msjSupabase.from("products").select("*").order("created_at", { ascending: false }),
         msjSupabase.from("orders").select("*").order("created_at", { ascending: false }),
-        msjSupabase.from("promo_codes").select("*").order("created_at", { ascending: false })
+        msjSupabase.from("expenses").select("*").order("expense_date", { ascending: false }),
+        msjSupabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
+        msjSupabase.from("budget_settings").select("*").eq("id", 1).maybeSingle()
       ]);
 
       cachedProducts = prodRes.data || [];
       cachedOrders = ordRes.data || [];
+      cachedExpenses = expRes.data || [];
       cachedPromos = promoRes.data || [];
 
-      updateKPIs();
+      if (budgetRes.data) {
+        budgetSettings = budgetRes.data;
+        document.getElementById("in-restock-pct").value = budgetSettings.restock_pct;
+        document.getElementById("in-tax-pct").value = budgetSettings.tax_pct;
+        document.getElementById("in-owner-pct").value = budgetSettings.owner_pct;
+        document.getElementById("in-mkt-pct").value = budgetSettings.marketing_pct;
+      }
+
+      refreshDashboardAnalytics();
       renderOrdersList();
       renderInventoryList();
+      renderExpensesList();
       renderPromosList();
     }
 
@@ -450,36 +836,337 @@
       return item.size_stock || { S: 10, M: 10, L: 10, XL: 10, "2XL": 10 };
     }
 
-    function updateKPIs() {
-      const validOrders = cachedOrders.filter(o => o.fulfillment_status !== "Cancelled");
-      const totalRev = validOrders.reduce((s, o) => s + Number(o.total || 0), 0);
-      const paidRev = validOrders
-        .filter(o => (o.payment_status || "").toLowerCase().includes("paid"))
-        .reduce((s, o) => s + Number(o.total || 0), 0);
-      const unfulfilledCount = cachedOrders.filter(o => o.fulfillment_status === "Unfulfilled").length;
+    function filterByPeriod(dateStr) {
+      const period = document.getElementById("analytics-period").value;
+      if (period === "all") return true;
+      const d = new Date(dateStr);
+      const now = new Date();
+      if (period === "7d") return (now - d) <= 7 * 86400000;
+      if (period === "30d") return (now - d) <= 30 * 86400000;
+      if (period === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      if (period === "year") return d.getFullYear() === now.getFullYear();
+      return true;
+    }
 
-      let totalUnits = 0;
-      let lowStockAlerts = 0;
-      cachedProducts.forEach(p => {
-        const map = getStockMap(p);
-        Object.values(map).forEach(qty => {
-          const n = Number(qty || 0);
-          totalUnits += n;
-          if (n > 0 && n <= 3) lowStockAlerts++;
-        });
-      });
-
-      document.getElementById("kpi-revenue").textContent = `$${totalRev.toFixed(2)}`;
-      document.getElementById("kpi-paid-sub").textContent = `$${paidRev.toFixed(2)} confirmed paid`;
-      document.getElementById("kpi-unfulfilled").textContent = unfulfilledCount;
-      document.getElementById("kpi-total-orders").textContent = `${cachedOrders.length} total orders`;
-      document.getElementById("kpi-products").textContent = cachedProducts.length;
-      document.getElementById("kpi-units").textContent = `${totalUnits} units across all sizes`;
-      document.getElementById("kpi-lowstock").textContent = lowStockAlerts;
+    function getOrderCogs(ord) {
+      if (Number(ord.cogs_total || 0) > 0) return Number(ord.cogs_total);
+      const prodLookup = new Map(cachedProducts.map(p => [p.id, Number(p.unit_cost || 11.5)]));
+      return (ord.items || []).reduce((sum, item) => {
+        const unitCost = Number(item.unit_cost) || prodLookup.get(item.id) || 11.5;
+        return sum + unitCost * Number(item.qty || 1);
+      }, 0);
     }
 
     // ============================================================
-    // ORDERS & FULFILLMENT
+    // PEAK ANALYTICS, P&L STATEMENT & PROFIT-FIRST ALLOCATOR
+    // ============================================================
+
+    function refreshDashboardAnalytics() {
+      const paidOnly = document.getElementById("pnl-paid-only").checked;
+      const validOrders = cachedOrders.filter(o => {
+        if (o.fulfillment_status === "Cancelled") return false;
+        if (!filterByPeriod(o.created_at)) return false;
+        if (paidOnly && !(o.payment_status || "").toLowerCase().includes("paid")) return false;
+        return true;
+      });
+
+      const periodExpenses = cachedExpenses.filter(e => filterByPeriod(e.expense_date + "T12:00:00"));
+
+      const merchSales = validOrders.reduce((s, o) => s + Number(o.subtotal || 0), 0);
+      const discounts = validOrders.reduce((s, o) => s + Number(o.discount_amount || 0), 0);
+      const shipCollected = validOrders.reduce((s, o) => s + Number(o.shipping_cost || 0), 0);
+      const grossReceipts = validOrders.reduce((s, o) => s + Number(o.total || 0), 0);
+
+      const paidReceipts = cachedOrders
+        .filter(o => o.fulfillment_status !== "Cancelled" && filterByPeriod(o.created_at) && (o.payment_status || "").toLowerCase().includes("paid"))
+        .reduce((s, o) => s + Number(o.total || 0), 0);
+
+      const cogs = validOrders.reduce((s, o) => s + getOrderCogs(o), 0);
+      const shipPaid = validOrders.reduce((s, o) => s + Number(o.actual_shipping_cost || 0), 0);
+      const fees = validOrders.reduce((s, o) => s + Number(o.payment_fee || 0), 0);
+      const overhead = periodExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+
+      const grossProfit = grossReceipts - cogs - shipPaid - fees;
+      const grossMarginPct = grossReceipts > 0 ? (grossProfit / grossReceipts) * 100 : 0;
+      const netProfit = grossProfit - overhead;
+      const netMarginPct = grossReceipts > 0 ? (netProfit / grossReceipts) * 100 : 0;
+      const aov = validOrders.length > 0 ? grossReceipts / validOrders.length : 0;
+
+      // Inventory Valuation & Alerts
+      let stockRetailVal = 0;
+      let stockCostVal = 0;
+      let lowStockAlerts = 0;
+      cachedProducts.forEach(p => {
+        const map = getStockMap(p);
+        const units = Object.values(map).reduce((s, q) => {
+          const n = Number(q || 0);
+          if (n > 0 && n <= 3) lowStockAlerts++;
+          return s + n;
+        }, 0);
+        stockRetailVal += units * Number(p.price || 0);
+        stockCostVal += units * Number(p.unit_cost || 0);
+      });
+
+      const unfulfilledCount = cachedOrders.filter(o => o.fulfillment_status === "Unfulfilled").length;
+
+      // Update Top KPI Cards
+      document.getElementById("kpi-gross-rev").textContent = `$${grossReceipts.toFixed(2)}`;
+      document.getElementById("kpi-paid-rev").textContent = `$${paidReceipts.toFixed(2)} confirmed paid`;
+      const netEl = document.getElementById("kpi-net-profit");
+      netEl.textContent = `${netProfit < 0 ? "-" : ""}$${Math.abs(netProfit).toFixed(2)}`;
+      netEl.style.color = netProfit >= 0 ? "#10b981" : "#ef4444";
+      document.getElementById("kpi-net-margin").textContent = `${netMarginPct.toFixed(1)}% true net margin`;
+      document.getElementById("kpi-total-costs").textContent = `$${(cogs + shipPaid + fees + overhead).toFixed(2)}`;
+      document.getElementById("kpi-costs-sub").textContent = `COGS $${cogs.toFixed(0)} • Overhead $${overhead.toFixed(0)}`;
+      document.getElementById("kpi-aov").textContent = `$${aov.toFixed(2)}`;
+      document.getElementById("kpi-order-count").textContent = `${validOrders.length} orders in period`;
+      document.getElementById("kpi-stock-retail").textContent = `$${stockRetailVal.toFixed(2)}`;
+      document.getElementById("kpi-stock-cost").textContent = `$${stockCostVal.toFixed(2)} capital in stock`;
+      document.getElementById("kpi-unfulfilled").textContent = unfulfilledCount;
+      document.getElementById("kpi-lowstock").textContent = `${lowStockAlerts} low-stock size alerts`;
+
+      // Update P&L Statement
+      document.getElementById("pnl-merch").textContent = `$${merchSales.toFixed(2)}`;
+      document.getElementById("pnl-discounts").textContent = `-$${discounts.toFixed(2)}`;
+      document.getElementById("pnl-ship-collected").textContent = `$${shipCollected.toFixed(2)}`;
+      document.getElementById("pnl-gross-receipts").textContent = `$${grossReceipts.toFixed(2)}`;
+      document.getElementById("pnl-cogs").textContent = `-$${cogs.toFixed(2)}`;
+      document.getElementById("pnl-ship-paid").textContent = `-$${shipPaid.toFixed(2)}`;
+      document.getElementById("pnl-fees").textContent = `-$${fees.toFixed(2)}`;
+      document.getElementById("pnl-gross-margin-badge").textContent = `(${grossMarginPct.toFixed(1)}% Gross Margin)`;
+      document.getElementById("pnl-gross-profit").textContent = `$${grossProfit.toFixed(2)}`;
+      document.getElementById("pnl-expenses").textContent = `-$${overhead.toFixed(2)}`;
+      const pnlNetEl = document.getElementById("pnl-net-profit");
+      pnlNetEl.textContent = `${netProfit < 0 ? "-" : ""}$${Math.abs(netProfit).toFixed(2)}`;
+      pnlNetEl.style.color = netProfit >= 0 ? "#10b981" : "#ef4444";
+
+      // Update Profit-First Budget Buckets
+      const allocBase = Math.max(0, netProfit);
+      const rPct = Number(budgetSettings.restock_pct || 35);
+      const tPct = Number(budgetSettings.tax_pct || 25);
+      const oPct = Number(budgetSettings.owner_pct || 25);
+      const mPct = Number(budgetSettings.marketing_pct || 15);
+
+      const restockBudget = allocBase * (rPct / 100);
+      const taxBudget = allocBase * (tPct / 100);
+      const ownerBudget = allocBase * (oPct / 100);
+      const mktBudget = allocBase * (mPct / 100);
+
+      const restockSpent = periodExpenses
+        .filter(e => ["Blank Apparel Restock", "DTF Ink, Film & Powder", "Packaging & Poly Mailers"].includes(e.category))
+        .reduce((s, e) => s + Number(e.amount || 0), 0);
+      const mktSpent = periodExpenses
+        .filter(e => e.category === "Marketing & Ads")
+        .reduce((s, e) => s + Number(e.amount || 0), 0);
+
+      document.getElementById("lbl-restock-pct").textContent = rPct;
+      document.getElementById("val-restock-amt").textContent = `$${restockBudget.toFixed(2)}`;
+      document.getElementById("bar-restock").style.width = `${Math.min(100, rPct)}%`;
+      document.getElementById("sub-restock-spent").textContent = `Spent on blanks/ink in period: $${restockSpent.toFixed(2)} • Remaining pool: $${(restockBudget - restockSpent).toFixed(2)}`;
+
+      document.getElementById("lbl-tax-pct").textContent = tPct;
+      document.getElementById("val-tax-amt").textContent = `$${taxBudget.toFixed(2)}`;
+      document.getElementById("bar-tax").style.width = `${Math.min(100, tPct)}%`;
+
+      document.getElementById("lbl-owner-pct").textContent = oPct;
+      document.getElementById("val-owner-amt").textContent = `$${ownerBudget.toFixed(2)}`;
+      document.getElementById("bar-owner").style.width = `${Math.min(100, oPct)}%`;
+
+      document.getElementById("lbl-mkt-pct").textContent = mPct;
+      document.getElementById("val-mkt-amt").textContent = `$${mktBudget.toFixed(2)}`;
+      document.getElementById("bar-mkt").style.width = `${Math.min(100, mPct)}%`;
+      document.getElementById("sub-mkt-spent").textContent = `Spent on ads in period: $${mktSpent.toFixed(2)} • Remaining pool: $${(mktBudget - mktSpent).toFixed(2)}`;
+
+      renderCharts(validOrders);
+      renderSkuLeaderboard(validOrders);
+    }
+
+    function renderCharts(validOrders) {
+      // Group orders by date for trend chart
+      const byDay = {};
+      validOrders.slice().reverse().forEach(o => {
+        const day = new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        if (!byDay[day]) byDay[day] = { rev: 0, profit: 0 };
+        const rev = Number(o.total || 0);
+        const cost = getOrderCogs(o) + Number(o.actual_shipping_cost || 0) + Number(o.payment_fee || 0);
+        byDay[day].rev += rev;
+        byDay[day].profit += (rev - cost);
+      });
+
+      const labels = Object.keys(byDay).length ? Object.keys(byDay) : ["No Orders Yet"];
+      const revData = Object.keys(byDay).length ? labels.map(l => byDay[l].rev) : [0];
+      const profitData = Object.keys(byDay).length ? labels.map(l => byDay[l].profit) : [0];
+
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(document.getElementById("revenueTrendChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Gross Revenue ($)", data: revData, backgroundColor: "#09090b", borderRadius: 6 },
+            { label: "Gross Profit ($)", data: profitData, backgroundColor: "#10b981", borderRadius: 6 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Category mix chart
+      const catTotals = { Tees: 0, Hoodies: 0, Accessories: 0 };
+      const prodCatMap = new Map(cachedProducts.map(p => [p.id, p.category]));
+      validOrders.forEach(o => {
+        (o.items || []).forEach(i => {
+          const cat = (prodCatMap.get(i.id) || "tees").toLowerCase();
+          const lineTotal = Number(i.price || 0) * Number(i.qty || 1);
+          if (cat === "hoodies") catTotals.Hoodies += lineTotal;
+          else if (cat === "accessories") catTotals.Accessories += lineTotal;
+          else catTotals.Tees += lineTotal;
+        });
+      });
+
+      if (categoryChartInstance) categoryChartInstance.destroy();
+      categoryChartInstance = new Chart(document.getElementById("categoryMixChart"), {
+        type: "doughnut",
+        data: {
+          labels: Object.keys(catTotals),
+          datasets: [{
+            data: Object.values(catTotals),
+            backgroundColor: ["#09090b", "#2563eb", "#10b981"]
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderSkuLeaderboard(validOrders) {
+      const stats = new Map();
+      cachedProducts.forEach(p => {
+        stats.set(p.id, {
+          name: p.name,
+          price: Number(p.price || 0),
+          cost: Number(p.unit_cost || 0),
+          sold: 0,
+          profit: 0
+        });
+      });
+
+      validOrders.forEach(o => {
+        (o.items || []).forEach(i => {
+          if (!stats.has(i.id)) {
+            stats.set(i.id, { name: i.name, price: Number(i.price || 0), cost: Number(i.unit_cost || 11.5), sold: 0, profit: 0 });
+          }
+          const rec = stats.get(i.id);
+          const qty = Number(i.qty || 1);
+          const unitCost = Number(i.unit_cost) || rec.cost;
+          rec.sold += qty;
+          rec.profit += (Number(i.price || rec.price) - unitCost) * qty;
+        });
+      });
+
+      const sorted = Array.from(stats.values()).sort((a, b) => b.profit - a.profit || b.price - a.price);
+      document.getElementById("sku-profitability-body").innerHTML = sorted.map(s => {
+        const unitProfit = s.price - s.cost;
+        const margin = s.price > 0 ? (unitProfit / s.price) * 100 : 0;
+        return `
+          <tr>
+            <td><strong>${s.name}</strong></td>
+            <td>$${s.price.toFixed(2)}</td>
+            <td>$${s.cost.toFixed(2)}</td>
+            <td style="color:#10b981;font-weight:700;">$${unitProfit.toFixed(2)}</td>
+            <td>${margin.toFixed(1)}%</td>
+            <td><strong>${s.sold}</strong></td>
+            <td style="font-weight:800;">$${s.profit.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    document.getElementById("budget-rules-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const r = parseFloat(document.getElementById("in-restock-pct").value || 0);
+      const t = parseFloat(document.getElementById("in-tax-pct").value || 0);
+      const o = parseFloat(document.getElementById("in-owner-pct").value || 0);
+      const m = parseFloat(document.getElementById("in-mkt-pct").value || 0);
+      const msg = document.getElementById("budget-save-msg");
+
+      if (Math.round(r + t + o + m) !== 100) {
+        msg.style.color = "#ef4444";
+        msg.textContent = `Total is ${r + t + o + m}% — splits must equal 100%.`;
+        return;
+      }
+
+      const { error } = await msjSupabase.from("budget_settings").upsert({
+        id: 1,
+        restock_pct: r,
+        tax_pct: t,
+        owner_pct: o,
+        marketing_pct: m
+      });
+
+      if (error) {
+        msg.style.color = "#ef4444";
+        msg.textContent = error.message;
+      } else {
+        budgetSettings = { restock_pct: r, tax_pct: t, owner_pct: o, marketing_pct: m };
+        msg.style.color = "#10b981";
+        msg.textContent = "Saved!";
+        refreshDashboardAnalytics();
+        setTimeout(() => (msg.textContent = ""), 2500);
+      }
+    });
+
+    // ============================================================
+    // EXPENSES LEDGER
+    // ============================================================
+
+    document.getElementById("new-expense-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const { error } = await msjSupabase.from("expenses").insert([{
+        expense_date: document.getElementById("exp-date").value,
+        category: document.getElementById("exp-category").value,
+        amount: parseFloat(document.getElementById("exp-amount").value),
+        vendor_description: document.getElementById("exp-vendor").value.trim(),
+        notes: document.getElementById("exp-notes").value.trim()
+      }]);
+
+      if (error) {
+        alert("Failed to log expense: " + error.message);
+      } else {
+        e.target.reset();
+        document.getElementById("exp-date").valueAsDate = new Date();
+        loadAllAdminData();
+      }
+    });
+
+    function renderExpensesList() {
+      const body = document.getElementById("admin-expenses-body");
+      const total = cachedExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+      document.getElementById("expense-ledger-total").textContent = `Total Logged: $${total.toFixed(2)}`;
+
+      if (cachedExpenses.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted);">No operating expenses logged yet. Add blank restocks, DTF ink/film, mailers, or ad spend above.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = cachedExpenses.map(exp => `
+        <tr>
+          <td>${exp.expense_date}</td>
+          <td><strong>${exp.category}</strong></td>
+          <td>${exp.vendor_description}</td>
+          <td style="color:var(--text-muted);">${exp.notes || "—"}</td>
+          <td style="font-weight:700;color:#ef4444;">-$${Number(exp.amount).toFixed(2)}</td>
+          <td><button type="button" class="filter-btn" style="padding:4px 8px;color:#ef4444;" onclick="deleteExpense('${exp.id}')">&times;</button></td>
+        </tr>
+      `).join("");
+    }
+
+    async function deleteExpense(id) {
+      if (!confirm("Delete this expense entry?")) return;
+      await msjSupabase.from("expenses").delete().eq("id", id);
+      loadAllAdminData();
+    }
+
+    // ============================================================
+    // ORDERS & FULFILLMENT (WITH LABEL COST & NET ORDER MARGIN)
     // ============================================================
 
     function renderOrdersList() {
@@ -490,12 +1177,17 @@
         : cachedOrders.filter(o => o.fulfillment_status === filter);
 
       if (filtered.length === 0) {
-        list.innerHTML = `<div class="contact-card" style="max-width:100%;"><p style="color:var(--text-muted);">No orders match this filter yet. Once shoppers complete checkout on your site, every order appears here automatically.</p></div>`;
+        list.innerHTML = `<div class="contact-card" style="max-width:100%;"><p style="color:var(--text-muted);">No orders match this filter yet.</p></div>`;
         return;
       }
 
       list.innerHTML = filtered.map(ord => {
         const isPaid = (ord.payment_status || "").toLowerCase().includes("paid");
+        const orderCogs = getOrderCogs(ord);
+        const labelCost = Number(ord.actual_shipping_cost || 0);
+        const feeCost = Number(ord.payment_fee || 0);
+        const orderNetProfit = Number(ord.total || 0) - orderCogs - labelCost - feeCost;
+
         const itemsHtml = (ord.items || []).map(i =>
           `<li><strong>${i.qty}x</strong> ${i.name} — Size: <strong>${i.size}</strong> ($${(Number(i.price) * Number(i.qty)).toFixed(2)})</li>`
         ).join("");
@@ -516,7 +1208,7 @@
               </div>
               <div style="text-align:right;">
                 <strong style="font-size:20px;">$${Number(ord.total).toFixed(2)}</strong>
-                ${ord.promo_code ? `<p style="font-size:12px; color:#10b981;">Code: ${ord.promo_code} (-$${Number(ord.discount_amount).toFixed(2)})</p>` : ""}
+                <p style="font-size:12px; color:#10b981; font-weight:700;">Net Order Profit: $${orderNetProfit.toFixed(2)} (COGS: $${orderCogs.toFixed(2)})</p>
               </div>
             </div>
 
@@ -528,7 +1220,6 @@
               <div>
                 <span class="kpi-label">Ship To</span>
                 <p style="margin-top: 4px;">${ord.shipping_address}</p>
-                ${ord.customer_phone ? `<p style="font-size:13px; color:var(--text-muted);">Phone: ${ord.customer_phone}</p>` : ""}
               </div>
             </div>
 
@@ -539,7 +1230,9 @@
                 ).join("")}
               </select>
 
-              <input type="text" id="track-${ord.id}" value="${ord.tracking_number || ""}" placeholder="Enter Tracking Number..." style="margin:0;">
+              <input type="text" id="track-${ord.id}" value="${ord.tracking_number || ""}" placeholder="Tracking Number..." style="margin:0;">
+
+              <input type="number" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : ""}" step="0.01" min="0" placeholder="Label Cost ($)" style="margin:0;">
 
               <select id="status-${ord.id}" style="padding: 9px 10px; border-radius: 8px; margin:0;">
                 ${["Unfulfilled", "Packing", "Shipped", "Delivered", "Cancelled"].map(st =>
@@ -548,9 +1241,9 @@
               </select>
 
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save Update</button>
+                <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save</button>
                 ${!isPaid ? `<button type="button" class="filter-btn" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
-                <button type="button" class="filter-btn" onclick="printPackingSlip('${ord.id}')">Packing Slip</button>
+                <button type="button" class="filter-btn" onclick="printPackingSlip('${ord.id}')">Slip</button>
               </div>
             </div>
           </div>
@@ -561,6 +1254,7 @@
     async function saveOrderFulfillment(orderId) {
       const carrier = document.getElementById(`carrier-${orderId}`).value;
       const tracking = document.getElementById(`track-${orderId}`).value.trim();
+      const labelCost = parseFloat(document.getElementById(`labelcost-${orderId}`).value || "0");
       let status = document.getElementById(`status-${orderId}`).value;
 
       if (tracking && status === "Unfulfilled") {
@@ -572,6 +1266,7 @@
         .update({
           tracking_carrier: carrier,
           tracking_number: tracking,
+          actual_shipping_cost: labelCost,
           fulfillment_status: status
         })
         .eq("id", orderId);
@@ -647,13 +1342,42 @@
     }
 
     // ============================================================
-    // INVENTORY LIST & FULL EDIT MODAL
+    // INVENTORY, COGS & PRODUCT EDITOR
     // ============================================================
+
+    function updateNewMarginPreview() {
+      const price = parseFloat(document.getElementById("prod-price").value || "0");
+      const cost = parseFloat(document.getElementById("prod-cost").value || "0");
+      const el = document.getElementById("new-margin-preview");
+      if (price <= 0) {
+        el.textContent = "Enter a retail price to preview unit profit margin.";
+        return;
+      }
+      const profit = price - cost;
+      const pct = (profit / price) * 100;
+      el.style.color = profit >= 0 ? "#10b981" : "#ef4444";
+      el.textContent = `Unit Profit: $${profit.toFixed(2)} per item (${pct.toFixed(1)}% Gross Margin)`;
+    }
+
+    function updateEditMarginPreview() {
+      const price = parseFloat(document.getElementById("edit-prod-price").value || "0");
+      const cost = parseFloat(document.getElementById("edit-prod-cost").value || "0");
+      const profit = price - cost;
+      const pct = price > 0 ? (profit / price) * 100 : 0;
+      const el = document.getElementById("edit-margin-preview");
+      el.style.color = profit >= 0 ? "#10b981" : "#ef4444";
+      el.textContent = `Unit Profit: $${profit.toFixed(2)} per item (${pct.toFixed(1)}% Gross Margin)`;
+    }
 
     function renderInventoryList() {
       const list = document.getElementById("admin-inventory-list");
       list.innerHTML = cachedProducts.map(item => {
         const stock = getStockMap(item);
+        const price = Number(item.price || 0);
+        const cost = Number(item.unit_cost || 0);
+        const unitProfit = price - cost;
+        const marginPct = price > 0 ? (unitProfit / price) * 100 : 0;
+
         const stockBadges = ["S", "M", "L", "XL", "2XL"].map(sz => {
           const count = Number(stock[sz] ?? 0);
           const color = count === 0 ? "#ef4444" : count <= 3 ? "#d97706" : "#166534";
@@ -669,7 +1393,9 @@
               }
               <div>
                 <strong style="font-size:16px;">${item.name}</strong>
-                <p style="font-size: 13px; color: var(--text-muted); margin: 3px 0 6px;">$${item.price} • ${item.category.toUpperCase()} • ${item.badge}</p>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 3px 0 6px;">
+                  Retail: <strong>$${price.toFixed(2)}</strong> • COGS: <strong>$${cost.toFixed(2)}</strong> • Profit: <strong style="color:#10b981;">+$${unitProfit.toFixed(2)} (${marginPct.toFixed(0)}%)</strong>
+                </p>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">${stockBadges}</div>
               </div>
             </div>
@@ -681,7 +1407,7 @@
                 ).join("")}
               </select>
 
-              <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="openEditModal('${item.id}')">Edit Product &amp; Photo</button>
+              <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="openEditModal('${item.id}')">Edit Product &amp; COGS</button>
               <button type="button" class="filter-btn" style="color: #ef4444;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
             </div>
           </div>
@@ -704,6 +1430,7 @@
       document.getElementById("edit-prod-name").value = item.name;
       document.getElementById("edit-prod-category").value = item.category;
       document.getElementById("edit-prod-price").value = item.price;
+      document.getElementById("edit-prod-cost").value = item.unit_cost ?? 11.50;
       document.getElementById("edit-prod-status").value = item.status;
       document.getElementById("edit-prod-badge").value = item.badge || "";
       document.getElementById("edit-prod-fit").value = item.fit || "";
@@ -717,6 +1444,7 @@
         document.getElementById(`edit-stock-${sz}`).value = Number(stock[sz] ?? 0);
       });
 
+      updateEditMarginPreview();
       document.getElementById("edit-product-modal").classList.add("active");
     }
 
@@ -766,6 +1494,7 @@
           name: document.getElementById("edit-prod-name").value.trim(),
           category: document.getElementById("edit-prod-category").value,
           price: parseFloat(document.getElementById("edit-prod-price").value),
+          unit_cost: parseFloat(document.getElementById("edit-prod-cost").value || "0"),
           status: document.getElementById("edit-prod-status").value,
           badge: document.getElementById("edit-prod-badge").value.trim(),
           image: imageUrl,
@@ -788,10 +1517,6 @@
         btn.textContent = "Save All Product Changes";
       }
     });
-
-    // ============================================================
-    // CREATE NEW PRODUCT
-    // ============================================================
 
     document.getElementById("new-product-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -831,6 +1556,7 @@
           name: document.getElementById("prod-name").value.trim(),
           category: document.getElementById("prod-category").value,
           price: parseFloat(document.getElementById("prod-price").value),
+          unit_cost: parseFloat(document.getElementById("prod-cost").value || "0"),
           status: document.getElementById("prod-status").value,
           badge: document.getElementById("prod-badge").value.trim() || "Drop 02",
           image: imageUrl,
@@ -864,7 +1590,7 @@
     }
 
     // ============================================================
-    // PROMO CODES MANAGER
+    // PROMO CODES & CSV ACCOUNTING EXPORTS
     // ============================================================
 
     function renderPromosList() {
@@ -916,6 +1642,49 @@
     async function deletePromo(id) {
       await msjSupabase.from("promo_codes").delete().eq("id", id);
       loadAllAdminData();
+    }
+
+    function downloadCSV(filename, rows) {
+      const csvContent = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    }
+
+    function exportOrdersCSV() {
+      const headers = ["Order Number", "Date", "Customer", "Email", "Subtotal", "Discount", "Shipping Collected", "Total Collected", "COGS", "Shipping Label Cost", "Payment Fee", "Net Profit", "Payment Status", "Fulfillment Status", "Tracking"];
+      const rows = cachedOrders.map(o => {
+        const cogs = getOrderCogs(o);
+        const ship = Number(o.actual_shipping_cost || 0);
+        const fee = Number(o.payment_fee || 0);
+        const net = Number(o.total || 0) - cogs - ship - fee;
+        return [
+          o.order_number,
+          new Date(o.created_at).toISOString().split("T")[0],
+          o.customer_name,
+          o.customer_email,
+          o.subtotal,
+          o.discount_amount,
+          o.shipping_cost,
+          o.total,
+          cogs.toFixed(2),
+          ship.toFixed(2),
+          fee.toFixed(2),
+          net.toFixed(2),
+          o.payment_status,
+          o.fulfillment_status,
+          `${o.tracking_carrier || ""} ${o.tracking_number || ""}`.trim()
+        ];
+      });
+      downloadCSV(`MSJ-Orders-Accounting-${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
+    }
+
+    function exportExpensesCSV() {
+      const headers = ["Date", "Category", "Vendor / Description", "Notes", "Amount"];
+      const rows = cachedExpenses.map(e => [e.expense_date, e.category, e.vendor_description, e.notes, Number(e.amount).toFixed(2)]);
+      downloadCSV(`MSJ-Expenses-${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
     }
 
     checkAdminSession();

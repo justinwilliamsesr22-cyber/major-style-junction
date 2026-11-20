@@ -17,6 +17,7 @@ const MSJ_PRODUCTS = [
     name: "MSJ Signature Heavyweight Tee",
     category: "tees",
     price: 38,
+    unit_cost: 11.50,
     status: "In Stock",
     badge: "Drop 01",
     image: "typographic",
@@ -31,6 +32,7 @@ const MSJ_PRODUCTS = [
     name: "Junction Streetwear Pullover Hoodie",
     category: "hoodies",
     price: 68,
+    unit_cost: 24.00,
     status: "Coming Soon",
     badge: "Limited Run",
     image: "typographic",
@@ -45,6 +47,7 @@ const MSJ_PRODUCTS = [
     name: "Bold Statement Graphic Tee",
     category: "tees",
     price: 38,
+    unit_cost: 11.50,
     status: "Coming Soon",
     badge: "Drop 01",
     image: "typographic",
@@ -428,6 +431,7 @@ function addToBag(productId, size) {
       id: product.id,
       name: product.name,
       price: Number(product.price),
+      unit_cost: Number(product.unit_cost || 11.5),
       image: product.image,
       status: product.status,
       size: chosenSize,
@@ -467,8 +471,13 @@ function removeBagItem(index) {
 
 function calculateBagTotals() {
   const subtotal = msjCart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
-  let discount = 0;
+  const cogsTotal = msjCart.reduce((sum, item) => {
+    const prod = LIVE_PRODUCTS.find((p) => p.id === item.id);
+    const unitCost = Number(item.unit_cost) || Number(prod?.unit_cost || 11.5);
+    return sum + unitCost * Number(item.qty);
+  }, 0);
 
+  let discount = 0;
   if (appliedPromo && subtotal > 0) {
     if (appliedPromo.discount_type === "percent") {
       discount = subtotal * (Number(appliedPromo.discount_value) / 100);
@@ -483,7 +492,7 @@ function calculateBagTotals() {
     : MSJ_CONFIG.flatShippingRate;
   const total = discountedSubtotal + shipping;
 
-  return { subtotal, discount, discountedSubtotal, shipping, total };
+  return { subtotal, cogsTotal, discount, discountedSubtotal, shipping, total };
 }
 
 async function applyPromoCode() {
@@ -905,7 +914,7 @@ async function handleLookupOrder(e) {
   });
 
   if (error || !data || data.length === 0) {
-    resultEl.innerHTML = `<p style="color:#ef4444;font-size:13px;">No matching order found. Check your Order Number (e.g., MSJ-4821) and email address.</p>`;
+    resultEl.innerHTML = `<p style="color:#ef4444;font-size:13px;">No matching order found. Check your Order Number (e.g., MSJ-482910) and email address.</p>`;
     return;
   }
 
@@ -965,7 +974,6 @@ async function processStripeCheckout() {
       return;
     }
 
-    // If Stripe keys are not yet configured on Vercel, guide user cleanly to Direct Order Request
     statusEl.style.color = "#d97706";
     statusEl.textContent = data.error || `Card checkout is being activated ($${total.toFixed(2)}). Use "Complete Order Request" below to lock in your items now.`;
   } catch {
@@ -987,7 +995,7 @@ async function submitDirectOrderToDatabase(e) {
   const customerName = document.getElementById("bag-cust-name").value.trim();
   const customerEmail = document.getElementById("bag-cust-email").value.trim();
   const shippingAddress = document.getElementById("bag-cust-address").value.trim();
-  const { subtotal, discount, shipping, total } = calculateBagTotals();
+  const { subtotal, cogsTotal, discount, shipping, total } = calculateBagTotals();
   const orderNumber = generateOrderNumber();
 
   const orderSummary = msjCart
@@ -995,7 +1003,6 @@ async function submitDirectOrderToDatabase(e) {
     .join(" | ");
 
   try {
-    // 1. Save order to live Supabase `orders` table
     if (window.msjSupabase) {
       const { error: orderErr } = await window.msjSupabase.from("orders").insert([{
         order_number: orderNumber,
@@ -1004,6 +1011,7 @@ async function submitDirectOrderToDatabase(e) {
         shipping_address: shippingAddress,
         items: msjCart,
         subtotal,
+        cogs_total: cogsTotal,
         discount_amount: discount,
         promo_code: appliedPromo ? appliedPromo.code : "",
         shipping_cost: shipping,
@@ -1014,7 +1022,6 @@ async function submitDirectOrderToDatabase(e) {
 
       if (orderErr) throw orderErr;
 
-      // 2. Atomically deduct per-size stock in Supabase
       for (const item of msjCart) {
         if (item.id && !item.id.startsWith("msj-")) {
           await window.msjSupabase.rpc("decrement_product_stock", {
@@ -1025,13 +1032,11 @@ async function submitDirectOrderToDatabase(e) {
         }
       }
 
-      // 3. Increment promo code use count if applied
       if (appliedPromo) {
         await window.msjSupabase.rpc("increment_promo_use", { p_code: appliedPromo.code });
       }
     }
 
-    // 4. Send email notification via Formspree
     const payload = new FormData();
     payload.append("order_number", orderNumber);
     payload.append("customer_name", customerName);
@@ -1045,7 +1050,6 @@ async function submitDirectOrderToDatabase(e) {
       headers: { Accept: "application/json" }
     }).catch(() => {});
 
-    // 5. Save to local member account history if logged in
     if (currentUser) {
       const db = getAccountsDB();
       const record = db[currentUser.email];

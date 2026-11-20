@@ -29,11 +29,14 @@ module.exports = async function handler(req, res) {
     const productMap = new Map((dbProducts || []).map((p) => [p.id, p]));
 
     let subtotal = 0;
+    let cogsTotal = 0;
     const lineItems = [];
+    const enrichedCart = [];
 
     for (const cartItem of items) {
       const dbProd = productMap.get(cartItem.id);
       const unitPrice = dbProd ? Number(dbProd.price) : Number(cartItem.price);
+      const unitCost = dbProd ? Number(dbProd.unit_cost || 11.5) : Number(cartItem.unit_cost || 11.5);
       const name = dbProd ? dbProd.name : cartItem.name;
 
       if (dbProd && dbProd.size_stock) {
@@ -46,6 +49,17 @@ module.exports = async function handler(req, res) {
       }
 
       subtotal += unitPrice * cartItem.qty;
+      cogsTotal += unitCost * cartItem.qty;
+
+      enrichedCart.push({
+        id: cartItem.id,
+        name,
+        size: cartItem.size,
+        qty: cartItem.qty,
+        price: unitPrice,
+        unit_cost: unitCost
+      });
+
       lineItems.push({
         price_data: {
           currency: "usd",
@@ -107,9 +121,8 @@ module.exports = async function handler(req, res) {
         discount_amount: discountAmount.toFixed(2),
         shipping_cost: shippingCost.toFixed(2),
         subtotal: subtotal.toFixed(2),
-        cart_json: JSON.stringify(
-          items.map((i) => ({ id: i.id, name: i.name, size: i.size, qty: i.qty, price: i.price }))
-        )
+        cogs_total: cogsTotal.toFixed(2),
+        cart_json: JSON.stringify(enrichedCart)
       }
     };
 
