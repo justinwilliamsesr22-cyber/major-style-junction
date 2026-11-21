@@ -2207,9 +2207,14 @@
       if (isStaffUser) return;
       cachedTeam = cachedTeam.map(m => {
         if (m.id !== id) return m;
-        const nextHrs = typeof deltaOrExact === "number"
-          ? Math.max(0, Number((Number(m.hours || 0) + deltaOrExact).toFixed(2)))
-          : Math.max(0, Number(parseFloat(deltaOrExact || "0").toFixed(2)));
+        let nextHrs = 0;
+        if (deltaOrExact === 0 || deltaOrExact === "0") {
+          nextHrs = 0;
+        } else if (typeof deltaOrExact === "number") {
+          nextHrs = Math.max(0, Number((Number(m.hours || 0) + deltaOrExact).toFixed(2)));
+        } else {
+          nextHrs = Math.max(0, Number(parseFloat(deltaOrExact || "0").toFixed(2)));
+        }
         return { ...m, hours: nextHrs };
       });
       saveTimeClockState();
