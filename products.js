@@ -101,7 +101,7 @@ async function syncProductsFromSupabase() {
 }
 
 // ============================================================
-// CUSTOMER ACCOUNT, STAFF LOGIN ROUTING & ORDER HISTORY STATE
+// CUSTOMER ACCOUNT, SAVED SHIPPING & ORDER HISTORY STATE
 // ============================================================
 
 const ACCOUNTS_DB_KEY = "msj_customer_accounts_v1";
@@ -133,15 +133,16 @@ function encodePass(str) {
   return btoa(unescape(encodeURIComponent(str.trim())));
 }
 
+function formatSavedAddress(userObj) {
+  if (!userObj) return "";
+  return [userObj.street, userObj.cityZip].filter(Boolean).join(", ");
+}
+
 async function loadCurrentUser() {
   if (window.msjSupabase) {
     try {
       const { data: { session } } = await window.msjSupabase.auth.getSession();
-      if (session && session.user) {
-        activeStaffSession = session.user;
-      } else {
-        activeStaffSession = null;
-      }
+      activeStaffSession = session && session.user ? session.user : null;
     } catch {
       activeStaffSession = null;
     }
@@ -197,6 +198,8 @@ function updateAccountUI() {
     document.getElementById("prof-size").value = currentUser.preferredSize || "L";
     document.getElementById("prof-street").value = currentUser.street || "";
     document.getElementById("prof-city-zip").value = currentUser.cityZip || "";
+    const notesEl = document.getElementById("prof-delivery-notes");
+    if (notesEl) notesEl.value = currentUser.deliveryNotes || "";
 
     renderOrderHistory();
   } else {
@@ -228,6 +231,7 @@ function handleRegisterAccount(e) {
     phone: "",
     street: "",
     cityZip: "",
+    deliveryNotes: "",
     orders: []
   };
 
@@ -261,9 +265,7 @@ async function handleSignInAccount(e) {
         }, 400);
         return;
       }
-    } catch {
-      // Fall through to customer account check
-    }
+    } catch {}
   }
 
   const db = getAccountsDB();
@@ -301,13 +303,15 @@ function handleSaveProfile(e) {
   record.preferredSize = document.getElementById("prof-size").value;
   record.street = document.getElementById("prof-street").value.trim();
   record.cityZip = document.getElementById("prof-city-zip").value.trim();
+  const notesEl = document.getElementById("prof-delivery-notes");
+  if (notesEl) record.deliveryNotes = notesEl.value.trim();
 
   saveAccountsDB(db);
   loadCurrentUser();
 
   const msg = document.getElementById("prof-save-msg");
   msg.style.color = "#10b981";
-  msg.textContent = "Saved! Your shipping address and size will auto-fill at checkout.";
+  msg.textContent = "Saved! Your shipping address, contact info, and size will auto-fill at checkout.";
   setTimeout(() => {
     msg.textContent = "";
   }, 3500);
@@ -384,7 +388,7 @@ function renderOrderHistory() {
           <span class="order-badge">${ord.status}</span>
         </div>
         <p class="order-items-line">${ord.itemsSummary}</p>
-        <p class="order-ship-line">Ship to: ${ord.shippingAddress}</p>
+        <p class="order-ship-line">Ship to: ${ord.shippingAddress}${ord.phone ? ` • ${ord.phone}` : ""}</p>
         <div class="order-history-bottom">
           <strong>Total: ${ord.subtotal}</strong>
           <div style="display:flex;gap:10px;">
@@ -465,9 +469,13 @@ function addToBag(productId, size) {
 
   const chosenSize = size || "L";
   const maxAvailable = getSizeAvailableQty(product, chosenSize);
+  const qvNotice = document.getElementById("qv-stock-indicator");
 
   if (maxAvailable <= 0) {
-    alert(`Sorry, Size ${chosenSize} is currently sold out.`);
+    if (qvNotice) {
+      qvNotice.style.color = "#ef4444";
+      qvNotice.textContent = `Size ${chosenSize} is currently sold out.`;
+    }
     return;
   }
 
@@ -477,7 +485,10 @@ function addToBag(productId, size) {
 
   if (existingIndex > -1) {
     if (msjCart[existingIndex].qty >= maxAvailable) {
-      alert(`Only ${maxAvailable} unit(s) available in Size ${chosenSize}.`);
+      if (qvNotice) {
+        qvNotice.style.color = "#d97706";
+        qvNotice.textContent = `You already have the max available (${maxAvailable}) of Size ${chosenSize} in your bag.`;
+      }
       return;
     }
     msjCart[existingIndex].qty += 1;
@@ -506,10 +517,7 @@ function updateBagQty(index, delta) {
   if (delta > 0) {
     const product = LIVE_PRODUCTS.find((p) => p.id === entry.id);
     const maxAvailable = product ? getSizeAvailableQty(product, entry.size) : 99;
-    if (entry.qty + delta > maxAvailable) {
-      alert(`Only ${maxAvailable} unit(s) left in Size ${entry.size}.`);
-      return;
-    }
+    if (entry.qty + delta > maxAvailable) return;
   }
 
   entry.qty += delta;
@@ -687,16 +695,22 @@ function openCartDrawer() {
   const noteEl = document.getElementById("msj-bag-account-note");
   const nameInput = document.getElementById("bag-cust-name");
   const emailInput = document.getElementById("bag-cust-email");
+  const phoneInput = document.getElementById("bag-cust-phone");
   const addrInput = document.getElementById("bag-cust-address");
+  const notesInput = document.getElementById("bag-cust-notes");
+  const saveCheckbox = document.getElementById("bag-save-profile-check");
 
   if (currentUser && nameInput && emailInput && addrInput) {
-    if (!nameInput.value) nameInput.value = currentUser.name || "";
-    if (!emailInput.value) emailInput.value = currentUser.email || "";
-    const fullSavedAddr = [currentUser.street, currentUser.cityZip].filter(Boolean).join(", ");
-    if (!addrInput.value && fullSavedAddr) addrInput.value = fullSavedAddr;
+    nameInput.value = currentUser.name || "";
+    emailInput.value = currentUser.email || "";
+    if (phoneInput) phoneInput.value = currentUser.phone || "";
+    const fullSavedAddr = formatSavedAddress(currentUser);
+    if (fullSavedAddr) addrInput.value = fullSavedAddr;
+    if (notesInput) notesInput.value = currentUser.deliveryNotes || "";
+    if (saveCheckbox) saveCheckbox.checked = true;
 
     if (noteEl) {
-      noteEl.innerHTML = `Signed in as <strong>${currentUser.name}</strong> — this order will save to your account history.`;
+      noteEl.innerHTML = `Signed in as <strong>${currentUser.name}</strong> — <button type="button" class="size-guide-link" onclick="closeCartDrawer(); openAccountModal('login');">Edit Saved Profile</button>`;
     }
   } else if (noteEl) {
     noteEl.innerHTML = `<button type="button" class="size-guide-link" onclick="closeCartDrawer(); openAccountModal('login');">Sign in</button> to auto-fill shipping &amp; save order history.`;
@@ -922,11 +936,14 @@ function openQuickView(productId) {
 
   const totalStock = getProductTotalStock(item);
   const isSoldOut = item.status.toLowerCase() === "sold out" || totalStock === 0;
+  const isComingSoon = !isSoldOut && item.status.toLowerCase() === "coming soon";
 
   document.getElementById("qv-badge").textContent = `${item.badge} • ${isSoldOut ? "Sold Out" : item.status}`;
   document.getElementById("qv-title").textContent = item.name;
   document.getElementById("qv-price").textContent = `$${Number(item.price).toFixed(2)}`;
-  document.getElementById("qv-desc").textContent = item.description;
+  document.getElementById("qv-desc").textContent = isComingSoon
+    ? `${item.description} (Coming Soon — reserving locks your size for priority dispatch once pressed.)`
+    : item.description;
   document.getElementById("qv-fit").textContent = item.fit || "True to streetwear sizing.";
   document.getElementById("qv-care").textContent = item.care || "Machine wash cold inside-out.";
 
@@ -936,7 +953,7 @@ function openQuickView(productId) {
   addBtn.disabled = isSoldOut;
   addBtn.textContent = isSoldOut
     ? "Sold Out"
-    : item.status.toLowerCase() === "coming soon"
+    : isComingSoon
     ? `Add Drop Reservation to Bag — $${item.price}`
     : `Add to Bag — $${item.price}`;
 
@@ -975,7 +992,7 @@ function renderQuickViewSizes() {
       stockNote.textContent = `Low stock — only ${selectedQty} left in Size ${selectedQuickViewSize}!`;
     } else {
       stockNote.style.color = "#10b981";
-      stockNote.textContent = `In Stock (${selectedQty} available in Size ${selectedQuickViewSize})`;
+      stockNote.textContent = `${selectedQty} available in Size ${selectedQuickViewSize}`;
     }
   }
 }
@@ -1073,14 +1090,22 @@ function generateOrderNumber() {
   return `MSJ-${Math.floor(100000 + Math.random() * 900000)}`;
 }
 
+function copyOrderNumber(orderNum) {
+  navigator.clipboard?.writeText(orderNum).catch(() => {});
+}
+
 async function processStripeCheckout() {
   const statusEl = document.getElementById("msj-bag-status");
   const stripeBtn = document.getElementById("msj-stripe-btn");
   const { total } = calculateBagTotals();
+  const typedEmail = document.getElementById("bag-cust-email")?.value.trim() || "";
+  const checkoutEmail = currentUser?.email || typedEmail;
 
-  stripeBtn.disabled = true;
-  stripeBtn.textContent = "Connecting to Secure Checkout...";
-  statusEl.textContent = "";
+  if (stripeBtn) {
+    stripeBtn.disabled = true;
+    stripeBtn.textContent = "Connecting to Secure Checkout...";
+  }
+  if (statusEl) statusEl.textContent = "";
 
   try {
     const res = await fetch("/api/create-checkout-session", {
@@ -1089,7 +1114,7 @@ async function processStripeCheckout() {
       body: JSON.stringify({
         items: msjCart,
         promoCode: appliedPromo ? appliedPromo.code : "",
-        customerEmail: currentUser ? currentUser.email : document.getElementById("bag-cust-email").value.trim()
+        customerEmail: checkoutEmail
       })
     });
 
@@ -1099,14 +1124,20 @@ async function processStripeCheckout() {
       return;
     }
 
-    statusEl.style.color = "#d97706";
-    statusEl.textContent = data.error || `Card checkout is being activated ($${total.toFixed(2)}). Use "Complete Order Request" below to lock in your items now.`;
+    if (statusEl) {
+      statusEl.style.color = "#d97706";
+      statusEl.textContent = data.error || `Card checkout is being activated ($${total.toFixed(2)}). Use "Complete Order Request" below to reserve your items now.`;
+    }
   } catch {
-    statusEl.style.color = "#d97706";
-    statusEl.textContent = `Card checkout is being activated. Use "Complete Order Request" below to lock in your items now.`;
+    if (statusEl) {
+      statusEl.style.color = "#d97706";
+      statusEl.textContent = `Card checkout is being activated. Use "Complete Order Request" below to reserve your items now.`;
+    }
   } finally {
-    stripeBtn.disabled = false;
-    stripeBtn.textContent = "Pay Now with Card / Apple Pay";
+    if (stripeBtn) {
+      stripeBtn.disabled = false;
+      stripeBtn.textContent = "Pay Now with Card / Apple Pay";
+    }
   }
 }
 
@@ -1114,12 +1145,22 @@ async function submitDirectOrderToDatabase(e) {
   e.preventDefault();
   const statusEl = document.getElementById("msj-bag-status");
   const btn = document.getElementById("msj-direct-order-btn");
-  btn.disabled = true;
-  btn.textContent = "Locking In Order...";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Locking In Order...";
+  }
 
   const customerName = document.getElementById("bag-cust-name").value.trim();
   const customerEmail = document.getElementById("bag-cust-email").value.trim();
-  const shippingAddress = document.getElementById("bag-cust-address").value.trim();
+  const customerPhone = document.getElementById("bag-cust-phone")?.value.trim() || "";
+  const rawAddress = document.getElementById("bag-cust-address").value.trim();
+  const deliveryNotes = document.getElementById("bag-cust-notes")?.value.trim() || "";
+  const saveToProfile = Boolean(document.getElementById("bag-save-profile-check")?.checked);
+
+  const shippingAddress = deliveryNotes
+    ? `${rawAddress} (Note: ${deliveryNotes})`
+    : rawAddress;
+
   const { subtotal, cogsTotal, discount, shipping, total } = calculateBagTotals();
   const orderNumber = generateOrderNumber();
 
@@ -1166,6 +1207,7 @@ async function submitDirectOrderToDatabase(e) {
     payload.append("order_number", orderNumber);
     payload.append("customer_name", customerName);
     payload.append("customer_email", customerEmail);
+    payload.append("customer_phone", customerPhone);
     payload.append("shipping_address", shippingAddress);
     payload.append("order_items", orderSummary);
     payload.append("order_total", `$${total.toFixed(2)}`);
@@ -1179,7 +1221,15 @@ async function submitDirectOrderToDatabase(e) {
       const db = getAccountsDB();
       const record = db[currentUser.email];
       if (record) {
-        if (!record.cityZip && shippingAddress) record.cityZip = shippingAddress;
+        if (saveToProfile) {
+          record.name = customerName || record.name;
+          if (customerPhone) record.phone = customerPhone;
+          if (rawAddress) {
+            record.street = rawAddress;
+            record.cityZip = "";
+          }
+          if (deliveryNotes) record.deliveryNotes = deliveryNotes;
+        }
         record.orders = record.orders || [];
         record.orders.unshift({
           orderNumber,
@@ -1187,28 +1237,35 @@ async function submitDirectOrderToDatabase(e) {
           status: "Unfulfilled",
           itemsSummary: orderSummary,
           shippingAddress,
+          phone: customerPhone,
           subtotal: `$${total.toFixed(2)}`,
           rawItems: msjCart.map((i) => ({ id: i.id, size: i.size, qty: i.qty }))
         });
         saveAccountsDB(db);
-        loadCurrentUser();
+        await loadCurrentUser();
       }
     }
 
-    statusEl.style.color = "#10b981";
-    statusEl.innerHTML = `Order <strong>#${orderNumber}</strong> confirmed &amp; stock reserved! <button type="button" class="size-guide-link" onclick="closeCartDrawer(); openTrackModal('${orderNumber}', '${customerEmail}');">Track Order Status</button>`;
+    if (statusEl) {
+      statusEl.style.color = "#10b981";
+      statusEl.innerHTML = `Order <strong>#${orderNumber}</strong> reserved! <button type="button" class="size-guide-link" onclick="copyOrderNumber('${orderNumber}')">Copy #</button> • <button type="button" class="size-guide-link" onclick="closeCartDrawer(); openTrackModal('${orderNumber}', '${customerEmail}');">Track Status</button>`;
+    }
 
     msjCart = [];
     appliedPromo = null;
     saveCart();
     syncProductsFromSupabase();
-    document.getElementById("msj-bag-checkout-form").reset();
+    document.getElementById("msj-bag-checkout-form")?.reset();
   } catch (err) {
-    statusEl.style.color = "#ef4444";
-    statusEl.textContent = "Could not submit order: " + err.message;
+    if (statusEl) {
+      statusEl.style.color = "#ef4444";
+      statusEl.textContent = "Could not submit order: " + err.message;
+    }
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Complete Order Request";
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Complete Order Request (Reserve Stock)";
+    }
   }
 }
 
@@ -1407,8 +1464,9 @@ function injectStorefrontOverlays() {
             <form onsubmit="handleSaveProfile(event)" style="display:flex;flex-direction:column;gap:12px;">
               <input type="text" id="prof-name" placeholder="Full Name" required>
               <input type="text" id="prof-phone" placeholder="Phone Number (for delivery updates)">
-              <input type="text" id="prof-street" placeholder="Default Street Address &amp; Apt #">
+              <input type="text" id="prof-street" placeholder="Default Street Address, Apt / Suite #">
               <input type="text" id="prof-city-zip" placeholder="City, State &amp; Zip Code">
+              <input type="text" id="prof-delivery-notes" placeholder="Delivery Instructions (optional — porch, gate, etc.)">
               <select id="prof-size">
                 <option value="S">Preferred Size: Small (S)</option>
                 <option value="M">Preferred Size: Medium (M)</option>
@@ -1541,8 +1599,14 @@ function injectStorefrontOverlays() {
 
           <form id="msj-bag-checkout-form" onsubmit="submitDirectOrderToDatabase(event)">
             <input type="text" id="bag-cust-name" name="customer_name" placeholder="Full Name" required>
-            <input type="email" id="bag-cust-email" name="customer_email" placeholder="Email Address (for order tracking & receipt)" required>
-            <input type="text" id="bag-cust-address" name="shipping_address" placeholder="Street Address, City, State & Zip" required>
+            <input type="email" id="bag-cust-email" name="customer_email" placeholder="Email Address (for order tracking &amp; receipt)" required>
+            <input type="text" id="bag-cust-phone" name="customer_phone" placeholder="Phone Number (optional — for delivery updates)">
+            <input type="text" id="bag-cust-address" name="shipping_address" placeholder="Street Address, Apt/Suite, City, State &amp; Zip" required>
+            <input type="text" id="bag-cust-notes" name="delivery_notes" placeholder="Delivery Instructions (optional — porch, gate, etc.)">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);cursor:pointer;">
+              <input type="checkbox" id="bag-save-profile-check" style="width:auto;">
+              <span>Save this contact &amp; shipping info to my account for future orders</span>
+            </label>
             <button type="submit" id="msj-direct-order-btn" class="filter-btn" style="width:100%;padding:11px;">Complete Order Request (Reserve Stock)</button>
             <p id="msj-bag-status" class="modal-status"></p>
           </form>
