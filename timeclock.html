@@ -93,7 +93,7 @@
       <nav>
         <a href="index.html">Storefront</a>
         <a href="shop.html">Catalog</a>
-        <a href="admin.html">Owner Admin</a>
+        <a href="admin.html">Portal</a>
       </nav>
     </div>
   </header>
@@ -120,7 +120,7 @@
 
         <div class="field-group">
           <label class="field-label">4-Digit Staff PIN</label>
-          <input type="password" id="kiosk-pin-input" maxlength="6" placeholder="Enter your PIN (e.g., 1001)" required>
+          <input type="password" id="kiosk-pin-input" maxlength="6" placeholder="Enter your PIN" required>
         </div>
 
         <div class="field-group">
@@ -133,7 +133,6 @@
 
       <p id="kiosk-status-msg" style="font-size:13px; font-weight:700; margin-top:12px; text-align:center;"></p>
 
-      <!-- LIVE ACTIVE SHIFTS -->
       <div id="kiosk-active-shifts" style="margin-top:22px;"></div>
     </div>
   </main>
@@ -144,7 +143,7 @@
       <div class="footer-links">
         <a href="index.html">Home</a>
         <a href="shop.html">Shop</a>
-        <a href="admin.html">Owner Admin</a>
+        <a href="admin.html">Portal</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -157,11 +156,12 @@
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
     const ACTIVE_SHIFTS_KEY = "msj_admin_active_shifts_v1";
     const SHIFT_LOGS_KEY = "msj_admin_shift_logs_v1";
+    const OT_SETTINGS_KEY = "msj_admin_overtime_settings_v1";
 
     const DEFAULT_TEAM = [
-      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
-      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
-      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
+      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", email: "", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", email: "", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", email: "", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
     ];
 
     function getTeam() {
@@ -189,6 +189,25 @@
       } catch {
         return [];
       }
+    }
+
+    function getOvertimeRules() {
+      try {
+        const raw = localStorage.getItem(OT_SETTINGS_KEY);
+        return raw ? JSON.parse(raw) : { thresholdHours: 40, multiplier: 1.5 };
+      } catch {
+        return { thresholdHours: 40, multiplier: 1.5 };
+      }
+    }
+
+    function calcPayWithOvertime(emp, hours, rules) {
+      const rate = Number(emp.rate || 0);
+      if (emp.payType !== "hourly") return { otHours: 0, totalPay: rate };
+      const thresh = Math.max(1, Number(rules.thresholdHours || 40));
+      const mult = Math.max(1, Number(rules.multiplier || 1.5));
+      const regHours = Math.min(hours, thresh);
+      const otHours = Math.max(0, hours - thresh);
+      return { otHours, totalPay: regHours * rate + otHours * rate * mult };
     }
 
     function saveAll(team, activeShifts, logs) {
@@ -253,6 +272,7 @@
       const team = getTeam();
       const activeShifts = getActiveShifts();
       const logs = getShiftLogs();
+      const rules = getOvertimeRules();
 
       const empId = document.getElementById("kiosk-emp-select").value;
       const pin = document.getElementById("kiosk-pin-input").value.trim();
@@ -276,11 +296,12 @@
       } else {
         const endMs = Date.now();
         const elapsedHours = Math.max(0.01, Number(((endMs - currentShift.startMs) / 3600000).toFixed(2)));
-        const earned = emp.payType === "hourly" ? Number((elapsedHours * Number(emp.rate || 0)).toFixed(2)) : 0;
+        const beforeCalc = calcPayWithOvertime(emp, Number(emp.hours || 0), rules);
 
         if (emp.payType === "hourly") {
           emp.hours = Number((Number(emp.hours || 0) + elapsedHours).toFixed(2));
         }
+        const afterCalc = calcPayWithOvertime(emp, Number(emp.hours || 0), rules);
 
         logs.unshift({
           id: `sh-${Date.now()}`,
@@ -289,7 +310,8 @@
           clockIn: new Date(currentShift.startMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           clockOut: new Date(endMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           hours: elapsedHours,
-          earned,
+          otHours: Number(Math.max(0, afterCalc.otHours - beforeCalc.otHours).toFixed(2)),
+          earned: Number((afterCalc.totalPay - beforeCalc.totalPay).toFixed(2)),
           note: currentShift.note
         });
 

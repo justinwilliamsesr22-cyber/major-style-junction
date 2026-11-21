@@ -112,7 +112,7 @@
     }
 
     /* ============================================================
-       POS TIME CLOCK TERMINAL (MATCHING MONOCHROME THEME)
+       POS TIME CLOCK & OVERTIME CONTROLS (MONOCHROME THEME)
        ============================================================ */
     .timeclock-terminal {
       background: var(--surface, #ffffff);
@@ -149,6 +149,16 @@
       padding: 4px 10px;
       border-radius: 999px;
       font-size: 12px;
+      font-weight: 700;
+    }
+    .ot-badge {
+      display: inline-flex;
+      align-items: center;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
       font-weight: 700;
     }
 
@@ -403,6 +413,12 @@
       gap: 10px;
       align-items: center;
     }
+    .staff-tracking-bar {
+      display: grid;
+      grid-template-columns: 135px 1fr 155px auto;
+      gap: 10px;
+      align-items: center;
+    }
     .data-table {
       width: 100%;
       border-collapse: collapse;
@@ -437,7 +453,7 @@
       .finance-grid, .charts-grid {
         grid-template-columns: 1fr;
       }
-      .tracking-bar {
+      .tracking-bar, .staff-tracking-bar {
         grid-template-columns: 1fr;
       }
       .pct-input-group {
@@ -448,135 +464,142 @@
 </head>
 <body>
 
-  <div class="announcement-bar">
-    MSJ Executive POS Command Center • Live Time Clock, Financial Analytics, Budgeting &amp; Inventory
+  <div class="announcement-bar" id="portal-announcement">
+    MSJ Operations &amp; POS Portal • Live Time Clock, Fulfillment &amp; Store Management
   </div>
 
   <header>
     <div class="nav-inner">
       <a href="index.html" class="brand-link">
         <span class="logo-mark">MSJ</span>
-        <span>Major Style Junction — POS &amp; CFO</span>
+        <span id="portal-header-title">Major Style Junction — Studio Portal</span>
       </a>
       <nav>
         <a href="index.html">Live Site</a>
         <a href="shop.html">Shop</a>
-        <a href="timeclock.html">Staff Kiosk</a>
         <button type="button" id="admin-signout-btn" class="filter-btn" style="display:none;" onclick="adminSignOut()">Sign Out</button>
       </nav>
     </div>
   </header>
 
   <main class="container">
-    <!-- ADMIN LOGIN VIEW -->
+    <!-- STAFF & OWNER LOGIN VIEW -->
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
-      <span class="section-kicker">Owner &amp; Co-Owner Access</span>
-      <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage the POS time clock, financial analytics, budgeting buckets, orders, and inventory.</p>
+      <span class="section-kicker">Team &amp; Owner Access</span>
+      <h1 style="font-size: 26px; margin-bottom: 8px;">Studio Portal Sign In</h1>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your MSJ work email and password. Staff accounts open directly to Time Clock &amp; Fulfillment; Owner accounts unlock full financial controls.</p>
       <form id="admin-login-form" style="display:flex; flex-direction:column; gap:12px;">
         <div class="field-group">
-          <label class="field-label">Admin Email</label>
+          <label class="field-label">Work Email</label>
           <input type="email" id="admin-email" placeholder="you@majorstylejunction.com" required>
         </div>
         <div class="field-group">
           <label class="field-label">Password</label>
           <input type="password" id="admin-password" placeholder="Enter your password" required>
         </div>
-        <button type="submit" class="btn-card">Sign In to Command Center</button>
+        <button type="submit" class="btn-card">Sign In</button>
         <p id="admin-login-msg" class="modal-status"></p>
       </form>
     </div>
 
-    <!-- ADMIN DASHBOARD VIEW -->
+    <!-- DASHBOARD VIEW -->
     <div id="admin-dashboard-view" style="display: none;">
 
       <!-- UNIVERSAL SITE & ADMIN OMNISEARCH BAR -->
       <div class="omnisearch-box">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
-          <span class="field-label">Global Site &amp; Admin Omnisearch (Storefront Drops • Orders • Team &amp; Shifts • Expenses • Promos)</span>
+          <span class="field-label" id="omnisearch-label">Global Site Search (Storefront Drops • Orders &amp; Tracking • Team Shifts)</span>
           <span style="font-size:11px;color:#71717a;">Shortcut: Ctrl + K</span>
         </div>
         <div style="display:flex;gap:8px;">
-          <input type="text" id="global-admin-search" placeholder="Search anything across Major Style Junction: product name, order #, customer, tracking #, team member, vendor, promo code..." oninput="renderGlobalAdminSearch()">
+          <input type="text" id="global-admin-search" placeholder="Search products, order #, customer name, tracking #..." oninput="renderGlobalAdminSearch()">
           <button type="button" class="filter-btn" onclick="clearGlobalAdminSearch()" style="white-space:nowrap;">Clear</button>
         </div>
         <div id="global-admin-search-results" class="omnisearch-results" style="display:none;"></div>
       </div>
 
-      <!-- TOP TOOLBAR: DATE FILTERING & ACCOUNTING EXPORTS -->
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:20px;">
-        <div>
-          <span class="section-kicker">Company Financial Health</span>
-          <h1 style="font-size: 28px;">Executive POS Command Center</h1>
-        </div>
-        <div class="date-range-bar">
-          <select id="analytics-period" onchange="handleAnalyticsPeriodChange()">
-            <option value="all">Period: All Time</option>
-            <option value="month">This Calendar Month</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="year">Year to Date (2026)</option>
-            <option value="custom">Custom Date Range</option>
-          </select>
-          <div id="analytics-custom-dates" style="display:none; gap:6px; align-items:center;">
-            <input type="date" id="analytics-from-date" onchange="refreshDashboardAnalytics()" title="Start Date">
-            <span style="font-size:12px;color:#71717a;">to</span>
-            <input type="date" id="analytics-to-date" onchange="refreshDashboardAnalytics()" title="End Date">
+      <!-- OWNER-ONLY HEADER & FINANCIAL KPI CARDS -->
+      <div class="js-owner-only">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:20px;">
+          <div>
+            <span class="section-kicker">Company Financial Health</span>
+            <h1 style="font-size: 28px;">Executive POS Command Center</h1>
           </div>
-          <button type="button" class="filter-btn" onclick="exportOrdersCSV()">Export Orders CSV</button>
-          <button type="button" class="filter-btn" onclick="exportExpensesCSV()">Export Expenses CSV</button>
+          <div class="date-range-bar">
+            <select id="analytics-period" onchange="handleAnalyticsPeriodChange()">
+              <option value="all">Period: All Time</option>
+              <option value="month">This Calendar Month</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="7d">Last 7 Days</option>
+              <option value="year">Year to Date (2026)</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+            <div id="analytics-custom-dates" style="display:none; gap:6px; align-items:center;">
+              <input type="date" id="analytics-from-date" onchange="refreshDashboardAnalytics()" title="Start Date">
+              <span style="font-size:12px;color:#71717a;">to</span>
+              <input type="date" id="analytics-to-date" onchange="refreshDashboardAnalytics()" title="End Date">
+            </div>
+            <button type="button" class="filter-btn" onclick="exportOrdersCSV()">Export Orders CSV</button>
+            <button type="button" class="filter-btn" onclick="exportExpensesCSV()">Export Expenses CSV</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Gross Revenue</span>
+            <div class="kpi-value" id="kpi-gross-rev">$0.00</div>
+            <p class="kpi-sub" id="kpi-paid-rev">$0.00 confirmed paid</p>
+          </div>
+          <div class="kpi-card" style="border-color: #10b981;">
+            <span class="kpi-label">True Net Profit</span>
+            <div class="kpi-value" id="kpi-net-profit" style="color: #10b981;">$0.00</div>
+            <p class="kpi-sub" id="kpi-net-margin">0.0% net profit margin</p>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Total Costs &amp; Payroll</span>
+            <div class="kpi-value" id="kpi-total-costs">$0.00</div>
+            <p class="kpi-sub" id="kpi-costs-sub">COGS + Payroll + Expenses</p>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Avg. Order Value (AOV)</span>
+            <div class="kpi-value" id="kpi-aov">$0.00</div>
+            <p class="kpi-sub" id="kpi-order-count">0 orders in period</p>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Stock Retail Value</span>
+            <div class="kpi-value" id="kpi-stock-retail">$0.00</div>
+            <p class="kpi-sub" id="kpi-stock-cost">$0.00 capital tied in blanks</p>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Fulfillment Queue</span>
+            <div class="kpi-value" id="kpi-unfulfilled">0</div>
+            <p class="kpi-sub" id="kpi-lowstock">0 low-stock size alerts</p>
+          </div>
         </div>
       </div>
 
-      <!-- 6 EXECUTIVE KPI CARDS -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-label">Gross Revenue</span>
-          <div class="kpi-value" id="kpi-gross-rev">$0.00</div>
-          <p class="kpi-sub" id="kpi-paid-rev">$0.00 confirmed paid</p>
-        </div>
-        <div class="kpi-card" style="border-color: #10b981;">
-          <span class="kpi-label">True Net Profit</span>
-          <div class="kpi-value" id="kpi-net-profit" style="color: #10b981;">$0.00</div>
-          <p class="kpi-sub" id="kpi-net-margin">0.0% net profit margin</p>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Total Costs &amp; Payroll</span>
-          <div class="kpi-value" id="kpi-total-costs">$0.00</div>
-          <p class="kpi-sub" id="kpi-costs-sub">COGS + Payroll + Expenses</p>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Avg. Order Value (AOV)</span>
-          <div class="kpi-value" id="kpi-aov">$0.00</div>
-          <p class="kpi-sub" id="kpi-order-count">0 orders in period</p>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Stock Retail Value</span>
-          <div class="kpi-value" id="kpi-stock-retail">$0.00</div>
-          <p class="kpi-sub" id="kpi-stock-cost">$0.00 capital tied in blanks</p>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Fulfillment Queue</span>
-          <div class="kpi-value" id="kpi-unfulfilled">0</div>
-          <p class="kpi-sub" id="kpi-lowstock">0 low-stock size alerts</p>
-        </div>
+      <!-- STAFF-ONLY HEADER BANNER -->
+      <div id="staff-welcome-banner" style="display:none; margin-bottom:20px;">
+        <span class="section-kicker">Staff Operations Mode</span>
+        <h1 id="staff-welcome-heading" style="font-size:26px;">Welcome to MSJ Studio Shift Portal</h1>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Clock in/out for your shift, pack customer orders, add tracking numbers, and update garment stock counts.</p>
       </div>
 
       <!-- NAVIGATION TABS -->
       <div class="admin-tabs">
-        <button type="button" id="tab-analytics" class="filter-btn active" onclick="switchAdminTab('analytics')">Analytics, P&amp;L &amp; Budget</button>
-        <button type="button" id="tab-team" class="filter-btn" onclick="switchAdminTab('team')">Time Clock &amp; Payroll</button>
+        <button type="button" id="tab-analytics" class="filter-btn active js-owner-only" onclick="switchAdminTab('analytics')">Analytics, P&amp;L &amp; Budget</button>
+        <button type="button" id="tab-team" class="filter-btn" onclick="switchAdminTab('team')">Time Clock &amp; Shifts</button>
         <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
-        <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; COGS</button>
-        <button type="button" id="tab-expenses" class="filter-btn" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
-        <button type="button" id="tab-new" class="filter-btn" onclick="switchAdminTab('new')">+ Add New Drop</button>
-        <button type="button" id="tab-promos" class="filter-btn" onclick="switchAdminTab('promos')">Promo Codes</button>
+        <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; Stock</button>
+        <button type="button" id="tab-expenses" class="filter-btn js-owner-only" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
+        <button type="button" id="tab-new" class="filter-btn js-owner-only" onclick="switchAdminTab('new')">+ Add New Drop</button>
+        <button type="button" id="tab-promos" class="filter-btn js-owner-only" onclick="switchAdminTab('promos')">Promo Codes</button>
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 1: FINANCIAL ANALYTICS, EDITABLE P&L & BUDGET ALLOCATOR  -->
+      <!-- TAB 1: FINANCIAL ANALYTICS, EDITABLE P&L & BUDGET (OWNER)    -->
       <!-- ============================================================ -->
-      <section id="panel-analytics">
+      <section id="panel-analytics" class="js-owner-only">
         <div class="charts-grid">
           <div class="panel-box">
             <span class="section-kicker">Cash Flow &amp; Growth</span>
@@ -658,7 +681,7 @@
                 </tr>
                 <tr>
                   <td style="color:#ef4444;">
-                    (−) Team Payroll &amp; Clocked Shifts
+                    (−) Team Payroll (Regular + Overtime)
                     <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('team')">Time Clock</button>
                   </td>
                   <td style="text-align:right; color:#ef4444;" id="pnl-payroll">-$0.00</td>
@@ -780,16 +803,16 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 2: POS EMPLOYEE TIME CLOCK, SHIFT LOGS & PAYROLL         -->
+      <!-- TAB 2: POS TIME CLOCK, OVERTIME RULES & STAFF ONBOARDING     -->
       <!-- ============================================================ -->
       <section id="panel-team" style="display: none;">
-        <!-- LIVE POS TIME CLOCK TERMINAL (MATCHING MONOCHROME CARD) -->
+        <!-- LIVE POS TIME CLOCK TERMINAL (VISIBLE TO BOTH STAFF & OWNERS) -->
         <div class="timeclock-terminal">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:16px;">
             <div>
               <span class="section-kicker">POS Shift Kiosk</span>
               <h2 style="font-size:22px; margin-top:2px;">Employee Time Clock &amp; Live Shift Tracker</h2>
-              <p style="font-size:13px; color:var(--text-muted, #71717a); margin-top:4px;">Employees can clock in here or from the dedicated <a href="timeclock.html" target="_blank" style="color:#09090b;font-weight:700;">Staff Kiosk (timeclock.html)</a> without needing owner login credentials.</p>
+              <p style="font-size:13px; color:var(--text-muted, #71717a); margin-top:4px;">Select your name and enter your 4-digit PIN to clock in or out.</p>
             </div>
             <div style="text-align:right;">
               <div id="pos-live-clock" class="live-clock-display">00:00:00</div>
@@ -820,13 +843,52 @@
           <div id="active-shifts-container" style="margin-top:16px;"></div>
         </div>
 
-        <!-- ADD NEW TEAM MEMBER -->
-        <div class="contact-card" style="max-width: 100%; margin-bottom: 22px;">
-          <span class="section-kicker">Studio Roster &amp; Labor</span>
-          <h2 style="margin-bottom: 14px;">Add Co-Owner, DTF Print Tech or Pop-Up Staff</h2>
-          <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; align-items: end;">
+        <!-- OWNER-ONLY: OVERTIME POLICY & SUGGESTED PRESETS -->
+        <div class="panel-box js-owner-only" style="margin-bottom: 22px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+            <div>
+              <span class="section-kicker">Payroll Automation</span>
+              <h2 style="font-size:20px;">Overtime Policy &amp; Suggested Thresholds</h2>
+              <p style="font-size:13px; color:var(--text-muted); margin-top:3px;">
+                Set how many hours an employee works before overtime automatically kicks in. Suggested US standards are provided below for 1-click setup.
+              </p>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 1.5)">Suggested: 40h Weekly (1.5x)</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(8, 1.5)">Suggested: 8h Daily Shift (1.5x)</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 2.0)">Double-Time (40h @ 2.0x)</button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; align-items:end; background:#fafafa; border:1px solid #e4e4e7; border-radius:12px; padding:14px;">
             <div class="field-group">
-              <label class="field-label">Full Name</label>
+              <label class="field-label">Overtime Kicks In After (Hours)</label>
+              <input type="number" id="ot-threshold-input" min="1" max="168" step="0.5" value="40" onchange="updateOvertimeSettings()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Overtime Rate Multiplier</label>
+              <select id="ot-multiplier-input" onchange="updateOvertimeSettings()">
+                <option value="1.5">1.5x (Standard Time-and-a-Half)</option>
+                <option value="1.25">1.25x (Quarter-Time Bonus)</option>
+                <option value="2">2.0x (Double-Time)</option>
+              </select>
+            </div>
+            <div style="font-size:12px; color:#52525b; padding-bottom:6px;" id="ot-policy-summary">
+              Active Rule: Hours over <strong>40 hrs</strong> automatically pay at <strong>1.5x</strong> base rate.
+            </div>
+          </div>
+        </div>
+
+        <!-- OWNER-ONLY: CREATE NEW STAFF LOGIN ACCOUNT AT WORK -->
+        <div class="contact-card js-owner-only" style="max-width: 100%; margin-bottom: 22px;">
+          <span class="section-kicker">In-Store Staff Onboarding (Owner Only)</span>
+          <h2 style="margin-bottom: 6px;">Create Staff Login Account &amp; Roster Profile</h2>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+            Create a restricted staff login while at work. Staff can sign in from the main site&apos;s <strong>Sign In</strong> button to clock in, pack orders, and update stock counts—without seeing your P&amp;L, expenses, or payroll rates.
+          </p>
+          <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; align-items: end;">
+            <div class="field-group">
+              <label class="field-label">Staff Full Name</label>
               <input type="text" id="team-name" placeholder="e.g., Maya Lin" required>
             </div>
             <div class="field-group">
@@ -834,7 +896,15 @@
               <input type="text" id="team-role" placeholder="e.g., DTF Print Tech" required>
             </div>
             <div class="field-group">
-              <label class="field-label">Timeclock PIN</label>
+              <label class="field-label">Staff Work Email (For Login)</label>
+              <input type="email" id="team-email" placeholder="maya@majorstylejunction.com" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Login Password (Min 6 Chars)</label>
+              <input type="password" id="team-password" minlength="6" placeholder="Temporary password" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">4-Digit Clock PIN</label>
               <input type="text" id="team-pin" maxlength="6" placeholder="e.g., 1004" required>
             </div>
             <div class="field-group">
@@ -848,20 +918,17 @@
               <label class="field-label">Rate ($)</label>
               <input type="number" id="team-rate" placeholder="18.50" min="0" step="0.5" required>
             </div>
-            <div class="field-group">
-              <label class="field-label">Logged Hours</label>
-              <input type="number" id="team-hours" placeholder="0" min="0" step="0.25" value="0">
-            </div>
-            <button type="submit" class="btn-card" style="height:42px;">Add to Roster</button>
+            <button type="submit" id="create-staff-btn" class="btn-card" style="height:42px;">Create Staff Account</button>
           </form>
+          <p id="create-staff-msg" class="modal-status" style="margin-top:10px;"></p>
         </div>
 
-        <!-- TEAM ROSTER & PAYROLL -->
-        <div class="panel-box" style="margin-bottom: 22px;">
+        <!-- OWNER-ONLY: TEAM ROSTER & PAYROLL (WITH REGULAR + OVERTIME BREAKDOWN) -->
+        <div class="panel-box js-owner-only" style="margin-bottom: 22px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
               <h3>Active Roster &amp; Live Payroll</h3>
-              <p style="font-size:12px;color:#71717a;">Clocked shifts automatically add to logged hours and deduct from True Net Profit on your P&amp;L.</p>
+              <p style="font-size:12px;color:#71717a;">Hours past your overtime threshold automatically calculate at your overtime multiplier and deduct from True Net Profit.</p>
             </div>
             <strong id="team-payroll-total" style="color:#ef4444;">Active Payroll: $0.00</strong>
           </div>
@@ -872,7 +939,7 @@
         <div class="panel-box">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
-              <span class="section-kicker">Audit Trail</span>
+              <span class="section-kicker">Shift History</span>
               <h3>Completed Shift Time Logs (<span id="shift-logs-count">0</span>)</h3>
             </div>
           </div>
@@ -884,10 +951,11 @@
                   <th>Employee</th>
                   <th>Clock In</th>
                   <th>Clock Out</th>
-                  <th>Duration</th>
-                  <th>Earned Pay</th>
+                  <th>Total Hours</th>
+                  <th class="js-owner-only">OT Hours</th>
+                  <th class="js-owner-only">Earned Pay</th>
                   <th>Station / Note</th>
-                  <th>Action</th>
+                  <th class="js-owner-only">Action</th>
                 </tr>
               </thead>
               <tbody id="shift-logs-body"></tbody>
@@ -897,12 +965,12 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 3: ORDERS & FULFILLMENT (SORTABLE & FILTERABLE)          -->
+      <!-- TAB 3: ORDERS & FULFILLMENT (STAFF + OWNER)                  -->
       <!-- ============================================================ -->
       <section id="panel-orders" style="display: none;">
         <div class="section-head" style="margin-bottom: 14px;">
           <div>
-            <span class="section-kicker">Fulfillment &amp; Margin Tracking</span>
+            <span class="section-kicker">Fulfillment &amp; Packing</span>
             <h2>Customer Orders (<span id="orders-visible-count">0</span>)</h2>
           </div>
           <button type="button" class="filter-btn" onclick="resetOrderFilters()">Reset Filters</button>
@@ -947,7 +1015,7 @@
               <option value="date-asc">Date: Oldest First</option>
               <option value="total-desc">Total: Highest ($)</option>
               <option value="total-asc">Total: Lowest ($)</option>
-              <option value="profit-desc">Net Profit: Highest ($)</option>
+              <option value="profit-desc" class="js-owner-only">Net Profit: Highest ($)</option>
             </select>
           </div>
         </div>
@@ -956,13 +1024,13 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 4: INVENTORY & COGS (SORTABLE & FILTERABLE)              -->
+      <!-- TAB 4: INVENTORY & STOCK (STAFF + OWNER)                     -->
       <!-- ============================================================ -->
       <section id="panel-inventory" style="display: none;">
         <div class="section-head" style="margin-bottom: 14px;">
           <div>
-            <span class="section-kicker">Live Catalog &amp; Unit Margins</span>
-            <h2>Manage Inventory, Photos &amp; COGS (<span id="inv-visible-count">0</span>)</h2>
+            <span class="section-kicker">Live Catalog</span>
+            <h2 id="inventory-section-heading">Manage Inventory, Photos &amp; COGS (<span id="inv-visible-count">0</span>)</h2>
           </div>
           <button type="button" class="filter-btn" onclick="resetInventoryFilters()">Reset Filters</button>
         </div>
@@ -998,7 +1066,7 @@
               <option value="oldest">Date Added: Oldest First</option>
               <option value="stock-asc">Total Stock: Lowest First</option>
               <option value="stock-desc">Total Stock: Highest First</option>
-              <option value="margin-desc">Profit Margin: Highest %</option>
+              <option value="margin-desc" class="js-owner-only">Profit Margin: Highest %</option>
               <option value="price-desc">Retail Price: High to Low</option>
               <option value="price-asc">Retail Price: Low to High</option>
               <option value="name-asc">Product Name (A–Z)</option>
@@ -1010,9 +1078,9 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 5: BUSINESS EXPENSES & OVERHEAD (EDITABLE & SORTABLE)    -->
+      <!-- TAB 5: BUSINESS EXPENSES & OVERHEAD (OWNER ONLY)             -->
       <!-- ============================================================ -->
-      <section id="panel-expenses" style="display: none;">
+      <section id="panel-expenses" class="js-owner-only" style="display: none;">
         <div class="contact-card" style="max-width: 920px; margin-bottom: 24px;">
           <span class="section-kicker">Expense Tracking</span>
           <h2 style="margin-bottom: 14px;">Log Business Expense or Supply Purchase</h2>
@@ -1118,9 +1186,9 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 6: ADD NEW DROP                                          -->
+      <!-- TAB 6: ADD NEW DROP (OWNER ONLY)                             -->
       <!-- ============================================================ -->
-      <section id="panel-new" style="display: none;">
+      <section id="panel-new" class="js-owner-only" style="display: none;">
         <div class="contact-card" style="max-width: 780px;">
           <span class="section-kicker">New Release</span>
           <h2 style="margin-bottom: 16px;">Publish New Product / Drop</h2>
@@ -1204,9 +1272,9 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 7: PROMO CODES (FILTERABLE & SORTABLE)                   -->
+      <!-- TAB 7: PROMO CODES (OWNER ONLY)                              -->
       <!-- ============================================================ -->
-      <section id="panel-promos" style="display: none;">
+      <section id="panel-promos" class="js-owner-only" style="display: none;">
         <div class="contact-card" style="max-width: 760px; margin-bottom: 24px;">
           <span class="section-kicker">Marketing &amp; Drops</span>
           <h2 style="margin-bottom: 14px;">Create Promo / Discount Code</h2>
@@ -1340,12 +1408,12 @@
     </div>
   </div>
 
-  <!-- MODAL 3: FULL EDIT PRODUCT & COGS MODAL -->
+  <!-- MODAL 3: EDIT PRODUCT / STOCK MODAL (SCOPES COGS TO OWNER ONLY) -->
   <div id="edit-product-modal" class="modal-overlay" onclick="if(event.target===this) closeEditModal()">
     <div class="modal-box" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
       <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
-      <span class="section-kicker">Full Product &amp; Margin Editor</span>
-      <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Product, COGS, Photo &amp; Stock</h3>
+      <span class="section-kicker">Product &amp; Stock Editor</span>
+      <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Product &amp; Size Stock</h3>
 
       <form id="edit-product-form" style="display:flex; flex-direction:column; gap:12px;">
         <input type="hidden" id="edit-prod-id">
@@ -1369,7 +1437,7 @@
             <label class="field-label">Retail Price ($)</label>
             <input type="number" id="edit-prod-price" min="1" step="0.01" oninput="updateEditMarginPreview()" required>
           </div>
-          <div class="field-group">
+          <div class="field-group js-owner-only">
             <label class="field-label">Unit Cost / COGS ($)</label>
             <input type="number" id="edit-prod-cost" min="0" step="0.01" oninput="updateEditMarginPreview()" required>
           </div>
@@ -1384,7 +1452,7 @@
           </div>
         </div>
 
-        <p id="edit-margin-preview" style="font-size:12px; font-weight:700; color:#10b981;"></p>
+        <p id="edit-margin-preview" class="js-owner-only" style="font-size:12px; font-weight:700; color:#10b981;"></p>
 
         <div class="field-group">
           <label class="field-label">Drop Badge</label>
@@ -1423,7 +1491,7 @@
           <textarea id="edit-prod-desc" required></textarea>
         </div>
 
-        <button type="submit" id="save-edit-btn" class="btn-card">Save All Product Changes</button>
+        <button type="submit" id="save-edit-btn" class="btn-card">Save Product &amp; Stock Changes</button>
         <p id="edit-prod-msg" class="modal-status"></p>
       </form>
     </div>
@@ -1432,6 +1500,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>
+    let isStaffUser = false;
+    let currentSessionUser = null;
     let cachedProducts = [];
     let cachedOrders = [];
     let cachedExpenses = [];
@@ -1441,16 +1511,26 @@
     let trendChartInstance = null;
     let categoryChartInstance = null;
 
-    // Team Roster, Live Active Shifts & Shift Audit Logs (Synced with timeclock.html)
+    // Team Roster, Overtime Settings, Live Active Shifts & Shift Audit Logs
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
     const ACTIVE_SHIFTS_KEY = "msj_admin_active_shifts_v1";
     const SHIFT_LOGS_KEY = "msj_admin_shift_logs_v1";
+    const OT_SETTINGS_KEY = "msj_admin_overtime_settings_v1";
 
     const DEFAULT_TEAM = [
-      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
-      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
-      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
+      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", email: "", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", email: "", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", email: "", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
     ];
+
+    let overtimeSettings = (() => {
+      try {
+        const raw = localStorage.getItem(OT_SETTINGS_KEY);
+        return raw ? JSON.parse(raw) : { thresholdHours: 40, multiplier: 1.5 };
+      } catch {
+        return { thresholdHours: 40, multiplier: 1.5 };
+      }
+    })();
 
     let cachedTeam = (() => {
       try {
@@ -1484,12 +1564,68 @@
         localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(cachedTeam));
         localStorage.setItem(ACTIVE_SHIFTS_KEY, JSON.stringify(activeShifts));
         localStorage.setItem(SHIFT_LOGS_KEY, JSON.stringify(shiftLogs));
+        localStorage.setItem(OT_SETTINGS_KEY, JSON.stringify(overtimeSettings));
       } catch {}
     }
 
+    function applySuggestedOvertime(hours, multiplier) {
+      overtimeSettings = { thresholdHours: Number(hours), multiplier: Number(multiplier) };
+      document.getElementById("ot-threshold-input").value = overtimeSettings.thresholdHours;
+      document.getElementById("ot-multiplier-input").value = String(overtimeSettings.multiplier);
+      saveTimeClockState();
+      renderOvertimeSummary();
+      renderTeamRoster();
+      if (!isStaffUser) refreshDashboardAnalytics();
+    }
+
+    function updateOvertimeSettings() {
+      const thresh = Math.max(1, parseFloat(document.getElementById("ot-threshold-input").value || "40"));
+      const mult = Math.max(1, parseFloat(document.getElementById("ot-multiplier-input").value || "1.5"));
+      overtimeSettings = { thresholdHours: thresh, multiplier: mult };
+      saveTimeClockState();
+      renderOvertimeSummary();
+      renderTeamRoster();
+      if (!isStaffUser) refreshDashboardAnalytics();
+    }
+
+    function renderOvertimeSummary() {
+      const threshInput = document.getElementById("ot-threshold-input");
+      const multInput = document.getElementById("ot-multiplier-input");
+      const summaryEl = document.getElementById("ot-policy-summary");
+      if (threshInput) threshInput.value = overtimeSettings.thresholdHours;
+      if (multInput) multInput.value = String(overtimeSettings.multiplier);
+      if (summaryEl) {
+        summaryEl.innerHTML = `Active Rule: Hours over <strong>${overtimeSettings.thresholdHours} hrs</strong> automatically pay at <strong>${overtimeSettings.multiplier}x</strong> base rate.`;
+      }
+    }
+
+    function getEmployeePayBreakdown(m) {
+      if (!m.active) {
+        return { regHours: 0, otHours: 0, regPay: 0, otPay: 0, totalPay: 0 };
+      }
+      const rate = Number(m.rate || 0);
+      if (m.payType !== "hourly") {
+        return { regHours: 0, otHours: 0, regPay: rate, otPay: 0, totalPay: rate };
+      }
+      const totalHrs = Math.max(0, Number(m.hours || 0));
+      const thresh = Math.max(1, Number(overtimeSettings.thresholdHours || 40));
+      const mult = Math.max(1, Number(overtimeSettings.multiplier || 1.5));
+
+      const regHours = Math.min(totalHrs, thresh);
+      const otHours = Math.max(0, totalHrs - thresh);
+      const regPay = regHours * rate;
+      const otPay = otHours * rate * mult;
+      return {
+        regHours,
+        otHours,
+        regPay,
+        otPay,
+        totalPay: regPay + otPay
+      };
+    }
+
     function getTeamMemberPayout(m) {
-      if (!m.active) return 0;
-      return m.payType === "hourly" ? Number(m.rate || 0) * Number(m.hours || 0) : Number(m.rate || 0);
+      return getEmployeePayBreakdown(m).totalPay;
     }
 
     function formatDuration(ms) {
@@ -1500,7 +1636,6 @@
       return `${hrs}:${mins}:${secs}`;
     }
 
-    // Live POS Clock & Active Shift Ticker
     setInterval(() => {
       const now = new Date();
       const clockEl = document.getElementById("pos-live-clock");
@@ -1533,14 +1668,46 @@
       }
     });
 
+    function applyRolePermissions() {
+      document.querySelectorAll(".js-owner-only").forEach(el => {
+        el.style.display = isStaffUser ? "none" : "";
+      });
+
+      const staffBanner = document.getElementById("staff-welcome-banner");
+      const headerTitle = document.getElementById("portal-header-title");
+      const omniLabel = document.getElementById("omnisearch-label");
+      const invHeading = document.getElementById("inventory-section-heading");
+
+      if (isStaffUser) {
+        const displayName = currentSessionUser?.user_metadata?.display_name || currentSessionUser?.email || "Team Member";
+        if (staffBanner) staffBanner.style.display = "block";
+        document.getElementById("staff-welcome-heading").textContent = `Welcome, ${displayName}`;
+        if (headerTitle) headerTitle.textContent = "Major Style Junction — Staff Shift & Fulfillment";
+        if (omniLabel) omniLabel.textContent = "Store & Fulfillment Search (Products • Orders & Tracking • Shifts)";
+        if (invHeading) invHeading.innerHTML = `Manage Product Photos &amp; Size Stock (<span id="inv-visible-count">0</span>)`;
+        switchAdminTab("team");
+      } else {
+        if (staffBanner) staffBanner.style.display = "none";
+        if (headerTitle) headerTitle.textContent = "Major Style Junction — POS & CFO";
+        if (omniLabel) omniLabel.textContent = "Global Site & Admin Omnisearch (Storefront Drops • Orders • Team & Shifts • Expenses • Promos)";
+        renderOvertimeSummary();
+        switchAdminTab("analytics");
+      }
+    }
+
     async function checkAdminSession() {
       const { data: { session } } = await msjSupabase.auth.getSession();
-      if (session) {
+      if (session && session.user) {
+        currentSessionUser = session.user;
+        isStaffUser = session.user.user_metadata?.role === "staff";
         loginView.style.display = "none";
         dashView.style.display = "block";
         signoutBtn.style.display = "inline-block";
+        applyRolePermissions();
         loadAllAdminData();
       } else {
+        currentSessionUser = null;
+        isStaffUser = false;
         loginView.style.display = "block";
         dashView.style.display = "none";
         signoutBtn.style.display = "none";
@@ -1569,14 +1736,19 @@
     }
 
     function switchAdminTab(tabName) {
+      if (isStaffUser && ["analytics", "expenses", "new", "promos"].includes(tabName)) {
+        tabName = "team";
+      }
       ["analytics", "team", "orders", "inventory", "expenses", "new", "promos"].forEach(t => {
-        document.getElementById(`panel-${t}`).style.display = t === tabName ? "block" : "none";
-        document.getElementById(`tab-${t}`).classList.toggle("active", t === tabName);
+        const panel = document.getElementById(`panel-${t}`);
+        const tab = document.getElementById(`tab-${t}`);
+        if (panel) panel.style.display = t === tabName ? "block" : "none";
+        if (tab) tab.classList.toggle("active", t === tabName);
       });
     }
 
     // ============================================================
-    // UNIVERSAL SITE & ADMIN OMNISEARCH
+    // UNIVERSAL SITE & ADMIN OMNISEARCH (SCOPED BY ROLE)
     // ============================================================
     function clearGlobalAdminSearch() {
       document.getElementById("global-admin-search").value = "";
@@ -1598,31 +1770,35 @@
         `${o.order_number} ${o.customer_name} ${o.customer_email} ${o.tracking_number} ${o.shipping_address}`.toLowerCase().includes(q)
       );
       const teamMatches = cachedTeam.filter(m =>
-        `${m.name} ${m.role} ${m.payType}`.toLowerCase().includes(q)
+        `${m.name} ${m.role}`.toLowerCase().includes(q)
       );
-      const expMatches = cachedExpenses.filter(ex =>
-        `${ex.vendor_description} ${ex.category} ${ex.notes}`.toLowerCase().includes(q)
-      );
-      const promoMatches = cachedPromos.filter(pr =>
-        `${pr.code} ${pr.discount_type}`.toLowerCase().includes(q)
-      );
+      const expMatches = isStaffUser
+        ? []
+        : cachedExpenses.filter(ex =>
+            `${ex.vendor_description} ${ex.category} ${ex.notes}`.toLowerCase().includes(q)
+          );
+      const promoMatches = isStaffUser
+        ? []
+        : cachedPromos.filter(pr =>
+            `${pr.code} ${pr.discount_type}`.toLowerCase().includes(q)
+          );
 
       const total = prodMatches.length + ordMatches.length + teamMatches.length + expMatches.length + promoMatches.length;
       box.style.display = "block";
 
       if (total === 0) {
-        box.innerHTML = `<p style="font-size:13px;color:#71717a;">No matches found across products, orders, team, expenses, or promos for "${q}".</p>`;
+        box.innerHTML = `<p style="font-size:13px;color:#71717a;">No matches found for "${q}".</p>`;
         return;
       }
 
-      let html = `<p style="font-size:12px;color:#52525b;margin-bottom:10px;">Found <strong>${total}</strong> matches across storefront &amp; admin:</p>`;
+      let html = `<p style="font-size:12px;color:#52525b;margin-bottom:10px;">Found <strong>${total}</strong> matches:</p>`;
 
       prodMatches.forEach(p => {
         html += `
           <div class="omni-row">
             <div><strong>[Product]</strong> ${p.name} (${p.category}) • $${Number(p.price).toFixed(2)}</div>
             <div style="display:flex;gap:6px;">
-              <button type="button" class="mini-action-btn" onclick="switchAdminTab('inventory'); document.getElementById('inv-search-input').value='${p.name.replace(/'/g, "\\'")}'; renderInventoryList(); clearGlobalAdminSearch();">Edit in Inventory</button>
+              <button type="button" class="mini-action-btn" onclick="switchAdminTab('inventory'); document.getElementById('inv-search-input').value='${p.name.replace(/'/g, "\\'")}'; renderInventoryList(); clearGlobalAdminSearch();">Open Stock</button>
               <a href="shop.html" target="_blank" class="mini-action-btn" style="text-decoration:none;">View on Store</a>
             </div>
           </div>
@@ -1669,39 +1845,48 @@
     }
 
     async function loadAllAdminData() {
-      const [prodRes, ordRes, expRes, pnlRes, promoRes, budgetRes] = await Promise.all([
+      const queries = [
         msjSupabase.from("products").select("*").order("created_at", { ascending: false }),
-        msjSupabase.from("orders").select("*").order("created_at", { ascending: false }),
-        msjSupabase.from("expenses").select("*").order("expense_date", { ascending: false }),
-        msjSupabase.from("pnl_adjustments").select("*").order("entry_date", { ascending: false }),
-        msjSupabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
-        msjSupabase.from("budget_settings").select("*").eq("id", 1).maybeSingle()
-      ]);
+        msjSupabase.from("orders").select("*").order("created_at", { ascending: false })
+      ];
 
-      cachedProducts = prodRes.data || [];
-      cachedOrders = ordRes.data || [];
-      cachedExpenses = expRes.data || [];
-      cachedPnlAdjustments = pnlRes.data || [];
-      cachedPromos = promoRes.data || [];
-
-      if (budgetRes.data) {
-        budgetSettings = budgetRes.data;
-        document.getElementById("in-restock-pct").value = budgetSettings.restock_pct;
-        document.getElementById("in-tax-pct").value = budgetSettings.tax_pct;
-        document.getElementById("in-owner-pct").value = budgetSettings.owner_pct;
-        document.getElementById("in-mkt-pct").value = budgetSettings.marketing_pct;
+      if (!isStaffUser) {
+        queries.push(
+          msjSupabase.from("expenses").select("*").order("expense_date", { ascending: false }),
+          msjSupabase.from("pnl_adjustments").select("*").order("entry_date", { ascending: false }),
+          msjSupabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
+          msjSupabase.from("budget_settings").select("*").eq("id", 1).maybeSingle()
+        );
       }
 
-      refreshDashboardAnalytics();
+      const results = await Promise.all(queries);
+      cachedProducts = results[0].data || [];
+      cachedOrders = results[1].data || [];
+
+      if (!isStaffUser) {
+        cachedExpenses = results[2]?.data || [];
+        cachedPnlAdjustments = results[3]?.data || [];
+        cachedPromos = results[4]?.data || [];
+
+        if (results[5]?.data) {
+          budgetSettings = results[5].data;
+          document.getElementById("in-restock-pct").value = budgetSettings.restock_pct;
+          document.getElementById("in-tax-pct").value = budgetSettings.tax_pct;
+          document.getElementById("in-owner-pct").value = budgetSettings.owner_pct;
+          document.getElementById("in-mkt-pct").value = budgetSettings.marketing_pct;
+        }
+        refreshDashboardAnalytics();
+        renderExpensesList();
+        renderPromosList();
+      }
+
       renderTeamRoster();
       renderOrdersList();
       renderInventoryList();
-      renderExpensesList();
-      renderPromosList();
     }
 
     // ============================================================
-    // POS TIME CLOCK & SHIFT MANAGEMENT
+    // POS TIME CLOCK, OVERTIME CALCULATION & STAFF ACCOUNT CREATION
     // ============================================================
     document.getElementById("pos-timeclock-form").addEventListener("submit", (e) => {
       e.preventDefault();
@@ -1728,29 +1913,37 @@
         msg.style.color = "#10b981";
         msg.textContent = `${emp.name} clocked IN at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (${note}).`;
       } else {
-        completeClockOut(empId, existingShift);
+        const result = completeClockOut(empId, existingShift);
         msg.style.color = "#10b981";
-        msg.textContent = `${emp.name} clocked OUT. Shift hours and pay have been logged to payroll & P&L.`;
+        msg.textContent = `${emp.name} clocked OUT (${result.elapsedHours.toFixed(2)} hrs logged${result.otHoursAdded > 0 ? ` — includes ${result.otHoursAdded.toFixed(2)}h overtime` : ""}).`;
       }
 
       document.getElementById("clock-pin-input").value = "";
       document.getElementById("clock-note-input").value = "";
       saveTimeClockState();
       renderTeamRoster();
-      refreshDashboardAnalytics();
+      if (!isStaffUser) refreshDashboardAnalytics();
     });
 
     function completeClockOut(empId, shiftData) {
       const emp = cachedTeam.find(m => m.id === empId);
-      if (!emp) return;
+      if (!emp) return { elapsedHours: 0, otHoursAdded: 0 };
 
       const endMs = Date.now();
       const elapsedHours = Math.max(0.01, Number(((endMs - shiftData.startMs) / 3600000).toFixed(2)));
-      const earned = emp.payType === "hourly" ? Number((elapsedHours * Number(emp.rate || 0)).toFixed(2)) : 0;
 
+      const prevBreakdown = getEmployeePayBreakdown(emp);
       if (emp.payType === "hourly") {
         emp.hours = Number((Number(emp.hours || 0) + elapsedHours).toFixed(2));
       }
+      const nextBreakdown = getEmployeePayBreakdown(emp);
+
+      const shiftEarned = emp.payType === "hourly"
+        ? Number((nextBreakdown.totalPay - prevBreakdown.totalPay).toFixed(2))
+        : 0;
+      const otHoursAdded = emp.payType === "hourly"
+        ? Number(Math.max(0, nextBreakdown.otHours - prevBreakdown.otHours).toFixed(2))
+        : 0;
 
       shiftLogs.unshift({
         id: `sh-${Date.now()}`,
@@ -1759,12 +1952,14 @@
         clockIn: new Date(shiftData.startMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         clockOut: new Date(endMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         hours: elapsedHours,
-        earned,
+        otHours: otHoursAdded,
+        earned: shiftEarned,
         note: shiftData.note || "Studio Shift"
       });
 
       delete activeShifts[empId];
       saveTimeClockState();
+      return { elapsedHours, otHoursAdded };
     }
 
     function quickClockOut(empId) {
@@ -1772,36 +1967,86 @@
       if (!shiftData) return;
       completeClockOut(empId, shiftData);
       renderTeamRoster();
-      refreshDashboardAnalytics();
+      if (!isStaffUser) refreshDashboardAnalytics();
     }
 
     function deleteShiftLog(logId) {
+      if (isStaffUser) return;
       shiftLogs = shiftLogs.filter(l => l.id !== logId);
       saveTimeClockState();
       renderTeamRoster();
     }
 
-    document.getElementById("new-team-form").addEventListener("submit", (e) => {
+    // Owner-Only: Create a Restricted Staff Supabase Login + Roster Entry Without Logging Owner Out
+    document.getElementById("new-team-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
+
+      const btn = document.getElementById("create-staff-btn");
+      const msg = document.getElementById("create-staff-msg");
+      btn.disabled = true;
+      btn.textContent = "Creating Account...";
+      msg.textContent = "";
+
+      const fullName = document.getElementById("team-name").value.trim();
+      const roleTitle = document.getElementById("team-role").value.trim();
+      const staffEmail = document.getElementById("team-email").value.trim().toLowerCase();
+      const staffPassword = document.getElementById("team-password").value;
+      const pin = document.getElementById("team-pin").value.trim() || "1001";
       const payType = document.getElementById("team-paytype").value;
-      cachedTeam.push({
-        id: `tm-${Date.now()}`,
-        name: document.getElementById("team-name").value.trim(),
-        role: document.getElementById("team-role").value.trim(),
-        pin: document.getElementById("team-pin").value.trim() || "1234",
-        payType,
-        rate: parseFloat(document.getElementById("team-rate").value || "0"),
-        hours: payType === "hourly" ? parseFloat(document.getElementById("team-hours").value || "0") : 1,
-        active: true
-      });
-      saveTimeClockState();
-      e.target.reset();
-      document.getElementById("team-hours").value = "0";
-      renderTeamRoster();
-      refreshDashboardAnalytics();
+      const rate = parseFloat(document.getElementById("team-rate").value || "0");
+
+      try {
+        const tempClient = window.supabase.createClient(
+          msjSupabase.supabaseUrl,
+          msjSupabase.supabaseKey,
+          { auth: { persistSession: false, autoRefreshToken: false } }
+        );
+
+        const { data: signUpData, error: signUpErr } = await tempClient.auth.signUp({
+          email: staffEmail,
+          password: staffPassword,
+          options: {
+            data: {
+              role: "staff",
+              display_name: fullName
+            }
+          }
+        });
+
+        if (signUpErr) throw signUpErr;
+
+        cachedTeam.push({
+          id: `tm-${Date.now()}`,
+          name: fullName,
+          role: roleTitle,
+          email: staffEmail,
+          pin,
+          payType,
+          rate,
+          hours: 0,
+          active: true
+        });
+        saveTimeClockState();
+        e.target.reset();
+        renderTeamRoster();
+        refreshDashboardAnalytics();
+
+        msg.style.color = "#10b981";
+        msg.textContent = signUpData?.session
+          ? `Staff account active! ${fullName} can now sign in from the main site with ${staffEmail}.`
+          : `Staff account created for ${staffEmail}! (Toggle Auto-Confirm in Supabase Auth if email confirmation is enabled.)`;
+      } catch (err) {
+        msg.style.color = "#ef4444";
+        msg.textContent = "Could not create staff account: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Create Staff Account";
+      }
     });
 
     function updateTeamField(id, field, val) {
+      if (isStaffUser) return;
       cachedTeam = cachedTeam.map(m => (m.id === id ? { ...m, [field]: val } : m));
       saveTimeClockState();
       renderTeamRoster();
@@ -1809,6 +2054,7 @@
     }
 
     function removeTeamMember(id) {
+      if (isStaffUser) return;
       delete activeShifts[id];
       cachedTeam = cachedTeam.filter(m => m.id !== id);
       saveTimeClockState();
@@ -1820,11 +2066,17 @@
       const selectEl = document.getElementById("clock-employee-select");
       if (selectEl) {
         const prevVal = selectEl.value;
-        selectEl.innerHTML = cachedTeam
-          .filter(m => m.active)
+        const activeMembers = cachedTeam.filter(m => m.active);
+        selectEl.innerHTML = activeMembers
           .map(m => `<option value="${m.id}">${m.name} (${activeShifts[m.id] ? "Currently Clocked In" : m.role})</option>`)
           .join("");
-        if (prevVal && cachedTeam.some(m => m.id === prevVal && m.active)) {
+
+        const matchedStaff = currentSessionUser
+          ? activeMembers.find(m => m.email && m.email.toLowerCase() === currentSessionUser.email.toLowerCase())
+          : null;
+        if (matchedStaff) {
+          selectEl.value = matchedStaff.id;
+        } else if (prevVal && activeMembers.some(m => m.id === prevVal)) {
           selectEl.value = prevVal;
         }
       }
@@ -1860,63 +2112,80 @@
         }
       }
 
-      const list = document.getElementById("admin-team-list");
-      const totalPayroll = cachedTeam.reduce((s, m) => s + getTeamMemberPayout(m), 0);
-      document.getElementById("team-payroll-total").textContent = `Active Payroll: $${totalPayroll.toFixed(2)}`;
+      if (!isStaffUser) {
+        const list = document.getElementById("admin-team-list");
+        const totalPayroll = cachedTeam.reduce((s, m) => s + getTeamMemberPayout(m), 0);
+        document.getElementById("team-payroll-total").textContent = `Active Payroll: $${totalPayroll.toFixed(2)}`;
 
-      list.innerHTML = cachedTeam.map(m => {
-        const payout = getTeamMemberPayout(m);
-        const onShift = Boolean(activeShifts[m.id]);
-        return `
-          <div class="order-card" style="flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;opacity:${m.active ? "1" : "0.6"};">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <strong style="font-size:16px;">${m.name}</strong>
-                ${onShift ? `<span class="pill-paid">Clocked In</span>` : ""}
-              </div>
-              <p style="font-size:13px;color:#71717a;">${m.role} • ${m.payType === "hourly" ? "Hourly" : "Flat Stipend / Draw"}</p>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <div style="width:80px;">
-                <label class="field-label">PIN</label>
-                <input type="text" maxlength="6" value="${m.pin || "1001"}" onchange="updateTeamField('${m.id}', 'pin', this.value.trim())">
-              </div>
-              <div style="width:95px;">
-                <label class="field-label">${m.payType === "hourly" ? "$ / Hr" : "Flat $"}</label>
-                <input type="number" step="0.5" min="0" value="${m.rate}" onchange="updateTeamField('${m.id}', 'rate', parseFloat(this.value || 0))">
-              </div>
-              ${m.payType === "hourly" ? `
-                <div style="width:90px;">
-                  <label class="field-label">Hours</label>
-                  <input type="number" step="0.25" min="0" value="${m.hours}" onchange="updateTeamField('${m.id}', 'hours', parseFloat(this.value || 0))">
+        list.innerHTML = cachedTeam.map(m => {
+          const breakdown = getEmployeePayBreakdown(m);
+          const onShift = Boolean(activeShifts[m.id]);
+          const otRate = Number(m.rate || 0) * Number(overtimeSettings.multiplier || 1.5);
+          return `
+            <div class="order-card" style="flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;opacity:${m.active ? "1" : "0.6"};">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <strong style="font-size:16px;">${m.name}</strong>
+                  ${onShift ? `<span class="pill-paid">Clocked In</span>` : ""}
+                  ${breakdown.otHours > 0 ? `<span class="ot-badge">OT Active: ${breakdown.otHours.toFixed(2)}h @ $${otRate.toFixed(2)}/hr</span>` : ""}
                 </div>
-              ` : ""}
-              <strong style="color:#ef4444;min-width:80px;text-align:right;">-$${payout.toFixed(2)}</strong>
-              <button type="button" class="filter-btn ${m.active ? "active" : ""}" onclick="updateTeamField('${m.id}', 'active', ${!m.active})">${m.active ? "Active" : "Off-Cycle"}</button>
-              <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="removeTeamMember('${m.id}')">&times;</button>
+                <p style="font-size:13px;color:#71717a;">
+                  ${m.role} ${m.email ? `• ${m.email}` : ""} •
+                  ${m.payType === "hourly"
+                    ? `Reg: ${breakdown.regHours.toFixed(2)}h ($${breakdown.regPay.toFixed(2)}) • OT: ${breakdown.otHours.toFixed(2)}h ($${breakdown.otPay.toFixed(2)})`
+                    : "Flat Stipend / Draw"}
+                </p>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div style="width:78px;">
+                  <label class="field-label">PIN</label>
+                  <input type="text" maxlength="6" value="${m.pin || "1001"}" onchange="updateTeamField('${m.id}', 'pin', this.value.trim())">
+                </div>
+                <div style="width:92px;">
+                  <label class="field-label">${m.payType === "hourly" ? "$ / Hr" : "Flat $"}</label>
+                  <input type="number" step="0.5" min="0" value="${m.rate}" onchange="updateTeamField('${m.id}', 'rate', parseFloat(this.value || 0))">
+                </div>
+                ${m.payType === "hourly" ? `
+                  <div style="width:88px;">
+                    <label class="field-label">Total Hrs</label>
+                    <input type="number" step="0.25" min="0" value="${m.hours}" onchange="updateTeamField('${m.id}', 'hours', parseFloat(this.value || 0))">
+                  </div>
+                ` : ""}
+                <strong style="color:#ef4444;min-width:85px;text-align:right;">-$${breakdown.totalPay.toFixed(2)}</strong>
+                <button type="button" class="filter-btn ${m.active ? "active" : ""}" onclick="updateTeamField('${m.id}', 'active', ${!m.active})">${m.active ? "Active" : "Off-Cycle"}</button>
+                <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="removeTeamMember('${m.id}')">&times;</button>
+              </div>
             </div>
-          </div>
-        `;
-      }).join("");
+          `;
+        }).join("");
+      }
 
       const logsBody = document.getElementById("shift-logs-body");
       document.getElementById("shift-logs-count").textContent = shiftLogs.length;
       if (logsBody) {
         if (shiftLogs.length === 0) {
-          logsBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted);">No completed timeclock shifts yet. Clock an employee in and out above or on timeclock.html to log shifts automatically.</td></tr>`;
+          logsBody.innerHTML = `<tr><td colspan="9" style="color:var(--text-muted);">No completed shifts logged yet. Clock in and out above to record shifts automatically.</td></tr>`;
         } else {
-          logsBody.innerHTML = shiftLogs.map(log => `
-            <tr>
-              <td><strong>${log.date}</strong></td>
-              <td>${log.empName}</td>
-              <td>${log.clockIn}</td>
-              <td>${log.clockOut}</td>
-              <td><strong>${Number(log.hours).toFixed(2)} hrs</strong></td>
-              <td style="color:#ef4444;font-weight:700;">-$${Number(log.earned).toFixed(2)}</td>
-              <td>${log.note}</td>
-              <td><button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteShiftLog('${log.id}')">&times;</button></td>
-            </tr>
-          `).join("");
+          logsBody.innerHTML = shiftLogs.map(log => {
+            const otCol = isStaffUser
+              ? ""
+              : `<td>${Number(log.otHours || 0) > 0 ? `<span class="ot-badge">+${Number(log.otHours).toFixed(2)}h OT</span>` : "0.00h"}</td>`;
+            const payCol = isStaffUser ? "" : `<td style="color:#ef4444;font-weight:700;">-$${Number(log.earned).toFixed(2)}</td>`;
+            const actCol = isStaffUser ? "" : `<td><button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteShiftLog('${log.id}')">&times;</button></td>`;
+            return `
+              <tr>
+                <td><strong>${log.date}</strong></td>
+                <td>${log.empName}</td>
+                <td>${log.clockIn}</td>
+                <td>${log.clockOut}</td>
+                <td><strong>${Number(log.hours).toFixed(2)} hrs</strong></td>
+                ${otCol}
+                ${payCol}
+                <td>${log.note}</td>
+                ${actCol}
+              </tr>
+            `;
+          }).join("");
         }
       }
     }
@@ -1970,6 +2239,8 @@
     // ============================================================
 
     function refreshDashboardAnalytics() {
+      if (isStaffUser) return;
+
       const paidOnly = document.getElementById("pnl-paid-only").checked;
       const validOrders = cachedOrders.filter(o => {
         if (o.fulfillment_status === "Cancelled") return false;
@@ -2122,6 +2393,7 @@
     }
 
     function openPnlAdjModal(id = "") {
+      if (isStaffUser) return;
       const modal = document.getElementById("pnl-adj-modal");
       const existing = id ? cachedPnlAdjustments.find(a => a.id === id) : null;
       document.getElementById("pnl-adj-modal-title").textContent = existing ? "Edit P&L Entry" : "Add Manual P&L Entry";
@@ -2140,6 +2412,7 @@
 
     document.getElementById("pnl-adj-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
       const id = document.getElementById("pnl-adj-id").value;
       const payload = {
         entry_date: document.getElementById("pnl-adj-date").value,
@@ -2162,6 +2435,7 @@
     });
 
     async function deletePnlAdj(id) {
+      if (isStaffUser) return;
       if (!confirm("Delete this manual P&L entry?")) return;
       await msjSupabase.from("pnl_adjustments").delete().eq("id", id);
       loadAllAdminData();
@@ -2284,6 +2558,7 @@
 
     document.getElementById("budget-rules-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
       const r = parseFloat(document.getElementById("in-restock-pct").value || 0);
       const t = parseFloat(document.getElementById("in-tax-pct").value || 0);
       const o = parseFloat(document.getElementById("in-owner-pct").value || 0);
@@ -2317,11 +2592,12 @@
     });
 
     // ============================================================
-    // EXPENSES LEDGER (SORTABLE, FILTERABLE & EDITABLE)
+    // EXPENSES LEDGER (OWNER ONLY)
     // ============================================================
 
     document.getElementById("new-expense-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
       const { error } = await msjSupabase.from("expenses").insert([{
         expense_date: document.getElementById("exp-date").value,
         category: document.getElementById("exp-category").value,
@@ -2340,6 +2616,7 @@
     });
 
     function renderExpensesList() {
+      if (isStaffUser) return;
       const body = document.getElementById("admin-expenses-body");
       const q = (document.getElementById("exp-search-input").value || "").trim().toLowerCase();
       const cat = document.getElementById("exp-filter-category").value;
@@ -2391,6 +2668,7 @@
     }
 
     function openEditExpenseModal(id) {
+      if (isStaffUser) return;
       const exp = cachedExpenses.find(e => e.id === id);
       if (!exp) return;
       document.getElementById("edit-exp-id").value = exp.id;
@@ -2408,6 +2686,7 @@
 
     document.getElementById("edit-expense-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
       const id = document.getElementById("edit-exp-id").value;
       const { error } = await msjSupabase.from("expenses").update({
         expense_date: document.getElementById("edit-exp-date").value,
@@ -2426,13 +2705,14 @@
     });
 
     async function deleteExpense(id) {
+      if (isStaffUser) return;
       if (!confirm("Delete this expense entry?")) return;
       await msjSupabase.from("expenses").delete().eq("id", id);
       loadAllAdminData();
     }
 
     // ============================================================
-    // ORDERS & FULFILLMENT (SORTABLE & FILTERABLE)
+    // ORDERS & FULFILLMENT (SCOPED BY ROLE)
     // ============================================================
 
     function resetOrderFilters() {
@@ -2475,7 +2755,7 @@
         if (sortBy === "date-asc") return new Date(a.created_at) - new Date(b.created_at);
         if (sortBy === "total-desc") return Number(b.total) - Number(a.total);
         if (sortBy === "total-asc") return Number(a.total) - Number(b.total);
-        if (sortBy === "profit-desc") {
+        if (sortBy === "profit-desc" && !isStaffUser) {
           const profA = Number(a.total) - getOrderCogs(a) - Number(a.actual_shipping_cost || 0) - Number(a.payment_fee || 0);
           const profB = Number(b.total) - getOrderCogs(b) - Number(b.actual_shipping_cost || 0) - Number(b.payment_fee || 0);
           return profB - profA;
@@ -2504,6 +2784,14 @@
           month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit"
         });
 
+        const profitSubLine = isStaffUser
+          ? `<p style="font-size:12px; color:var(--text-muted);">Fulfillment Queue</p>`
+          : `<p style="font-size:12px; color:#10b981; font-weight:700;">Net Order Profit: $${orderNetProfit.toFixed(2)} (COGS: $${orderCogs.toFixed(2)})</p>`;
+
+        const labelCostInputHtml = isStaffUser
+          ? `<input type="hidden" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : "0"}">`
+          : `<input type="number" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : ""}" step="0.01" min="0" placeholder="Label Cost ($)">`;
+
         return `
           <div class="order-card">
             <div class="order-card-header">
@@ -2517,7 +2805,7 @@
               </div>
               <div style="text-align:right;">
                 <strong style="font-size:20px;">$${Number(ord.total).toFixed(2)}</strong>
-                <p style="font-size:12px; color:#10b981; font-weight:700;">Net Order Profit: $${orderNetProfit.toFixed(2)} (COGS: $${orderCogs.toFixed(2)})</p>
+                ${profitSubLine}
               </div>
             </div>
 
@@ -2532,7 +2820,7 @@
               </div>
             </div>
 
-            <div class="tracking-bar">
+            <div class="${isStaffUser ? "staff-tracking-bar" : "tracking-bar"}">
               <select id="carrier-${ord.id}">
                 ${["USPS", "UPS", "FedEx", "DHL", "Local Pickup"].map(c =>
                   `<option value="${c}" ${ord.tracking_carrier === c ? "selected" : ""}>${c}</option>`
@@ -2541,7 +2829,7 @@
 
               <input type="text" id="track-${ord.id}" value="${ord.tracking_number || ""}" placeholder="Tracking Number...">
 
-              <input type="number" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : ""}" step="0.01" min="0" placeholder="Label Cost ($)">
+              ${labelCostInputHtml}
 
               <select id="status-${ord.id}">
                 ${["Unfulfilled", "Packing", "Shipped", "Delivered", "Cancelled"].map(st =>
@@ -2551,7 +2839,7 @@
 
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save</button>
-                ${!isPaid ? `<button type="button" class="filter-btn" style="height:42px;" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
+                ${!isPaid && !isStaffUser ? `<button type="button" class="filter-btn" style="height:42px;" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
                 <button type="button" class="filter-btn" style="height:42px;" onclick="printPackingSlip('${ord.id}')">Slip</button>
               </div>
             </div>
@@ -2563,21 +2851,26 @@
     async function saveOrderFulfillment(orderId) {
       const carrier = document.getElementById(`carrier-${orderId}`).value;
       const tracking = document.getElementById(`track-${orderId}`).value.trim();
-      const labelCost = parseFloat(document.getElementById(`labelcost-${orderId}`).value || "0");
+      const labelCostEl = document.getElementById(`labelcost-${orderId}`);
+      const labelCost = labelCostEl ? parseFloat(labelCostEl.value || "0") : 0;
       let status = document.getElementById(`status-${orderId}`).value;
 
       if (tracking && status === "Unfulfilled") {
         status = "Shipped";
       }
 
+      const updatePayload = {
+        tracking_carrier: carrier,
+        tracking_number: tracking,
+        fulfillment_status: status
+      };
+      if (!isStaffUser) {
+        updatePayload.actual_shipping_cost = labelCost;
+      }
+
       const { error } = await msjSupabase
         .from("orders")
-        .update({
-          tracking_carrier: carrier,
-          tracking_number: tracking,
-          actual_shipping_cost: labelCost,
-          fulfillment_status: status
-        })
+        .update(updatePayload)
         .eq("id", orderId);
 
       if (error) {
@@ -2588,6 +2881,7 @@
     }
 
     async function markOrderPaid(orderId) {
+      if (isStaffUser) return;
       await msjSupabase
         .from("orders")
         .update({ payment_status: "Paid (Manual)" })
@@ -2651,7 +2945,7 @@
     }
 
     // ============================================================
-    // INVENTORY, COGS & PRODUCT EDITOR (SORTABLE & FILTERABLE)
+    // INVENTORY & STOCK (SCOPED BY ROLE — HIDES COGS FROM STAFF)
     // ============================================================
 
     function resetInventoryFilters() {
@@ -2677,6 +2971,7 @@
     }
 
     function updateEditMarginPreview() {
+      if (isStaffUser) return;
       const price = parseFloat(document.getElementById("edit-prod-price").value || "0");
       const cost = parseFloat(document.getElementById("edit-prod-cost").value || "0");
       const profit = price - cost;
@@ -2712,7 +3007,7 @@
         if (sortBy === "oldest") return new Date(a.created_at) - new Date(b.created_at);
         if (sortBy === "stock-asc") return unitsA - unitsB;
         if (sortBy === "stock-desc") return unitsB - unitsA;
-        if (sortBy === "margin-desc") return marginB - marginA;
+        if (sortBy === "margin-desc" && !isStaffUser) return marginB - marginA;
         if (sortBy === "price-desc") return Number(b.price) - Number(a.price);
         if (sortBy === "price-asc") return Number(a.price) - Number(b.price);
         if (sortBy === "name-asc") return a.name.localeCompare(b.name);
@@ -2740,6 +3035,15 @@
           return `<span style="font-size:12px;font-weight:700;color:${color};background:#f4f4f5;padding:3px 8px;border-radius:6px;">${sz}: ${count}</span>`;
         }).join(" ");
 
+        const metaLine = isStaffUser
+          ? `Retail: <strong>$${price.toFixed(2)}</strong> • Total Stock: <strong>${totalUnits} units</strong>`
+          : `Retail: <strong>$${price.toFixed(2)}</strong> • COGS: <strong>$${cost.toFixed(2)}</strong> • Profit: <strong style="color:#10b981;">+$${unitProfit.toFixed(2)} (${marginPct.toFixed(0)}%)</strong> • Total: <strong>${totalUnits} units</strong>`;
+
+        const editBtnLabel = isStaffUser ? "Update Stock & Photo" : "Edit Photo & COGS";
+        const deleteBtnHtml = isStaffUser
+          ? ""
+          : `<button type="button" class="filter-btn" style="color: #ef4444; height:42px;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>`;
+
         return `
           <div class="contact-card" style="max-width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px 22px;">
             <div style="display: flex; align-items: center; gap: 14px;">
@@ -2749,9 +3053,7 @@
               }
               <div>
                 <strong style="font-size:16px;">${item.name}</strong>
-                <p style="font-size: 13px; color: var(--text-muted); margin: 3px 0 6px;">
-                  Retail: <strong>$${price.toFixed(2)}</strong> • COGS: <strong>$${cost.toFixed(2)}</strong> • Profit: <strong style="color:#10b981;">+$${unitProfit.toFixed(2)} (${marginPct.toFixed(0)}%)</strong> • Total: <strong>${totalUnits} units</strong>
-                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 3px 0 6px;">${metaLine}</p>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">${stockBadges}</div>
               </div>
             </div>
@@ -2763,8 +3065,8 @@
                 ).join("")}
               </select>
 
-              <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="openEditModal('${item.id}')">Edit Photo &amp; COGS</button>
-              <button type="button" class="filter-btn" style="color: #ef4444; height:42px;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
+              <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="openEditModal('${item.id}')">${editBtnLabel}</button>
+              ${deleteBtnHtml}
             </div>
           </div>
         `;
@@ -2800,7 +3102,7 @@
         document.getElementById(`edit-stock-${sz}`).value = Number(stock[sz] ?? 0);
       });
 
-      updateEditMarginPreview();
+      if (!isStaffUser) updateEditMarginPreview();
       document.getElementById("edit-product-modal").classList.add("active");
     }
 
@@ -2846,11 +3148,10 @@
           if (qty > 0) availableSizes.push(sz);
         });
 
-        const { error } = await msjSupabase.from("products").update({
+        const updateData = {
           name: document.getElementById("edit-prod-name").value.trim(),
           category: document.getElementById("edit-prod-category").value,
           price: parseFloat(document.getElementById("edit-prod-price").value),
-          unit_cost: parseFloat(document.getElementById("edit-prod-cost").value || "0"),
           status: document.getElementById("edit-prod-status").value,
           badge: document.getElementById("edit-prod-badge").value.trim(),
           image: imageUrl,
@@ -2859,8 +3160,13 @@
           fit: document.getElementById("edit-prod-fit").value.trim(),
           care: document.getElementById("edit-prod-care").value.trim(),
           description: document.getElementById("edit-prod-desc").value.trim()
-        }).eq("id", id);
+        };
 
+        if (!isStaffUser) {
+          updateData.unit_cost = parseFloat(document.getElementById("edit-prod-cost").value || "0");
+        }
+
+        const { error } = await msjSupabase.from("products").update(updateData).eq("id", id);
         if (error) throw error;
 
         closeEditModal();
@@ -2870,12 +3176,13 @@
         msg.textContent = "Error: " + err.message;
       } finally {
         btn.disabled = false;
-        btn.textContent = "Save All Product Changes";
+        btn.textContent = "Save Product & Stock Changes";
       }
     });
 
     document.getElementById("new-product-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
       const btn = document.getElementById("create-prod-btn");
       const msg = document.getElementById("create-prod-msg");
       btn.disabled = true;
@@ -2940,16 +3247,18 @@
     });
 
     async function deleteProduct(id, name) {
+      if (isStaffUser) return;
       if (!confirm(`Delete "${name}" permanently from the store?`)) return;
       await msjSupabase.from("products").delete().eq("id", id);
       loadAllAdminData();
     }
 
     // ============================================================
-    // PROMO CODES (SORTABLE & FILTERABLE) & CSV EXPORTS
+    // PROMO CODES & CSV EXPORTS (OWNER ONLY)
     // ============================================================
 
     function renderPromosList() {
+      if (isStaffUser) return;
       const list = document.getElementById("admin-promos-list");
       const statusFilter = document.getElementById("promo-filter-status").value;
       const sortBy = document.getElementById("promo-sort-by").value;
@@ -2987,6 +3296,7 @@
 
     document.getElementById("new-promo-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isStaffUser) return;
       const code = document.getElementById("promo-code-input").value.trim().toUpperCase();
       const discount_type = document.getElementById("promo-type-input").value;
       const discount_value = parseFloat(document.getElementById("promo-val-input").value);
@@ -3007,11 +3317,13 @@
     });
 
     async function togglePromo(id, newState) {
+      if (isStaffUser) return;
       await msjSupabase.from("promo_codes").update({ active: newState }).eq("id", id);
       loadAllAdminData();
     }
 
     async function deletePromo(id) {
+      if (isStaffUser) return;
       await msjSupabase.from("promo_codes").delete().eq("id", id);
       loadAllAdminData();
     }
@@ -3026,6 +3338,7 @@
     }
 
     function exportOrdersCSV() {
+      if (isStaffUser) return;
       const headers = ["Order Number", "Date", "Customer", "Email", "Subtotal", "Discount", "Shipping Collected", "Total Collected", "COGS", "Shipping Label Cost", "Payment Fee", "Net Profit", "Payment Status", "Fulfillment Status", "Tracking"];
       const rows = cachedOrders.map(o => {
         const cogs = getOrderCogs(o);
@@ -3054,6 +3367,7 @@
     }
 
     function exportExpensesCSV() {
+      if (isStaffUser) return;
       const headers = ["Date", "Category", "Vendor / Description", "Notes", "Amount"];
       const rows = cachedExpenses.map(e => [e.expense_date, e.category, e.vendor_description, e.notes, Number(e.amount).toFixed(2)]);
       downloadCSV(`MSJ-Expenses-${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);

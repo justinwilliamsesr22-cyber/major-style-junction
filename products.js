@@ -5,10 +5,10 @@
 const MSJ_CONFIG = {
   freeShippingThreshold: 100,
   flatShippingRate: 8.95,
-  formspreeOrderEndpoint: "[https://formspree.io/f/myeypbka](https://formspree.io/f/myeypbka)",
+  formspreeOrderEndpoint: "https://formspree.io/f/myeypbka",
   supportEmail: "MajorStyleJunction@MajorStyleJunction.com",
   techSupportEmail: "cloud@majorstylejunction.com",
-  techSupportSite: "[https://cloud.majorstylejunction.com](https://cloud.majorstylejunction.com)",
+  techSupportSite: "https://cloud.majorstylejunction.com",
   itemsPerPage: 6
 };
 
@@ -101,7 +101,7 @@ async function syncProductsFromSupabase() {
 }
 
 // ============================================================
-// CUSTOMER ACCOUNT, SAVED SHIPPING & ORDER HISTORY STATE
+// CUSTOMER ACCOUNT, STAFF LOGIN ROUTING & ORDER HISTORY STATE
 // ============================================================
 
 const ACCOUNTS_DB_KEY = "msj_customer_accounts_v1";
@@ -110,6 +110,7 @@ const CART_STORAGE_KEY = "msj_shopping_bag_v1";
 
 let msjCart = [];
 let currentUser = null;
+let activeStaffSession = null;
 let activeQuickViewProduct = null;
 let selectedQuickViewSize = "L";
 
@@ -132,7 +133,20 @@ function encodePass(str) {
   return btoa(unescape(encodeURIComponent(str.trim())));
 }
 
-function loadCurrentUser() {
+async function loadCurrentUser() {
+  if (window.msjSupabase) {
+    try {
+      const { data: { session } } = await window.msjSupabase.auth.getSession();
+      if (session && session.user) {
+        activeStaffSession = session.user;
+      } else {
+        activeStaffSession = null;
+      }
+    } catch {
+      activeStaffSession = null;
+    }
+  }
+
   try {
     const email = localStorage.getItem(SESSION_KEY);
     if (!email) {
@@ -149,13 +163,22 @@ function loadCurrentUser() {
 
 function updateAccountUI() {
   document.querySelectorAll(".js-account-btn").forEach((btn) => {
-    if (currentUser) {
+    if (activeStaffSession) {
+      const role = activeStaffSession.user_metadata?.role === "staff" ? "Staff" : "Owner";
+      btn.textContent = `${role} Portal`;
+      btn.classList.add("signed-in");
+      btn.onclick = () => {
+        window.location.href = "admin.html";
+      };
+    } else if (currentUser) {
       const firstName = currentUser.name.split(" ")[0] || "Account";
       btn.textContent = `Account (${firstName})`;
       btn.classList.add("signed-in");
+      btn.onclick = () => openAccountModal("login");
     } else {
       btn.textContent = "Sign In";
       btn.classList.remove("signed-in");
+      btn.onclick = () => openAccountModal("login");
     }
   });
 
@@ -214,11 +237,34 @@ function handleRegisterAccount(e) {
   statusEl.textContent = "";
 }
 
-function handleSignInAccount(e) {
+async function handleSignInAccount(e) {
   e.preventDefault();
   const statusEl = document.getElementById("auth-status-msg");
+  const submitBtn = e.target.querySelector('button[type="submit"]');
   const email = document.getElementById("login-email").value.trim().toLowerCase();
   const password = document.getElementById("login-password").value;
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Signing In...";
+  }
+  statusEl.textContent = "";
+
+  if (window.msjSupabase) {
+    try {
+      const { data, error } = await window.msjSupabase.auth.signInWithPassword({ email, password });
+      if (!error && data && data.session) {
+        statusEl.style.color = "#10b981";
+        statusEl.textContent = "Staff / Admin credentials verified. Opening portal...";
+        setTimeout(() => {
+          window.location.href = "admin.html";
+        }, 400);
+        return;
+      }
+    } catch {
+      // Fall through to customer account check
+    }
+  }
 
   const db = getAccountsDB();
   const record = db[email];
@@ -226,12 +272,20 @@ function handleSignInAccount(e) {
   if (!record || record.passHash !== encodePass(password)) {
     statusEl.style.color = "#ef4444";
     statusEl.textContent = "Invalid email or password. Please check your credentials.";
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Sign In";
+    }
     return;
   }
 
   localStorage.setItem(SESSION_KEY, email);
-  loadCurrentUser();
+  await loadCurrentUser();
   statusEl.textContent = "";
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Sign In";
+  }
 }
 
 function handleSaveProfile(e) {
@@ -357,6 +411,10 @@ function reorderPastPurchase(orderIndex) {
 }
 
 function openAccountModal(defaultTab = "login") {
+  if (activeStaffSession) {
+    window.location.href = "admin.html";
+    return;
+  }
   const modal = document.getElementById("msj-account-modal");
   if (!modal) return;
   if (!currentUser) {
@@ -1247,7 +1305,7 @@ function injectNavAndFooterLinks() {
     const techBar = document.createElement("div");
     techBar.className = "footer-tech-bar";
     techBar.innerHTML = `
-      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openHeaderSearchModal();">Search</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="timeclock.html">Staff Clock-In</a> • <a href="admin.html">Admin</a></span>
+      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openHeaderSearchModal();">Search</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="admin.html">Admin</a></span>
     `;
     footer.appendChild(techBar);
   }
@@ -1288,25 +1346,25 @@ function injectStorefrontOverlays() {
       </div>
     </div>
 
-    <!-- Customer Account Sign-In & Saved Purchases Modal -->
+    <!-- Member & Staff Sign-In Modal -->
     <div id="msj-account-modal" class="modal-overlay" onclick="if(event.target===this) closeAccountModal()">
       <div class="modal-box" style="max-width: 540px;">
         <button type="button" class="modal-close" onclick="closeAccountModal()" aria-label="Close">&times;</button>
 
         <div id="msj-auth-logged-out">
-          <span class="section-kicker">Customer Portal</span>
-          <h3 style="font-size:24px;margin-bottom:6px;">Member Sign In</h3>
-          <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Sign in to save your shipping address, preferred size, and purchase history.</p>
+          <span class="section-kicker">Member &amp; Staff Portal</span>
+          <h3 style="font-size:24px;margin-bottom:6px;">Sign In</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Customers can sign in or create an account below. Staff members can sign in here using their work login to clock in and manage orders.</p>
 
           <div class="auth-tabs">
             <button type="button" id="tab-btn-login" class="filter-btn active" onclick="switchAuthTab('login')">Sign In</button>
-            <button type="button" id="tab-btn-register" class="filter-btn" onclick="switchAuthTab('register')">Create Account</button>
+            <button type="button" id="tab-btn-register" class="filter-btn" onclick="switchAuthTab('register')">Create Customer Account</button>
           </div>
 
           <form id="msj-login-form" onsubmit="handleSignInAccount(event)" style="display:flex;flex-direction:column;gap:12px;">
             <input type="email" id="login-email" placeholder="Email Address" required>
             <input type="password" id="login-password" placeholder="Password" required>
-            <button type="submit" class="btn-card">Sign In to Account</button>
+            <button type="submit" class="btn-card">Sign In</button>
           </form>
 
           <form id="msj-register-form" onsubmit="handleRegisterAccount(event)" style="display:none;flex-direction:column;gap:12px;">
@@ -1320,7 +1378,7 @@ function injectStorefrontOverlays() {
               <option value="XL">Preferred Size: XL</option>
               <option value="2XL">Preferred Size: 2XL</option>
             </select>
-            <button type="submit" class="btn-card">Create Free Account</button>
+            <button type="submit" class="btn-card">Create Customer Account</button>
           </form>
 
           <p id="auth-status-msg" class="modal-status" style="margin-top:10px;"></p>
