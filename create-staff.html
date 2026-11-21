@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Account Setup | Major Style Junction</title>
+  <title>Staff &amp; Admin Account Setup | Major Style Junction</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .setup-card {
@@ -86,6 +86,22 @@
       padding: 12px 14px;
       font-size: 13px;
     }
+    .role-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+      background: #f4f4f5;
+      color: #09090b;
+      border: 1px solid #d4d4d8;
+    }
+    .role-pill.admin {
+      background: #09090b;
+      color: #ffffff;
+      border-color: #09090b;
+    }
     .mini-btn {
       background: #ffffff;
       border: 1px solid #d4d4d8;
@@ -104,7 +120,7 @@
 <body>
 
   <div class="announcement-bar">
-    Major Style Junction • Owner Staff Account Provisioning
+    Major Style Junction • Owner Staff &amp; Admin Account Provisioning
   </div>
 
   <header>
@@ -124,22 +140,22 @@
   <main class="container">
     <div id="owner-gate-box" class="setup-card" style="text-align:center;">
       <span class="section-kicker">Owner Verification</span>
-      <h1 style="font-size:24px; margin-top:4px;">Sign In as Owner to Provision Staff</h1>
-      <p style="font-size:13px; color:#71717a; margin:8px 0 18px;">Only an active Owner account can create or manage staff logins.</p>
+      <h1 style="font-size:24px; margin-top:4px;">Sign In as Owner to Provision Accounts</h1>
+      <p style="font-size:13px; color:#71717a; margin:8px 0 18px;">Only an active Owner account can create or manage staff and admin logins.</p>
       <a href="admin.html" class="btn-card" style="display:inline-block; width:auto; padding:12px 22px; text-decoration:none;">Go to Owner Sign In</a>
     </div>
 
     <div id="staff-creator-box" class="setup-card" style="display:none;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <div>
-          <span class="section-kicker">Team Access Setup</span>
-          <h1 style="font-size:26px; margin-top:2px;">Add Staff Member</h1>
+          <span class="section-kicker">Team &amp; Admin Access Setup</span>
+          <h1 style="font-size:26px; margin-top:2px;">Add Staff or Admin Account</h1>
         </div>
         <a href="admin.html" class="filter-btn" style="text-decoration:none;">&larr; Command Center</a>
       </div>
 
       <div class="notice-strip">
-        <strong>Access Boundary:</strong> Staff accounts can only clock in/out, pack orders, add tracking numbers, and update size stock. They cannot view P&amp;L, net profit, expenses, unit COGS, payroll rates, or promo codes.
+        <strong>Role Permissions:</strong> <strong>Restricted Staff</strong> can clock in/out, pack orders, add tracking numbers, and update size stock. <strong>Admin / Owner</strong> accounts unlock full P&amp;L, net profit, expenses, unit COGS, payroll rates, promo codes, and account provisioning.
       </div>
 
       <form id="provision-staff-form" novalidate style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
@@ -150,8 +166,17 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">Role / Position</label>
-          <input type="text" id="staff-role" placeholder="e.g., DTF Print & Fulfillment" required>
+          <label class="field-label">Portal Access Role</label>
+          <select id="staff-account-role">
+            <option value="staff">Restricted Staff (Time Clock &amp; Fulfillment)</option>
+            <option value="admin">Admin / Owner (Full Financial &amp; Store Access)</option>
+          </select>
+          <span class="field-error-text" id="err-staff-account-role"></span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Role / Position Title</label>
+          <input type="text" id="staff-role" placeholder="e.g., DTF Print & Fulfillment or Co-Owner" required>
           <span class="field-error-text" id="err-staff-role"></span>
         </div>
 
@@ -177,19 +202,19 @@
           <label class="field-label">Pay Type</label>
           <select id="staff-paytype">
             <option value="hourly">Hourly ($/hr)</option>
-            <option value="flat">Flat Stipend ($)</option>
+            <option value="flat">Flat Stipend / Draw ($)</option>
           </select>
           <span class="field-error-text" id="err-staff-paytype"></span>
         </div>
 
-        <div class="field-group" style="grid-column: 1 / -1;">
+        <div class="field-group">
           <label class="field-label">Pay Rate ($)</label>
           <input type="number" id="staff-rate" min="0" step="0.5" placeholder="e.g., 18.50" required>
           <span class="field-error-text" id="err-staff-rate"></span>
         </div>
 
         <div style="grid-column: 1 / -1; margin-top:4px;">
-          <button type="submit" id="provision-staff-submit" class="btn-card">Add Staff Member</button>
+          <button type="submit" id="provision-staff-submit" class="btn-card">Create Account</button>
         </div>
       </form>
 
@@ -199,7 +224,7 @@
       <!-- CURRENT ROSTER LIST ON THIS PAGE -->
       <div style="border-top:1px solid #e4e4e7; margin-top:24px; padding-top:18px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h2 style="font-size:17px;">Current Team Roster (<span id="roster-count">0</span>)</h2>
+          <h2 style="font-size:17px;">Current Team &amp; Admin Roster (<span id="roster-count">0</span>)</h2>
           <a href="admin.html" style="font-size:12px; font-weight:700; color:#09090b;">Edit Hours &amp; Payroll in Admin &rarr;</a>
         </div>
         <div id="staff-roster-list" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -271,24 +296,38 @@
 
       countEl.textContent = list.length;
       if (list.length === 0) {
-        box.innerHTML = `<p style="font-size:13px; color:#71717a;">No staff members saved yet. Add one above to get started.</p>`;
+        box.innerHTML = `<p style="font-size:13px; color:#71717a;">No team accounts saved yet. Add one above to get started.</p>`;
         return;
       }
 
-      box.innerHTML = list.map(m => `
-        <div class="roster-mini-row" style="opacity:${m.active === false ? "0.6" : "1"};">
-          <div>
-            <strong>${m.name}</strong> — <span style="color:#52525b;">${m.role}</span>
-            <div style="font-size:12px; color:#71717a; margin-top:2px;">
-              ${m.email ? `Login: ${m.email} • ` : ""}PIN: <strong>${m.pin || "1001"}</strong> • ${m.payType === "hourly" ? `$${Number(m.rate || 0).toFixed(2)}/hr` : `Flat $${Number(m.rate || 0).toFixed(2)}`}
+      box.innerHTML = list.map(m => {
+        const isAdmin = m.accountRole === "admin";
+        return `
+          <div class="roster-mini-row" style="opacity:${m.active === false ? "0.6" : "1"};">
+            <div>
+              <strong>${m.name}</strong>
+              <span class="role-pill ${isAdmin ? "admin" : ""}">${isAdmin ? "Admin / Owner" : "Restricted Staff"}</span>
+              <span style="color:#52525b; margin-left:4px;">— ${m.role}</span>
+              <div style="font-size:12px; color:#71717a; margin-top:2px;">
+                ${m.email ? `Login: ${m.email} • ` : ""}PIN: <strong>${m.pin || "1001"}</strong> • ${m.payType === "hourly" ? `$${Number(m.rate || 0).toFixed(2)}/hr` : `Flat $${Number(m.rate || 0).toFixed(2)}`}
+              </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="mini-btn" onclick="toggleRosterRole('${m.id}')">${isAdmin ? "Make Staff" : "Make Admin"}</button>
+              <button type="button" class="mini-btn" onclick="toggleRosterActive('${m.id}')">${m.active === false ? "Activate" : "Active"}</button>
+              <button type="button" class="mini-btn" style="color:#ef4444;" onclick="removeRosterMember('${m.id}')">Remove</button>
             </div>
           </div>
-          <div style="display:flex; gap:6px;">
-            <button type="button" class="mini-btn" onclick="toggleRosterActive('${m.id}')">${m.active === false ? "Activate" : "Active"}</button>
-            <button type="button" class="mini-btn" style="color:#ef4444;" onclick="removeRosterMember('${m.id}')">Remove</button>
-          </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
+    }
+
+    function toggleRosterRole(id) {
+      const updated = loadRoster().map(m =>
+        m.id === id ? { ...m, accountRole: m.accountRole === "admin" ? "staff" : "admin" } : m
+      );
+      saveRoster(updated);
+      renderStaffRosterList();
     }
 
     function toggleRosterActive(id) {
@@ -305,7 +344,8 @@
 
     async function verifyOwnerForCreator() {
       const { data: { session } } = await msjSupabase.auth.getSession();
-      const isOwner = Boolean(session && session.user && session.user.user_metadata?.role !== "staff");
+      const roleMeta = session?.user?.user_metadata?.role;
+      const isOwner = Boolean(session && session.user && roleMeta !== "staff");
       document.getElementById("owner-gate-box").style.display = isOwner ? "none" : "block";
       document.getElementById("staff-creator-box").style.display = isOwner ? "block" : "none";
       if (isOwner) {
@@ -323,6 +363,7 @@
       summaryBox.innerHTML = "";
 
       const name = document.getElementById("staff-full-name").value.trim();
+      const accountRole = document.getElementById("staff-account-role").value === "admin" ? "admin" : "staff";
       const role = document.getElementById("staff-role").value.trim();
       const email = document.getElementById("staff-email").value.trim().toLowerCase();
       const password = document.getElementById("staff-password").value;
@@ -336,7 +377,7 @@
         return;
       }
       if (!role) {
-        showStaffFieldError("role", "Role / Position is required.");
+        showStaffFieldError("role", "Role / Position Title is required.");
         return;
       }
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -371,7 +412,7 @@
       }
 
       btn.disabled = true;
-      btn.textContent = "Saving...";
+      btn.textContent = "Creating...";
 
       try {
         const tempClient = window.supabase.createClient(
@@ -384,7 +425,7 @@
           email,
           password,
           options: {
-            data: { role: "staff", display_name: name }
+            data: { role: accountRole, display_name: name }
           }
         });
         if (authErr) throw authErr;
@@ -392,6 +433,7 @@
         currentRoster.push({
           id: `tm-${Date.now()}`,
           name,
+          accountRole,
           role,
           email,
           pin,
@@ -404,11 +446,14 @@
         renderStaffRosterList();
 
         status.style.color = "#10b981";
-        status.textContent = "Staff member added and linked to restricted staff portal access.";
+        status.textContent = accountRole === "admin"
+          ? "Admin / Owner account created with full command center access."
+          : "Staff member added and linked to restricted staff portal access.";
         summaryBox.innerHTML = `
           <div class="created-summary-box">
             <strong>Handoff Details for ${name}</strong>
-            <p style="margin-top:6px;">Role: <strong>${role}</strong></p>
+            <p style="margin-top:6px;">Access Role: <strong>${accountRole === "admin" ? "Admin / Owner" : "Restricted Staff"}</strong></p>
+            <p>Position: <strong>${role}</strong></p>
             <p>Login Email: <strong>${email}</strong></p>
             <p>Timeclock PIN: <strong>${pin}</strong></p>
             <p>Pay Rate: <strong>${payType === "hourly" ? `$${rate.toFixed(2)}/hr` : `Flat $${rate.toFixed(2)}`}</strong></p>
@@ -427,7 +472,7 @@
         }
       } finally {
         btn.disabled = false;
-        btn.textContent = "Add Staff Member";
+        btn.textContent = "Create Account";
       }
     });
 
