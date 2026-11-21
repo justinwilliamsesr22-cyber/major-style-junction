@@ -137,11 +137,31 @@
     .roster-controls > * {
       min-width: 0;
     }
+    .roster-card {
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .roster-card > div:first-child {
+      flex: 1 1 240px;
+      min-width: 220px;
+    }
     .roster-controls {
       display: flex;
       align-items: flex-end;
-      gap: 14px;
+      gap: 12px;
       flex-wrap: wrap;
+      flex: 1 1 auto;
+      justify-content: flex-end;
+    }
+    .roster-controls > div {
+      flex: 0 0 auto;
     }
     .live-clock-display {
       font-variant-numeric: tabular-nums;
@@ -195,17 +215,6 @@
       gap: 12px;
       font-size: 13px;
     }
-    .roster-card {
-      background: #ffffff;
-      border: 1px solid #e4e4e7;
-      border-radius: 14px;
-      padding: 18px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
     .hours-stepper {
       display: inline-flex;
       align-items: center;
@@ -213,23 +222,29 @@
       border-radius: 10px;
       background: #ffffff;
       height: 42px;
+      width: 134px;
       overflow: hidden;
+      flex-shrink: 0;
     }
     .hours-stepper button {
       background: #fafafa;
       border: none;
       color: #09090b;
-      width: 32px;
+      width: 34px;
+      min-width: 34px;
       height: 100%;
       font-weight: 800;
       font-size: 15px;
       cursor: pointer;
+      flex-shrink: 0;
     }
     .hours-stepper button:hover {
       background: #e4e4e7;
     }
     .hours-stepper input {
-      width: 62px !important;
+      width: 64px !important;
+      min-width: 64px !important;
+      max-width: 64px !important;
       height: 100% !important;
       border: none !important;
       border-left: 1px solid #e4e4e7 !important;
@@ -239,6 +254,7 @@
       padding: 0 4px !important;
       font-weight: 700 !important;
       box-shadow: none !important;
+      flex-shrink: 0;
     }
 
     /* ============================================================
@@ -2245,7 +2261,7 @@
           const otRate = Number(m.rate || 0) * Number(overtimeSettings.multiplier || 1.5);
           return `
             <div class="roster-card" style="opacity:${m.active ? "1" : "0.65"};">
-              <div style="min-width:210px; flex:1;">
+              <div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                   <strong style="font-size:16px;">${m.name}</strong>
                   ${onShift ? `<span class="pill-paid">Clocked In</span>` : ""}
