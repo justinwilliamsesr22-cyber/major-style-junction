@@ -1569,10 +1569,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>
+    const VALID_ADMIN_TABS = ["analytics", "team", "orders", "inventory", "expenses", "new", "promos"];
+
     let isActualStaffAccount = false;
     let isStaffPreviewActive = false;
     let isStaffUser = false;
     let currentSessionUser = null;
+    let currentActiveTab = "analytics";
     let cachedProducts = [];
     let cachedOrders = [];
     let cachedExpenses = [];
@@ -1770,6 +1773,58 @@
       }
     });
 
+    function getTabFromHashOrDefault() {
+      const rawHash = (window.location.hash || "").replace(/^#/, "").toLowerCase();
+      const fallback = isStaffUser ? "team" : "analytics";
+      if (!VALID_ADMIN_TABS.includes(rawHash)) return fallback;
+      if (isStaffUser && ["analytics", "expenses", "new", "promos"].includes(rawHash)) {
+        return "team";
+      }
+      return rawHash;
+    }
+
+    function applyTabVisuals(tabName) {
+      let target = VALID_ADMIN_TABS.includes(tabName) ? tabName : (isStaffUser ? "team" : "analytics");
+      if (isStaffUser && ["analytics", "expenses", "new", "promos"].includes(target)) {
+        target = "team";
+      }
+      currentActiveTab = target;
+
+      VALID_ADMIN_TABS.forEach(t => {
+        const panel = document.getElementById(`panel-${t}`);
+        const tab = document.getElementById(`tab-${t}`);
+        if (panel) panel.style.display = t === target ? "block" : "none";
+        if (tab) tab.classList.toggle("active", t === target);
+      });
+    }
+
+    function switchAdminTab(tabName, options = {}) {
+      const { recordHistory = true } = options;
+      let target = VALID_ADMIN_TABS.includes(tabName) ? tabName : (isStaffUser ? "team" : "analytics");
+      if (isStaffUser && ["analytics", "expenses", "new", "promos"].includes(target)) {
+        target = "team";
+      }
+
+      const tabChanged = target !== currentActiveTab;
+      applyTabVisuals(target);
+
+      if (recordHistory && tabChanged && window.history && window.history.pushState) {
+        window.history.pushState({ adminTab: target }, "", `#${target}`);
+      } else if (window.history && window.history.replaceState) {
+        window.history.replaceState({ adminTab: target }, "", `#${target}`);
+      }
+    }
+
+    window.addEventListener("popstate", (event) => {
+      const stateTab = event.state && event.state.adminTab;
+      const nextTab = stateTab || getTabFromHashOrDefault();
+      applyTabVisuals(nextTab);
+    });
+
+    window.addEventListener("pageshow", () => {
+      checkAdminSession();
+    });
+
     function setStaffPreviewMode(enable) {
       if (isActualStaffAccount) return;
       isStaffPreviewActive = Boolean(enable);
@@ -1792,6 +1847,8 @@
         exitPreviewBtn.style.display = (!isActualStaffAccount && isStaffPreviewActive) ? "inline-block" : "none";
       }
 
+      const initialTab = getTabFromHashOrDefault();
+
       if (isStaffUser) {
         const displayName = isStaffPreviewActive
           ? "Staff Preview (Owner Testing)"
@@ -1801,13 +1858,13 @@
         if (headerTitle) headerTitle.textContent = "Major Style Junction — Staff Shift & Fulfillment";
         if (omniLabel) omniLabel.textContent = "Store & Fulfillment Search (Products • Orders & Tracking • Shifts)";
         if (invHeading) invHeading.innerHTML = `Manage Product Photos &amp; Size Stock (<span id="inv-visible-count">0</span>)`;
-        switchAdminTab("team");
+        switchAdminTab(initialTab, { recordHistory: false });
       } else {
         if (staffBanner) staffBanner.style.display = "none";
         if (headerTitle) headerTitle.textContent = "Major Style Junction — POS & CFO";
         if (omniLabel) omniLabel.textContent = "Global Site & Admin Omnisearch (Storefront Drops • Orders • Team & Shifts • Expenses • Promos)";
         renderOvertimeSummary();
-        switchAdminTab("analytics");
+        switchAdminTab(initialTab, { recordHistory: false });
       }
     }
 
@@ -1853,18 +1910,6 @@
     async function adminSignOut() {
       await msjSupabase.auth.signOut();
       checkAdminSession();
-    }
-
-    function switchAdminTab(tabName) {
-      if (isStaffUser && ["analytics", "expenses", "new", "promos"].includes(tabName)) {
-        tabName = "team";
-      }
-      ["analytics", "team", "orders", "inventory", "expenses", "new", "promos"].forEach(t => {
-        const panel = document.getElementById(`panel-${t}`);
-        const tab = document.getElementById(`tab-${t}`);
-        if (panel) panel.style.display = t === tabName ? "block" : "none";
-        if (tab) tab.classList.toggle("active", t === tabName);
-      });
     }
 
     // ============================================================
@@ -1919,7 +1964,7 @@
             <div><strong>[Product]</strong> ${p.name} (${p.category}) • $${Number(p.price).toFixed(2)}</div>
             <div style="display:flex;gap:6px;">
               <button type="button" class="mini-action-btn" onclick="switchAdminTab('inventory'); document.getElementById('inv-search-input').value='${p.name.replace(/'/g, "\\'")}'; renderInventoryList(); clearGlobalAdminSearch();">Open Stock</button>
-              <a href="shop.html" target="_blank" class="mini-action-btn">View on Store</a>
+              <a href="shop.html" class="mini-action-btn">View on Store</a>
             </div>
           </div>
         `;
