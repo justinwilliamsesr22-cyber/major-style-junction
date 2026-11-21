@@ -808,7 +808,6 @@ function renderProducts(containerId, options = {}) {
     })
     .join("");
 
-  // Render Pagination Bar if multiple pages exist
   if (!limit) {
     let pagBar = document.getElementById(`${containerId}-pagination`);
     if (!pagBar) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Executive Financial &amp; Store Command Center | Major Style Junction</title>
+  <title>Executive Financial &amp; POS Command Center | Major Style Junction</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
   <style>
@@ -109,6 +109,43 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: #52525b;
+    }
+
+    /* ============================================================
+       POS TIME CLOCK TERMINAL
+       ============================================================ */
+    .timeclock-terminal {
+      background: #09090b;
+      color: #fafafa;
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 22px;
+      border: 1px solid #27272a;
+    }
+    .timeclock-terminal input,
+    .timeclock-terminal select {
+      background-color: #18181b !important;
+      color: #ffffff !important;
+      border-color: #3f3f46 !important;
+    }
+    .live-clock-display {
+      font-variant-numeric: tabular-nums;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #10b981;
+    }
+    .active-shift-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.14);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     /* ============================================================
@@ -409,14 +446,14 @@
 <body>
 
   <div class="announcement-bar">
-    MSJ Executive Command Center • Financial Analytics, Team Payroll, Budgeting &amp; Live Inventory
+    MSJ Executive POS Command Center • Live Time Clock, Financial Analytics, Budgeting &amp; Inventory
   </div>
 
   <header>
     <div class="nav-inner">
       <a href="index.html" class="brand-link">
         <span class="logo-mark">MSJ</span>
-        <span>Major Style Junction — CFO &amp; Admin</span>
+        <span>Major Style Junction — POS &amp; CFO</span>
       </a>
       <nav>
         <a href="index.html">Live Site</a>
@@ -431,7 +468,7 @@
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
       <span class="section-kicker">Owner &amp; Co-Owner Access</span>
       <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage financial analytics, team payroll, budgeting buckets, orders, and inventory.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage the POS time clock, financial analytics, budgeting buckets, orders, and inventory.</p>
       <form id="admin-login-form" style="display:flex; flex-direction:column; gap:12px;">
         <div class="field-group">
           <label class="field-label">Admin Email</label>
@@ -452,7 +489,7 @@
       <!-- UNIVERSAL SITE & ADMIN OMNISEARCH BAR -->
       <div class="omnisearch-box">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
-          <span class="field-label" style="color:#09090b;">Global Site &amp; Admin Omnisearch (Storefront Drops • Orders • Team • Expenses • Promos • P&amp;L)</span>
+          <span class="field-label" style="color:#09090b;">Global Site &amp; Admin Omnisearch (Storefront Drops • Orders • Team &amp; Shifts • Expenses • Promos)</span>
           <span style="font-size:11px;color:#71717a;">Shortcut: Ctrl + K</span>
         </div>
         <div style="display:flex;gap:8px;">
@@ -466,7 +503,7 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:20px;">
         <div>
           <span class="section-kicker">Company Financial Health</span>
-          <h1 style="font-size: 28px;">Executive Command Center</h1>
+          <h1 style="font-size: 28px;">Executive POS Command Center</h1>
         </div>
         <div class="date-range-bar">
           <select id="analytics-period" onchange="handleAnalyticsPeriodChange()">
@@ -524,7 +561,7 @@
       <!-- NAVIGATION TABS -->
       <div class="admin-tabs">
         <button type="button" id="tab-analytics" class="filter-btn active" onclick="switchAdminTab('analytics')">Analytics, P&amp;L &amp; Budget</button>
-        <button type="button" id="tab-team" class="filter-btn" onclick="switchAdminTab('team')">Co-Owners &amp; Team Payroll</button>
+        <button type="button" id="tab-team" class="filter-btn" onclick="switchAdminTab('team')">Time Clock &amp; Payroll</button>
         <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
         <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; COGS</button>
         <button type="button" id="tab-expenses" class="filter-btn" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
@@ -554,7 +591,6 @@
         </div>
 
         <div class="finance-grid">
-          <!-- EDITABLE PROFIT & LOSS WATERFALL -->
           <div class="panel-box">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
               <div>
@@ -618,8 +654,8 @@
                 </tr>
                 <tr>
                   <td style="color:#ef4444;">
-                    (−) Team Payroll &amp; Shift Labor
-                    <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('team')">Edit Team</button>
+                    (−) Team Payroll &amp; Clocked Shifts
+                    <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('team')">Time Clock</button>
                   </td>
                   <td style="text-align:right; color:#ef4444;" id="pnl-payroll">-$0.00</td>
                 </tr>
@@ -685,7 +721,7 @@
                 <strong style="color:#7c3aed; font-size:16px;" id="val-mkt-amt">$0.00</strong>
               </div>
               <div class="budget-bar-track"><div id="bar-mkt" class="budget-bar-fill" style="width:15%; background:#7c3aed;"></div></div>
-              <p style="font-size:12px; color:var(--text-muted);" id="sub-mkt-spent">Spent on ads/promos in period: $0.00 • Remaining: $0.00</p>
+              <p style="font-size:12px; color:var(--text-muted);" id="sub-mkt-spent">Spent on ads/promos in period: $0.00 • Remaining pool: $0.00</p>
             </div>
 
             <form id="budget-rules-form" style="border-top:1px solid var(--border,#e4e4e7); padding-top:12px; margin-top:12px;">
@@ -704,7 +740,6 @@
           </div>
         </div>
 
-        <!-- SORTABLE SKU PROFITABILITY LEADERBOARD -->
         <div class="panel-box">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
@@ -741,13 +776,51 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 2: CO-OWNERS & TEAM PAYROLL                              -->
+      <!-- TAB 2: POS EMPLOYEE TIME CLOCK, SHIFT LOGS & PAYROLL         -->
       <!-- ============================================================ -->
       <section id="panel-team" style="display: none;">
-        <div class="contact-card" style="max-width: 920px; margin-bottom: 24px;">
+        <!-- LIVE POS TIME CLOCK TERMINAL -->
+        <div class="timeclock-terminal">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:16px;">
+            <div>
+              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#34d399;">POS Shift Kiosk</span>
+              <h2 style="font-size:22px;color:#ffffff;margin-top:2px;">Employee Time Clock &amp; Live Shift Tracker</h2>
+              <p style="font-size:13px;color:#a1a1aa;margin-top:4px;">Select a team member and enter their 4-digit PIN to clock in or out. Completed shifts automatically update payroll and P&amp;L.</p>
+            </div>
+            <div style="text-align:right;">
+              <div id="pos-live-clock" class="live-clock-display">00:00:00</div>
+              <div id="pos-live-date" style="font-size:12px;color:#a1a1aa;"></div>
+            </div>
+          </div>
+
+          <form id="pos-timeclock-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap:12px; align-items:end;">
+            <div class="field-group">
+              <label class="field-label" style="color:#a1a1aa;">Select Team Member</label>
+              <select id="clock-employee-select" required></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" style="color:#a1a1aa;">4-Digit Staff PIN</label>
+              <input type="password" id="clock-pin-input" maxlength="6" placeholder="e.g., 1001" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label" style="color:#a1a1aa;">Shift Station / Note</label>
+              <input type="text" id="clock-note-input" placeholder="e.g., DTF Press / Packing / Pop-Up">
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="submit" class="btn-card" style="background:#10b981;color:#09090b;font-weight:800;height:42px;">Clock In / Out</button>
+            </div>
+          </form>
+          <p id="timeclock-status-msg" style="font-size:13px;font-weight:600;margin-top:10px;"></p>
+
+          <!-- CURRENTLY ON THE CLOCK -->
+          <div id="active-shifts-container" style="margin-top:16px;"></div>
+        </div>
+
+        <!-- ADD NEW TEAM MEMBER -->
+        <div class="contact-card" style="max-width: 100%; margin-bottom: 22px;">
           <span class="section-kicker">Studio Roster &amp; Labor</span>
           <h2 style="margin-bottom: 14px;">Add Co-Owner, DTF Print Tech or Pop-Up Staff</h2>
-          <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end;">
+          <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; align-items: end;">
             <div class="field-group">
               <label class="field-label">Full Name</label>
               <input type="text" id="team-name" placeholder="e.g., Maya Lin" required>
@@ -755,6 +828,10 @@
             <div class="field-group">
               <label class="field-label">Role / Title</label>
               <input type="text" id="team-role" placeholder="e.g., DTF Print Tech" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Timeclock PIN</label>
+              <input type="text" id="team-pin" maxlength="6" placeholder="e.g., 1004" required>
             </div>
             <div class="field-group">
               <label class="field-label">Pay Structure</label>
@@ -768,22 +845,50 @@
               <input type="number" id="team-rate" placeholder="18.50" min="0" step="0.5" required>
             </div>
             <div class="field-group">
-              <label class="field-label">Shift Hours</label>
-              <input type="number" id="team-hours" placeholder="8" min="0" step="0.5" value="8">
+              <label class="field-label">Logged Hours</label>
+              <input type="number" id="team-hours" placeholder="0" min="0" step="0.25" value="0">
             </div>
             <button type="submit" class="btn-card" style="height:42px;">Add to Roster</button>
           </form>
         </div>
 
-        <div class="panel-box">
+        <!-- TEAM ROSTER & PAYROLL -->
+        <div class="panel-box" style="margin-bottom: 22px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
               <h3>Active Roster &amp; Live Payroll</h3>
-              <p style="font-size:12px;color:#71717a;">Active payroll deducts automatically from True Net Profit on your P&amp;L.</p>
+              <p style="font-size:12px;color:#71717a;">Clocked shifts automatically add to logged hours and deduct from True Net Profit on your P&amp;L.</p>
             </div>
             <strong id="team-payroll-total" style="color:#ef4444;">Active Payroll: $0.00</strong>
           </div>
           <div id="admin-team-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+
+        <!-- COMPLETED SHIFT TIME LOGS -->
+        <div class="panel-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+              <span class="section-kicker">Audit Trail</span>
+              <h3>Completed Shift Time Logs (<span id="shift-logs-count">0</span>)</h3>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Employee</th>
+                  <th>Clock In</th>
+                  <th>Clock Out</th>
+                  <th>Duration</th>
+                  <th>Earned Pay</th>
+                  <th>Station / Note</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="shift-logs-body"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1332,13 +1437,17 @@
     let trendChartInstance = null;
     let categoryChartInstance = null;
 
-    // Team & Co-Owner Roster (stored locally so it works immediately without altering SQL tables)
-    const TEAM_STORAGE_KEY = "msj_admin_team_roster_v1";
+    // Team Roster, Live Active Shifts & Shift Audit Logs
+    const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
+    const ACTIVE_SHIFTS_KEY = "msj_admin_active_shifts_v1";
+    const SHIFT_LOGS_KEY = "msj_admin_shift_logs_v1";
+
     const DEFAULT_TEAM = [
-      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", payType: "flat", rate: 0, hours: 1, active: true },
-      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", payType: "flat", rate: 0, hours: 1, active: true },
-      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", payType: "hourly", rate: 18.5, hours: 8, active: true }
+      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
     ];
+
     let cachedTeam = (() => {
       try {
         const raw = localStorage.getItem(TEAM_STORAGE_KEY);
@@ -1348,9 +1457,29 @@
       }
     })();
 
-    function saveTeamRoster() {
+    let activeShifts = (() => {
+      try {
+        const raw = localStorage.getItem(ACTIVE_SHIFTS_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    })();
+
+    let shiftLogs = (() => {
+      try {
+        const raw = localStorage.getItem(SHIFT_LOGS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    })();
+
+    function saveTimeClockState() {
       try {
         localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(cachedTeam));
+        localStorage.setItem(ACTIVE_SHIFTS_KEY, JSON.stringify(activeShifts));
+        localStorage.setItem(SHIFT_LOGS_KEY, JSON.stringify(shiftLogs));
       } catch {}
     }
 
@@ -1358,6 +1487,33 @@
       if (!m.active) return 0;
       return m.payType === "hourly" ? Number(m.rate || 0) * Number(m.hours || 0) : Number(m.rate || 0);
     }
+
+    function formatDuration(ms) {
+      const totalSec = Math.max(0, Math.floor(ms / 1000));
+      const hrs = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+      const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+      const secs = String(totalSec % 60).padStart(2, "0");
+      return `${hrs}:${mins}:${secs}`;
+    }
+
+    // Live POS Clock & Active Shift Ticker
+    setInterval(() => {
+      const now = new Date();
+      const clockEl = document.getElementById("pos-live-clock");
+      const dateEl = document.getElementById("pos-live-date");
+      if (clockEl) {
+        clockEl.textContent = now.toLocaleTimeString("en-US", { hour12: true });
+      }
+      if (dateEl) {
+        dateEl.textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+      }
+      document.querySelectorAll(".js-shift-timer").forEach(el => {
+        const startMs = Number(el.getAttribute("data-start") || 0);
+        if (startMs > 0) {
+          el.textContent = formatDuration(Date.now() - startMs);
+        }
+      });
+    }, 1000);
 
     const loginView = document.getElementById("admin-login-view");
     const dashView = document.getElementById("admin-dashboard-view");
@@ -1482,7 +1638,7 @@
         html += `
           <div class="omni-row">
             <div><strong>[Team]</strong> ${m.name} — ${m.role}</div>
-            <button type="button" class="mini-action-btn" onclick="switchAdminTab('team'); clearGlobalAdminSearch();">Open Roster</button>
+            <button type="button" class="mini-action-btn" onclick="switchAdminTab('team'); clearGlobalAdminSearch();">Open Time Clock</button>
           </div>
         `;
       });
@@ -1541,8 +1697,88 @@
     }
 
     // ============================================================
-    // CO-OWNERS & TEAM PAYROLL MANAGEMENT
+    // POS TIME CLOCK & SHIFT MANAGEMENT
     // ============================================================
+    document.getElementById("pos-timeclock-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const empId = document.getElementById("clock-employee-select").value;
+      const pin = document.getElementById("clock-pin-input").value.trim();
+      const note = document.getElementById("clock-note-input").value.trim() || "Studio Shift";
+      const msg = document.getElementById("timeclock-status-msg");
+
+      const emp = cachedTeam.find(m => m.id === empId);
+      if (!emp) return;
+
+      if (String(emp.pin || "") !== pin) {
+        msg.style.color = "#ef4444";
+        msg.textContent = `Invalid PIN for ${emp.name}. Check your 4-digit staff PIN and try again.`;
+        return;
+      }
+
+      const existingShift = activeShifts[empId];
+      if (!existingShift) {
+        // CLOCK IN
+        activeShifts[empId] = {
+          startMs: Date.now(),
+          note
+        };
+        msg.style.color = "#10b981";
+        msg.textContent = `${emp.name} clocked IN at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (${note}).`;
+      } else {
+        // CLOCK OUT
+        completeClockOut(empId, existingShift);
+        msg.style.color = "#34d399";
+        msg.textContent = `${emp.name} clocked OUT. Shift hours and pay have been logged to payroll & P&L.`;
+      }
+
+      document.getElementById("clock-pin-input").value = "";
+      document.getElementById("clock-note-input").value = "";
+      saveTimeClockState();
+      renderTeamRoster();
+      refreshDashboardAnalytics();
+    });
+
+    function completeClockOut(empId, shiftData) {
+      const emp = cachedTeam.find(m => m.id === empId);
+      if (!emp) return;
+
+      const endMs = Date.now();
+      const elapsedHours = Math.max(0.01, Number(((endMs - shiftData.startMs) / 3600000).toFixed(2)));
+      const earned = emp.payType === "hourly" ? Number((elapsedHours * Number(emp.rate || 0)).toFixed(2)) : 0;
+
+      if (emp.payType === "hourly") {
+        emp.hours = Number((Number(emp.hours || 0) + elapsedHours).toFixed(2));
+      }
+
+      shiftLogs.unshift({
+        id: `sh-${Date.now()}`,
+        date: new Date().toISOString().slice(0, 10),
+        empName: emp.name,
+        clockIn: new Date(shiftData.startMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        clockOut: new Date(endMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        hours: elapsedHours,
+        earned,
+        note: shiftData.note || "Studio Shift"
+      });
+
+      delete activeShifts[empId];
+      saveTimeClockState();
+    }
+
+    function quickClockOut(empId) {
+      const shiftData = activeShifts[empId];
+      if (!shiftData) return;
+      completeClockOut(empId, shiftData);
+      renderTeamRoster();
+      refreshDashboardAnalytics();
+    }
+
+    function deleteShiftLog(logId) {
+      shiftLogs = shiftLogs.filter(l => l.id !== logId);
+      saveTimeClockState();
+      renderTeamRoster();
+    }
+
     document.getElementById("new-team-form").addEventListener("submit", (e) => {
       e.preventDefault();
       const payType = document.getElementById("team-paytype").value;
@@ -1550,54 +1786,110 @@
         id: `tm-${Date.now()}`,
         name: document.getElementById("team-name").value.trim(),
         role: document.getElementById("team-role").value.trim(),
+        pin: document.getElementById("team-pin").value.trim() || "1234",
         payType,
         rate: parseFloat(document.getElementById("team-rate").value || "0"),
         hours: payType === "hourly" ? parseFloat(document.getElementById("team-hours").value || "0") : 1,
         active: true
       });
-      saveTeamRoster();
+      saveTimeClockState();
       e.target.reset();
-      document.getElementById("team-hours").value = "8";
+      document.getElementById("team-hours").value = "0";
       renderTeamRoster();
       refreshDashboardAnalytics();
     });
 
     function updateTeamField(id, field, val) {
       cachedTeam = cachedTeam.map(m => (m.id === id ? { ...m, [field]: val } : m));
-      saveTeamRoster();
+      saveTimeClockState();
       renderTeamRoster();
       refreshDashboardAnalytics();
     }
 
     function removeTeamMember(id) {
+      delete activeShifts[id];
       cachedTeam = cachedTeam.filter(m => m.id !== id);
-      saveTeamRoster();
+      saveTimeClockState();
       renderTeamRoster();
       refreshDashboardAnalytics();
     }
 
     function renderTeamRoster() {
+      // Populate Time Clock Selector
+      const selectEl = document.getElementById("clock-employee-select");
+      if (selectEl) {
+        const prevVal = selectEl.value;
+        selectEl.innerHTML = cachedTeam
+          .filter(m => m.active)
+          .map(m => `<option value="${m.id}">${m.name} (${activeShifts[m.id] ? "Currently Clocked In" : m.role})</option>`)
+          .join("");
+        if (prevVal && cachedTeam.some(m => m.id === prevVal && m.active)) {
+          selectEl.value = prevVal;
+        }
+      }
+
+      // Render Currently Clocked-In Shifts
+      const activeBox = document.getElementById("active-shifts-container");
+      const activeEntries = Object.entries(activeShifts);
+      if (activeBox) {
+        if (activeEntries.length === 0) {
+          activeBox.innerHTML = `<p style="font-size:12px;color:#71717a;">No employees are currently clocked in.</p>`;
+        } else {
+          activeBox.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #27272a;padding-top:14px;">
+              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#a1a1aa;">Currently On The Clock (${activeEntries.length})</span>
+              ${activeEntries.map(([empId, sh]) => {
+                const emp = cachedTeam.find(m => m.id === empId);
+                if (!emp) return "";
+                return `
+                  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:#18181b;border:1px solid #27272a;border-radius:10px;padding:10px 14px;">
+                    <div>
+                      <span class="active-shift-pill">● ON SHIFT</span>
+                      <strong style="margin-left:8px;color:#fff;">${emp.name}</strong>
+                      <span style="font-size:12px;color:#a1a1aa;margin-left:6px;">• ${sh.note}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <strong class="js-shift-timer" data-start="${sh.startMs}" style="font-variant-numeric:tabular-nums;color:#34d399;font-size:15px;">${formatDuration(Date.now() - sh.startMs)}</strong>
+                      <button type="button" class="mini-action-btn" style="background:#ef4444;color:#fff;border:none;" onclick="quickClockOut('${empId}')">Clock Out</button>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          `;
+        }
+      }
+
+      // Render Roster Cards
       const list = document.getElementById("admin-team-list");
       const totalPayroll = cachedTeam.reduce((s, m) => s + getTeamMemberPayout(m), 0);
       document.getElementById("team-payroll-total").textContent = `Active Payroll: $${totalPayroll.toFixed(2)}`;
 
       list.innerHTML = cachedTeam.map(m => {
         const payout = getTeamMemberPayout(m);
+        const onShift = Boolean(activeShifts[m.id]);
         return `
           <div class="order-card" style="flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;opacity:${m.active ? "1" : "0.6"};">
             <div>
-              <strong style="font-size:16px;">${m.name}</strong>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <strong style="font-size:16px;">${m.name}</strong>
+                ${onShift ? `<span class="pill-paid">Clocked In</span>` : ""}
+              </div>
               <p style="font-size:13px;color:#71717a;">${m.role} • ${m.payType === "hourly" ? "Hourly" : "Flat Stipend / Draw"}</p>
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="width:80px;">
+                <label class="field-label">PIN</label>
+                <input type="text" maxlength="6" value="${m.pin || "1001"}" onchange="updateTeamField('${m.id}', 'pin', this.value.trim())">
+              </div>
               <div style="width:95px;">
                 <label class="field-label">${m.payType === "hourly" ? "$ / Hr" : "Flat $"}</label>
                 <input type="number" step="0.5" min="0" value="${m.rate}" onchange="updateTeamField('${m.id}', 'rate', parseFloat(this.value || 0))">
               </div>
               ${m.payType === "hourly" ? `
-                <div style="width:85px;">
+                <div style="width:90px;">
                   <label class="field-label">Hours</label>
-                  <input type="number" step="0.5" min="0" value="${m.hours}" onchange="updateTeamField('${m.id}', 'hours', parseFloat(this.value || 0))">
+                  <input type="number" step="0.25" min="0" value="${m.hours}" onchange="updateTeamField('${m.id}', 'hours', parseFloat(this.value || 0))">
                 </div>
               ` : ""}
               <strong style="color:#ef4444;min-width:80px;text-align:right;">-$${payout.toFixed(2)}</strong>
@@ -1607,6 +1899,28 @@
           </div>
         `;
       }).join("");
+
+      // Render Completed Shift Logs Table
+      const logsBody = document.getElementById("shift-logs-body");
+      document.getElementById("shift-logs-count").textContent = shiftLogs.length;
+      if (logsBody) {
+        if (shiftLogs.length === 0) {
+          logsBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted);">No completed timeclock shifts yet. Clock an employee in and out above to log shifts automatically.</td></tr>`;
+        } else {
+          logsBody.innerHTML = shiftLogs.map(log => `
+            <tr>
+              <td><strong>${log.date}</strong></td>
+              <td>${log.empName}</td>
+              <td>${log.clockIn}</td>
+              <td>${log.clockOut}</td>
+              <td><strong>${Number(log.hours).toFixed(2)} hrs</strong></td>
+              <td style="color:#ef4444;font-weight:700;">-$${Number(log.earned).toFixed(2)}</td>
+              <td>${log.note}</td>
+              <td><button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteShiftLog('${log.id}')">&times;</button></td>
+            </tr>
+          `).join("");
+        }
+      }
     }
 
     function getStockMap(item) {
