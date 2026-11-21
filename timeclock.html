@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee POS Time Clock | Major Style Junction</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .kiosk-card {
+      max-width: 560px;
+      margin: 36px auto;
+      background: var(--surface, #ffffff);
+      border: 1px solid var(--border, #e4e4e7);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .kiosk-card input,
+    .kiosk-card select {
+      width: 100%;
+      height: 44px;
+      padding: 0 13px;
+      border: 1px solid #d4d4d8;
+      border-radius: 10px;
+      background-color: #ffffff;
+      color: #09090b;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      box-sizing: border-box;
+    }
+    .kiosk-card input:focus,
+    .kiosk-card select:focus {
+      outline: none;
+      border-color: #09090b;
+      box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.09);
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #52525b;
+    }
+    .kiosk-clock {
+      font-variant-numeric: tabular-nums;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #09090b;
+      line-height: 1.1;
+    }
+    .active-shift-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .active-shift-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #dcfce7;
+      color: #166534;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="announcement-bar">
+    Major Style Junction • Staff POS Time Clock Terminal
+  </div>
+
+  <header>
+    <div class="nav-inner">
+      <a href="index.html" class="brand-link">
+        <span class="logo-mark">MSJ</span>
+        <span>Major Style Junction — Staff Kiosk</span>
+      </a>
+      <nav>
+        <a href="index.html">Storefront</a>
+        <a href="shop.html">Catalog</a>
+        <a href="admin.html">Owner Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="kiosk-card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; border-bottom:1px solid #e4e4e7; padding-bottom:18px; margin-bottom:20px;">
+        <div>
+          <span class="section-kicker">Employee Shift Portal</span>
+          <h1 style="font-size:24px; margin-top:2px;">Staff Clock In / Out</h1>
+          <p style="font-size:13px; color:#71717a; margin-top:4px;">Enter your 4-digit staff PIN to start or end your shift.</p>
+        </div>
+        <div style="text-align:right;">
+          <div id="kiosk-live-clock" class="kiosk-clock">00:00:00</div>
+          <div id="kiosk-live-date" style="font-size:12px; color:#71717a; margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <form id="kiosk-clock-form" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="field-group">
+          <label class="field-label">Select Your Name</label>
+          <select id="kiosk-emp-select" required></select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">4-Digit Staff PIN</label>
+          <input type="password" id="kiosk-pin-input" maxlength="6" placeholder="Enter your PIN (e.g., 1001)" required>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Shift Station / Note (Optional)</label>
+          <input type="text" id="kiosk-note-input" placeholder="e.g., DTF Press, Order Packing, Pop-Up Booth">
+        </div>
+
+        <button type="submit" class="btn-card" style="height:46px; font-size:15px;">Clock In / Out</button>
+      </form>
+
+      <p id="kiosk-status-msg" style="font-size:13px; font-weight:700; margin-top:12px; text-align:center;"></p>
+
+      <!-- LIVE ACTIVE SHIFTS -->
+      <div id="kiosk-active-shifts" style="margin-top:22px;"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-brand">MAJOR STYLE JUNCTION</span>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="admin.html">Owner Admin</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Major Style Junction. Internal Staff Time Clock.</span>
+      <span>Need PIN reset? Contact <a href="mailto:MajorStyleJunction@MajorStyleJunction.com">Store Management</a></span>
+    </div>
+  </footer>
+
+  <script>
+    const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
+    const ACTIVE_SHIFTS_KEY = "msj_admin_active_shifts_v1";
+    const SHIFT_LOGS_KEY = "msj_admin_shift_logs_v1";
+
+    const DEFAULT_TEAM = [
+      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
+    ];
+
+    function getTeam() {
+      try {
+        const raw = localStorage.getItem(TEAM_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : DEFAULT_TEAM;
+      } catch {
+        return DEFAULT_TEAM;
+      }
+    }
+
+    function getActiveShifts() {
+      try {
+        const raw = localStorage.getItem(ACTIVE_SHIFTS_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function getShiftLogs() {
+      try {
+        const raw = localStorage.getItem(SHIFT_LOGS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveAll(team, activeShifts, logs) {
+      localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(team));
+      localStorage.setItem(ACTIVE_SHIFTS_KEY, JSON.stringify(activeShifts));
+      localStorage.setItem(SHIFT_LOGS_KEY, JSON.stringify(logs));
+    }
+
+    function formatDuration(ms) {
+      const totalSec = Math.max(0, Math.floor(ms / 1000));
+      const hrs = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+      const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+      const secs = String(totalSec % 60).padStart(2, "0");
+      return `${hrs}:${mins}:${secs}`;
+    }
+
+    function renderKiosk() {
+      const team = getTeam();
+      const activeShifts = getActiveShifts();
+      const selectEl = document.getElementById("kiosk-emp-select");
+      const prev = selectEl.value;
+
+      selectEl.innerHTML = team
+        .filter(m => m.active)
+        .map(m => `<option value="${m.id}">${m.name} — ${activeShifts[m.id] ? "ON SHIFT (Tap to Clock Out)" : m.role}</option>`)
+        .join("");
+
+      if (prev && team.some(m => m.id === prev && m.active)) {
+        selectEl.value = prev;
+      }
+
+      const activeBox = document.getElementById("kiosk-active-shifts");
+      const entries = Object.entries(activeShifts);
+
+      if (entries.length === 0) {
+        activeBox.innerHTML = `<p style="font-size:12px; color:#71717a; text-align:center;">No team members are currently clocked in.</p>`;
+      } else {
+        activeBox.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid #e4e4e7; padding-top:16px;">
+            <span class="field-label">Currently Clocked In (${entries.length})</span>
+            ${entries.map(([empId, sh]) => {
+              const emp = team.find(m => m.id === empId);
+              if (!emp) return "";
+              return `
+                <div class="active-shift-row">
+                  <div>
+                    <span class="active-shift-pill">● ON SHIFT</span>
+                    <strong style="margin-left:8px;">${emp.name}</strong>
+                    <div style="font-size:12px; color:#71717a; margin-top:3px;">${sh.note} • Started ${new Date(sh.startMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                  </div>
+                  <strong class="js-kiosk-timer" data-start="${sh.startMs}" style="font-variant-numeric:tabular-nums; font-size:16px;">${formatDuration(Date.now() - sh.startMs)}</strong>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById("kiosk-clock-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const team = getTeam();
+      const activeShifts = getActiveShifts();
+      const logs = getShiftLogs();
+
+      const empId = document.getElementById("kiosk-emp-select").value;
+      const pin = document.getElementById("kiosk-pin-input").value.trim();
+      const note = document.getElementById("kiosk-note-input").value.trim() || "Studio Shift";
+      const msg = document.getElementById("kiosk-status-msg");
+
+      const emp = team.find(m => m.id === empId);
+      if (!emp) return;
+
+      if (String(emp.pin || "") !== pin) {
+        msg.style.color = "#ef4444";
+        msg.textContent = `Incorrect PIN for ${emp.name}. Please try again.`;
+        return;
+      }
+
+      const currentShift = activeShifts[empId];
+      if (!currentShift) {
+        activeShifts[empId] = { startMs: Date.now(), note };
+        msg.style.color = "#10b981";
+        msg.textContent = `✓ ${emp.name} clocked IN at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.`;
+      } else {
+        const endMs = Date.now();
+        const elapsedHours = Math.max(0.01, Number(((endMs - currentShift.startMs) / 3600000).toFixed(2)));
+        const earned = emp.payType === "hourly" ? Number((elapsedHours * Number(emp.rate || 0)).toFixed(2)) : 0;
+
+        if (emp.payType === "hourly") {
+          emp.hours = Number((Number(emp.hours || 0) + elapsedHours).toFixed(2));
+        }
+
+        logs.unshift({
+          id: `sh-${Date.now()}`,
+          date: new Date().toISOString().slice(0, 10),
+          empName: emp.name,
+          clockIn: new Date(currentShift.startMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          clockOut: new Date(endMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          hours: elapsedHours,
+          earned,
+          note: currentShift.note
+        });
+
+        delete activeShifts[empId];
+        msg.style.color = "#10b981";
+        msg.textContent = `✓ ${emp.name} clocked OUT (${elapsedHours.toFixed(2)} hrs logged to payroll).`;
+      }
+
+      saveAll(team, activeShifts, logs);
+      document.getElementById("kiosk-pin-input").value = "";
+      document.getElementById("kiosk-note-input").value = "";
+      renderKiosk();
+    });
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById("kiosk-live-clock").textContent = now.toLocaleTimeString("en-US", { hour12: true });
+      document.getElementById("kiosk-live-date").textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+      document.querySelectorAll(".js-kiosk-timer").forEach(el => {
+        const startMs = Number(el.getAttribute("data-start") || 0);
+        if (startMs > 0) el.textContent = formatDuration(Date.now() - startMs);
+      });
+    }, 1000);
+
+    renderKiosk();
+  </script>
+</body>
+</html>

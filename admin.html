@@ -112,36 +112,40 @@
     }
 
     /* ============================================================
-       POS TIME CLOCK TERMINAL
+       POS TIME CLOCK TERMINAL (MATCHING MONOCHROME THEME)
        ============================================================ */
     .timeclock-terminal {
-      background: #09090b;
-      color: #fafafa;
+      background: var(--surface, #ffffff);
+      color: var(--text-main, #09090b);
       border-radius: 16px;
-      padding: 22px 24px;
+      padding: 22px;
       margin-bottom: 22px;
-      border: 1px solid #27272a;
-    }
-    .timeclock-terminal input,
-    .timeclock-terminal select {
-      background-color: #18181b !important;
-      color: #ffffff !important;
-      border-color: #3f3f46 !important;
+      border: 1px solid var(--border, #e4e4e7);
     }
     .live-clock-display {
       font-variant-numeric: tabular-nums;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       letter-spacing: -0.02em;
-      color: #10b981;
+      color: #09090b;
+    }
+    .active-shift-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 10px 14px;
     }
     .active-shift-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(16, 185, 129, 0.14);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.35);
+      background: #dcfce7;
+      color: #166534;
       padding: 4px 10px;
       border-radius: 999px;
       font-size: 12px;
@@ -153,11 +157,10 @@
        ============================================================ */
     .omnisearch-box {
       background: #ffffff;
-      border: 2px solid #09090b;
+      border: 1px solid #d4d4d8;
       border-radius: 14px;
       padding: 14px 16px;
       margin-bottom: 22px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     }
     .omnisearch-results {
       margin-top: 12px;
@@ -458,6 +461,7 @@
       <nav>
         <a href="index.html">Live Site</a>
         <a href="shop.html">Shop</a>
+        <a href="timeclock.html">Staff Kiosk</a>
         <button type="button" id="admin-signout-btn" class="filter-btn" style="display:none;" onclick="adminSignOut()">Sign Out</button>
       </nav>
     </div>
@@ -489,7 +493,7 @@
       <!-- UNIVERSAL SITE & ADMIN OMNISEARCH BAR -->
       <div class="omnisearch-box">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
-          <span class="field-label" style="color:#09090b;">Global Site &amp; Admin Omnisearch (Storefront Drops • Orders • Team &amp; Shifts • Expenses • Promos)</span>
+          <span class="field-label">Global Site &amp; Admin Omnisearch (Storefront Drops • Orders • Team &amp; Shifts • Expenses • Promos)</span>
           <span style="font-size:11px;color:#71717a;">Shortcut: Ctrl + K</span>
         </div>
         <div style="display:flex;gap:8px;">
@@ -779,38 +783,38 @@
       <!-- TAB 2: POS EMPLOYEE TIME CLOCK, SHIFT LOGS & PAYROLL         -->
       <!-- ============================================================ -->
       <section id="panel-team" style="display: none;">
-        <!-- LIVE POS TIME CLOCK TERMINAL -->
+        <!-- LIVE POS TIME CLOCK TERMINAL (MATCHING MONOCHROME CARD) -->
         <div class="timeclock-terminal">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:16px;">
             <div>
-              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#34d399;">POS Shift Kiosk</span>
-              <h2 style="font-size:22px;color:#ffffff;margin-top:2px;">Employee Time Clock &amp; Live Shift Tracker</h2>
-              <p style="font-size:13px;color:#a1a1aa;margin-top:4px;">Select a team member and enter their 4-digit PIN to clock in or out. Completed shifts automatically update payroll and P&amp;L.</p>
+              <span class="section-kicker">POS Shift Kiosk</span>
+              <h2 style="font-size:22px; margin-top:2px;">Employee Time Clock &amp; Live Shift Tracker</h2>
+              <p style="font-size:13px; color:var(--text-muted, #71717a); margin-top:4px;">Employees can clock in here or from the dedicated <a href="timeclock.html" target="_blank" style="color:#09090b;font-weight:700;">Staff Kiosk (timeclock.html)</a> without needing owner login credentials.</p>
             </div>
             <div style="text-align:right;">
               <div id="pos-live-clock" class="live-clock-display">00:00:00</div>
-              <div id="pos-live-date" style="font-size:12px;color:#a1a1aa;"></div>
+              <div id="pos-live-date" style="font-size:12px; color:var(--text-muted, #71717a);"></div>
             </div>
           </div>
 
           <form id="pos-timeclock-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap:12px; align-items:end;">
             <div class="field-group">
-              <label class="field-label" style="color:#a1a1aa;">Select Team Member</label>
+              <label class="field-label">Select Team Member</label>
               <select id="clock-employee-select" required></select>
             </div>
             <div class="field-group">
-              <label class="field-label" style="color:#a1a1aa;">4-Digit Staff PIN</label>
+              <label class="field-label">4-Digit Staff PIN</label>
               <input type="password" id="clock-pin-input" maxlength="6" placeholder="e.g., 1001" required>
             </div>
             <div class="field-group">
-              <label class="field-label" style="color:#a1a1aa;">Shift Station / Note</label>
+              <label class="field-label">Shift Station / Note</label>
               <input type="text" id="clock-note-input" placeholder="e.g., DTF Press / Packing / Pop-Up">
             </div>
             <div style="display:flex; gap:8px;">
-              <button type="submit" class="btn-card" style="background:#10b981;color:#09090b;font-weight:800;height:42px;">Clock In / Out</button>
+              <button type="submit" class="btn-card" style="height:42px;">Clock In / Out</button>
             </div>
           </form>
-          <p id="timeclock-status-msg" style="font-size:13px;font-weight:600;margin-top:10px;"></p>
+          <p id="timeclock-status-msg" style="font-size:13px; font-weight:600; margin-top:10px;"></p>
 
           <!-- CURRENTLY ON THE CLOCK -->
           <div id="active-shifts-container" style="margin-top:16px;"></div>
@@ -1437,7 +1441,7 @@
     let trendChartInstance = null;
     let categoryChartInstance = null;
 
-    // Team Roster, Live Active Shifts & Shift Audit Logs
+    // Team Roster, Live Active Shifts & Shift Audit Logs (Synced with timeclock.html)
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
     const ACTIVE_SHIFTS_KEY = "msj_admin_active_shifts_v1";
     const SHIFT_LOGS_KEY = "msj_admin_shift_logs_v1";
@@ -1717,7 +1721,6 @@
 
       const existingShift = activeShifts[empId];
       if (!existingShift) {
-        // CLOCK IN
         activeShifts[empId] = {
           startMs: Date.now(),
           note
@@ -1725,9 +1728,8 @@
         msg.style.color = "#10b981";
         msg.textContent = `${emp.name} clocked IN at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (${note}).`;
       } else {
-        // CLOCK OUT
         completeClockOut(empId, existingShift);
-        msg.style.color = "#34d399";
+        msg.style.color = "#10b981";
         msg.textContent = `${emp.name} clocked OUT. Shift hours and pay have been logged to payroll & P&L.`;
       }
 
@@ -1815,7 +1817,6 @@
     }
 
     function renderTeamRoster() {
-      // Populate Time Clock Selector
       const selectEl = document.getElementById("clock-employee-select");
       if (selectEl) {
         const prevVal = selectEl.value;
@@ -1828,7 +1829,6 @@
         }
       }
 
-      // Render Currently Clocked-In Shifts
       const activeBox = document.getElementById("active-shifts-container");
       const activeEntries = Object.entries(activeShifts);
       if (activeBox) {
@@ -1836,21 +1836,21 @@
           activeBox.innerHTML = `<p style="font-size:12px;color:#71717a;">No employees are currently clocked in.</p>`;
         } else {
           activeBox.innerHTML = `
-            <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #27272a;padding-top:14px;">
-              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#a1a1aa;">Currently On The Clock (${activeEntries.length})</span>
+            <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #e4e4e7;padding-top:14px;">
+              <span class="field-label">Currently On The Clock (${activeEntries.length})</span>
               ${activeEntries.map(([empId, sh]) => {
                 const emp = cachedTeam.find(m => m.id === empId);
                 if (!emp) return "";
                 return `
-                  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:#18181b;border:1px solid #27272a;border-radius:10px;padding:10px 14px;">
+                  <div class="active-shift-row">
                     <div>
                       <span class="active-shift-pill">● ON SHIFT</span>
-                      <strong style="margin-left:8px;color:#fff;">${emp.name}</strong>
-                      <span style="font-size:12px;color:#a1a1aa;margin-left:6px;">• ${sh.note}</span>
+                      <strong style="margin-left:8px;color:#09090b;">${emp.name}</strong>
+                      <span style="font-size:12px;color:#71717a;margin-left:6px;">• ${sh.note}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;">
-                      <strong class="js-shift-timer" data-start="${sh.startMs}" style="font-variant-numeric:tabular-nums;color:#34d399;font-size:15px;">${formatDuration(Date.now() - sh.startMs)}</strong>
-                      <button type="button" class="mini-action-btn" style="background:#ef4444;color:#fff;border:none;" onclick="quickClockOut('${empId}')">Clock Out</button>
+                      <strong class="js-shift-timer" data-start="${sh.startMs}" style="font-variant-numeric:tabular-nums;color:#09090b;font-size:15px;">${formatDuration(Date.now() - sh.startMs)}</strong>
+                      <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="quickClockOut('${empId}')">Clock Out</button>
                     </div>
                   </div>
                 `;
@@ -1860,7 +1860,6 @@
         }
       }
 
-      // Render Roster Cards
       const list = document.getElementById("admin-team-list");
       const totalPayroll = cachedTeam.reduce((s, m) => s + getTeamMemberPayout(m), 0);
       document.getElementById("team-payroll-total").textContent = `Active Payroll: $${totalPayroll.toFixed(2)}`;
@@ -1900,12 +1899,11 @@
         `;
       }).join("");
 
-      // Render Completed Shift Logs Table
       const logsBody = document.getElementById("shift-logs-body");
       document.getElementById("shift-logs-count").textContent = shiftLogs.length;
       if (logsBody) {
         if (shiftLogs.length === 0) {
-          logsBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted);">No completed timeclock shifts yet. Clock an employee in and out above to log shifts automatically.</td></tr>`;
+          logsBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted);">No completed timeclock shifts yet. Clock an employee in and out above or on timeclock.html to log shifts automatically.</td></tr>`;
         } else {
           logsBody.innerHTML = shiftLogs.map(log => `
             <tr>

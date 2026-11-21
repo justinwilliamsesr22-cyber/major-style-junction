@@ -5,10 +5,10 @@
 const MSJ_CONFIG = {
   freeShippingThreshold: 100,
   flatShippingRate: 8.95,
-  formspreeOrderEndpoint: "https://formspree.io/f/myeypbka",
+  formspreeOrderEndpoint: "[https://formspree.io/f/myeypbka](https://formspree.io/f/myeypbka)",
   supportEmail: "MajorStyleJunction@MajorStyleJunction.com",
   techSupportEmail: "cloud@majorstylejunction.com",
-  techSupportSite: "https://cloud.majorstylejunction.com",
+  techSupportSite: "[https://cloud.majorstylejunction.com](https://cloud.majorstylejunction.com)",
   itemsPerPage: 6
 };
 
@@ -125,9 +125,7 @@ function getAccountsDB() {
 function saveAccountsDB(db) {
   try {
     localStorage.setItem(ACCOUNTS_DB_KEY, JSON.stringify(db));
-  } catch {
-    // Ignore storage quota errors
-  }
+  } catch {}
 }
 
 function encodePass(str) {
@@ -399,9 +397,7 @@ function loadCart() {
 function saveCart() {
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(msjCart));
-  } catch {
-    // Ignore storage quota errors
-  }
+  } catch {}
   updateCartUI();
 }
 
@@ -1251,7 +1247,7 @@ function injectNavAndFooterLinks() {
     const techBar = document.createElement("div");
     techBar.className = "footer-tech-bar";
     techBar.innerHTML = `
-      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openHeaderSearchModal();">Search</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="admin.html">Admin</a></span>
+      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openHeaderSearchModal();">Search</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="timeclock.html">Staff Clock-In</a> • <a href="admin.html">Admin</a></span>
     `;
     footer.appendChild(techBar);
   }
