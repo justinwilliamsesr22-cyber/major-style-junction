@@ -37,25 +37,44 @@
         <span class="section-kicker">Official Catalog</span>
         <h1>Shop the Collection</h1>
       </div>
-      <button type="button" class="size-guide-link" onclick="openSizeGuide()">View Size &amp; Fit Guide</button>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <span id="catalog-results-count" style="font-size:13px;font-weight:600;color:var(--text-muted);"></span>
+        <button type="button" class="size-guide-link" onclick="openSizeGuide()">View Size &amp; Fit Guide</button>
+      </div>
     </div>
 
-    <div class="catalog-controls">
-      <div class="filter-bar" id="shop-filters">
-        <button type="button" class="filter-btn active" onclick="setCategory('all', this)">All Pieces</button>
-        <button type="button" class="filter-btn" onclick="setCategory('tees', this)">Graphic Tees</button>
-        <button type="button" class="filter-btn" onclick="setCategory('hoodies', this)">Hoodies</button>
-        <button type="button" class="filter-btn" onclick="setCategory('accessories', this)">Accessories</button>
+    <div class="catalog-controls" style="flex-direction:column;align-items:stretch;gap:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div class="filter-bar" id="shop-filters">
+          <button type="button" class="filter-btn active" onclick="setCategory('all', this)">All Pieces</button>
+          <button type="button" class="filter-btn" onclick="setCategory('tees', this)">Graphic Tees</button>
+          <button type="button" class="filter-btn" onclick="setCategory('hoodies', this)">Hoodies</button>
+          <button type="button" class="filter-btn" onclick="setCategory('accessories', this)">Accessories</button>
+        </div>
+
+        <div class="search-sort-group">
+          <input type="text" id="catalog-search" placeholder="Search tees, hoodies, drops..." oninput="applyCatalogFilters(1)">
+          <select id="catalog-sort" onchange="applyCatalogFilters(1)">
+            <option value="featured">Sort: Featured</option>
+            <option value="newest">Sort: Newest Arrivals</option>
+            <option value="instock">Availability: In Stock Only</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
       </div>
 
-      <div class="search-sort-group">
-        <input type="text" id="catalog-search" placeholder="Search tees, hoodies..." oninput="applyCatalogFilters()">
-        <select id="catalog-sort" onchange="applyCatalogFilters()">
-          <option value="featured">Sort: Featured</option>
-          <option value="instock">Availability: In Stock Only</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-        </select>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid var(--border,#e4e4e7);padding-top:12px;">
+        <div class="filter-bar" id="shop-size-filters">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-right:4px;">Filter by Size:</span>
+          <button type="button" class="filter-btn active" onclick="setSizeFilter('all', this)">All Sizes</button>
+          <button type="button" class="filter-btn" onclick="setSizeFilter('S', this)">S</button>
+          <button type="button" class="filter-btn" onclick="setSizeFilter('M', this)">M</button>
+          <button type="button" class="filter-btn" onclick="setSizeFilter('L', this)">L</button>
+          <button type="button" class="filter-btn" onclick="setSizeFilter('XL', this)">XL</button>
+          <button type="button" class="filter-btn" onclick="setSizeFilter('2XL', this)">2XL</button>
+        </div>
+        <button type="button" class="size-guide-link" onclick="resetShopCatalogFilters()">Reset All Filters</button>
       </div>
     </div>
 
@@ -84,25 +103,45 @@
   <script src="products.js"></script>
   <script>
     let currentCategory = "all";
+    let currentSizeFilter = "all";
 
     function setCategory(category, btn) {
       currentCategory = category;
       document.querySelectorAll("#shop-filters .filter-btn").forEach((el) => el.classList.remove("active"));
       btn.classList.add("active");
-      applyCatalogFilters();
+      applyCatalogFilters(1);
     }
 
-    function applyCatalogFilters() {
+    function setSizeFilter(size, btn) {
+      currentSizeFilter = size;
+      document.querySelectorAll("#shop-size-filters .filter-btn").forEach((el) => el.classList.remove("active"));
+      btn.classList.add("active");
+      applyCatalogFilters(1);
+    }
+
+    function resetShopCatalogFilters() {
+      currentCategory = "all";
+      currentSizeFilter = "all";
+      document.getElementById("catalog-search").value = "";
+      document.getElementById("catalog-sort").value = "featured";
+      document.querySelectorAll("#shop-filters .filter-btn").forEach((el, idx) => el.classList.toggle("active", idx === 0));
+      document.querySelectorAll("#shop-size-filters .filter-btn").forEach((el, idx) => el.classList.toggle("active", idx === 0));
+      applyCatalogFilters(1);
+    }
+
+    function applyCatalogFilters(page = 1) {
       const searchVal = document.getElementById("catalog-search").value;
       const sortVal = document.getElementById("catalog-sort").value;
       renderProducts("full-catalog-grid", {
         category: currentCategory,
+        sizeFilter: currentSizeFilter,
         search: searchVal,
-        sort: sortVal
+        sort: sortVal,
+        page
       });
     }
 
-    applyCatalogFilters();
+    applyCatalogFilters(1);
   </script>
 </body>
 </html>

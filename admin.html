@@ -112,6 +112,40 @@
     }
 
     /* ============================================================
+       UNIVERSAL SITE & ADMIN OMNISEARCH
+       ============================================================ */
+    .omnisearch-box {
+      background: #ffffff;
+      border: 2px solid #09090b;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    }
+    .omnisearch-results {
+      margin-top: 12px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      padding: 14px;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .omni-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    /* ============================================================
        FILTER & SORT TOOLBARS
        ============================================================ */
     .control-toolbar {
@@ -221,18 +255,6 @@
       border-top: 2px solid #09090b;
       border-bottom: none;
       padding-top: 14px;
-    }
-    .pnl-adj-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #f4f4f5;
-      border: 1px solid #e4e4e7;
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-left: 6px;
     }
     .budget-bucket {
       background: #fafafa;
@@ -387,7 +409,7 @@
 <body>
 
   <div class="announcement-bar">
-    MSJ Executive Command Center • Financial Analytics, Editable P&amp;L, Budgeting &amp; Live Inventory
+    MSJ Executive Command Center • Financial Analytics, Team Payroll, Budgeting &amp; Live Inventory
   </div>
 
   <header>
@@ -407,9 +429,9 @@
   <main class="container">
     <!-- ADMIN LOGIN VIEW -->
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
-      <span class="section-kicker">Owner Access Only</span>
+      <span class="section-kicker">Owner &amp; Co-Owner Access</span>
       <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage financial analytics, budgeting buckets, orders, and inventory.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage financial analytics, team payroll, budgeting buckets, orders, and inventory.</p>
       <form id="admin-login-form" style="display:flex; flex-direction:column; gap:12px;">
         <div class="field-group">
           <label class="field-label">Admin Email</label>
@@ -426,6 +448,19 @@
 
     <!-- ADMIN DASHBOARD VIEW -->
     <div id="admin-dashboard-view" style="display: none;">
+
+      <!-- UNIVERSAL SITE & ADMIN OMNISEARCH BAR -->
+      <div class="omnisearch-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+          <span class="field-label" style="color:#09090b;">Global Site &amp; Admin Omnisearch (Storefront Drops • Orders • Team • Expenses • Promos • P&amp;L)</span>
+          <span style="font-size:11px;color:#71717a;">Shortcut: Ctrl + K</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="global-admin-search" placeholder="Search anything across Major Style Junction: product name, order #, customer, tracking #, team member, vendor, promo code..." oninput="renderGlobalAdminSearch()">
+          <button type="button" class="filter-btn" onclick="clearGlobalAdminSearch()" style="white-space:nowrap;">Clear</button>
+        </div>
+        <div id="global-admin-search-results" class="omnisearch-results" style="display:none;"></div>
+      </div>
 
       <!-- TOP TOOLBAR: DATE FILTERING & ACCOUNTING EXPORTS -->
       <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:20px;">
@@ -465,9 +500,9 @@
           <p class="kpi-sub" id="kpi-net-margin">0.0% net profit margin</p>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label">Total Costs &amp; Overhead</span>
+          <span class="kpi-label">Total Costs &amp; Payroll</span>
           <div class="kpi-value" id="kpi-total-costs">$0.00</div>
-          <p class="kpi-sub" id="kpi-costs-sub">COGS + Shipping + Expenses</p>
+          <p class="kpi-sub" id="kpi-costs-sub">COGS + Payroll + Expenses</p>
         </div>
         <div class="kpi-card">
           <span class="kpi-label">Avg. Order Value (AOV)</span>
@@ -489,6 +524,7 @@
       <!-- NAVIGATION TABS -->
       <div class="admin-tabs">
         <button type="button" id="tab-analytics" class="filter-btn active" onclick="switchAdminTab('analytics')">Analytics, P&amp;L &amp; Budget</button>
+        <button type="button" id="tab-team" class="filter-btn" onclick="switchAdminTab('team')">Co-Owners &amp; Team Payroll</button>
         <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
         <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; COGS</button>
         <button type="button" id="tab-expenses" class="filter-btn" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
@@ -582,6 +618,13 @@
                 </tr>
                 <tr>
                   <td style="color:#ef4444;">
+                    (−) Team Payroll &amp; Shift Labor
+                    <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('team')">Edit Team</button>
+                  </td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-payroll">-$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">
                     (−) Operating &amp; Overhead Expenses
                     <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('expenses')">Edit Ledger</button>
                   </td>
@@ -598,7 +641,6 @@
               </tbody>
             </table>
 
-            <!-- LIST OF MANUAL P&L ADJUSTMENTS IN SELECTED PERIOD -->
             <div id="pnl-adjustments-list" style="margin-top:14px;"></div>
           </div>
 
@@ -607,7 +649,7 @@
             <span class="section-kicker">Smart Money Management</span>
             <h3 style="margin-bottom: 6px;">Profit-First Income Allocator</h3>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-              Automatically divides your <strong>True Net Profit</strong> into protected business accounts so taxes, restocks, and owner pay are always covered.
+              Automatically divides your <strong>True Net Profit</strong> into protected business accounts so taxes, restocks, and co-owner draws are always covered.
             </p>
 
             <div class="budget-bucket">
@@ -630,11 +672,11 @@
 
             <div class="budget-bucket">
               <div class="budget-bucket-top">
-                <strong>3. Owner Pay / Draw (<span id="lbl-owner-pct">25</span>%)</strong>
+                <strong>3. Owner &amp; Co-Owner Draw Pool (<span id="lbl-owner-pct">25</span>%)</strong>
                 <strong style="color:#10b981; font-size:16px;" id="val-owner-amt">$0.00</strong>
               </div>
               <div class="budget-bar-track"><div id="bar-owner" class="budget-bar-fill" style="width:25%; background:#10b981;"></div></div>
-              <p style="font-size:12px; color:var(--text-muted);">Safe personal payout without starving business cash flow</p>
+              <p style="font-size:12px; color:var(--text-muted);">Safe payout pool without starving business cash flow</p>
             </div>
 
             <div class="budget-bucket">
@@ -699,7 +741,54 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 2: ORDERS & FULFILLMENT (SORTABLE & FILTERABLE)          -->
+      <!-- TAB 2: CO-OWNERS & TEAM PAYROLL                              -->
+      <!-- ============================================================ -->
+      <section id="panel-team" style="display: none;">
+        <div class="contact-card" style="max-width: 920px; margin-bottom: 24px;">
+          <span class="section-kicker">Studio Roster &amp; Labor</span>
+          <h2 style="margin-bottom: 14px;">Add Co-Owner, DTF Print Tech or Pop-Up Staff</h2>
+          <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end;">
+            <div class="field-group">
+              <label class="field-label">Full Name</label>
+              <input type="text" id="team-name" placeholder="e.g., Maya Lin" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Role / Title</label>
+              <input type="text" id="team-role" placeholder="e.g., DTF Print Tech" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Pay Structure</label>
+              <select id="team-paytype">
+                <option value="hourly">Hourly ($/hr)</option>
+                <option value="flat">Flat Stipend / Draw ($)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Rate ($)</label>
+              <input type="number" id="team-rate" placeholder="18.50" min="0" step="0.5" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Shift Hours</label>
+              <input type="number" id="team-hours" placeholder="8" min="0" step="0.5" value="8">
+            </div>
+            <button type="submit" class="btn-card" style="height:42px;">Add to Roster</button>
+          </form>
+        </div>
+
+        <div class="panel-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+              <h3>Active Roster &amp; Live Payroll</h3>
+              <p style="font-size:12px;color:#71717a;">Active payroll deducts automatically from True Net Profit on your P&amp;L.</p>
+            </div>
+            <strong id="team-payroll-total" style="color:#ef4444;">Active Payroll: $0.00</strong>
+          </div>
+          <div id="admin-team-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 3: ORDERS & FULFILLMENT (SORTABLE & FILTERABLE)          -->
       <!-- ============================================================ -->
       <section id="panel-orders" style="display: none;">
         <div class="section-head" style="margin-bottom: 14px;">
@@ -758,7 +847,7 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 3: INVENTORY & COGS (SORTABLE & FILTERABLE)              -->
+      <!-- TAB 4: INVENTORY & COGS (SORTABLE & FILTERABLE)              -->
       <!-- ============================================================ -->
       <section id="panel-inventory" style="display: none;">
         <div class="section-head" style="margin-bottom: 14px;">
@@ -812,7 +901,7 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 4: BUSINESS EXPENSES & OVERHEAD (EDITABLE & SORTABLE)    -->
+      <!-- TAB 5: BUSINESS EXPENSES & OVERHEAD (EDITABLE & SORTABLE)    -->
       <!-- ============================================================ -->
       <section id="panel-expenses" style="display: none;">
         <div class="contact-card" style="max-width: 920px; margin-bottom: 24px;">
@@ -920,7 +1009,7 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 5: ADD NEW DROP                                          -->
+      <!-- TAB 6: ADD NEW DROP                                          -->
       <!-- ============================================================ -->
       <section id="panel-new" style="display: none;">
         <div class="contact-card" style="max-width: 780px;">
@@ -1006,7 +1095,7 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 6: PROMO CODES (FILTERABLE & SORTABLE)                   -->
+      <!-- TAB 7: PROMO CODES (FILTERABLE & SORTABLE)                   -->
       <!-- ============================================================ -->
       <section id="panel-promos" style="display: none;">
         <div class="contact-card" style="max-width: 760px; margin-bottom: 24px;">
@@ -1243,11 +1332,46 @@
     let trendChartInstance = null;
     let categoryChartInstance = null;
 
+    // Team & Co-Owner Roster (stored locally so it works immediately without altering SQL tables)
+    const TEAM_STORAGE_KEY = "msj_admin_team_roster_v1";
+    const DEFAULT_TEAM = [
+      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", payType: "flat", rate: 0, hours: 1, active: true },
+      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", payType: "flat", rate: 0, hours: 1, active: true },
+      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", payType: "hourly", rate: 18.5, hours: 8, active: true }
+    ];
+    let cachedTeam = (() => {
+      try {
+        const raw = localStorage.getItem(TEAM_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : DEFAULT_TEAM;
+      } catch {
+        return DEFAULT_TEAM;
+      }
+    })();
+
+    function saveTeamRoster() {
+      try {
+        localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(cachedTeam));
+      } catch {}
+    }
+
+    function getTeamMemberPayout(m) {
+      if (!m.active) return 0;
+      return m.payType === "hourly" ? Number(m.rate || 0) * Number(m.hours || 0) : Number(m.rate || 0);
+    }
+
     const loginView = document.getElementById("admin-login-view");
     const dashView = document.getElementById("admin-dashboard-view");
     const signoutBtn = document.getElementById("admin-signout-btn");
 
     document.getElementById("exp-date").valueAsDate = new Date();
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const box = document.getElementById("global-admin-search");
+        if (box) box.focus();
+      }
+    });
 
     async function checkAdminSession() {
       const { data: { session } } = await msjSupabase.auth.getSession();
@@ -1285,10 +1409,103 @@
     }
 
     function switchAdminTab(tabName) {
-      ["analytics", "orders", "inventory", "expenses", "new", "promos"].forEach(t => {
+      ["analytics", "team", "orders", "inventory", "expenses", "new", "promos"].forEach(t => {
         document.getElementById(`panel-${t}`).style.display = t === tabName ? "block" : "none";
         document.getElementById(`tab-${t}`).classList.toggle("active", t === tabName);
       });
+    }
+
+    // ============================================================
+    // UNIVERSAL SITE & ADMIN OMNISEARCH
+    // ============================================================
+    function clearGlobalAdminSearch() {
+      document.getElementById("global-admin-search").value = "";
+      document.getElementById("global-admin-search-results").style.display = "none";
+    }
+
+    function renderGlobalAdminSearch() {
+      const q = (document.getElementById("global-admin-search").value || "").trim().toLowerCase();
+      const box = document.getElementById("global-admin-search-results");
+      if (!q) {
+        box.style.display = "none";
+        return;
+      }
+
+      const prodMatches = cachedProducts.filter(p =>
+        `${p.name} ${p.category} ${p.badge} ${p.description}`.toLowerCase().includes(q)
+      );
+      const ordMatches = cachedOrders.filter(o =>
+        `${o.order_number} ${o.customer_name} ${o.customer_email} ${o.tracking_number} ${o.shipping_address}`.toLowerCase().includes(q)
+      );
+      const teamMatches = cachedTeam.filter(m =>
+        `${m.name} ${m.role} ${m.payType}`.toLowerCase().includes(q)
+      );
+      const expMatches = cachedExpenses.filter(ex =>
+        `${ex.vendor_description} ${ex.category} ${ex.notes}`.toLowerCase().includes(q)
+      );
+      const promoMatches = cachedPromos.filter(pr =>
+        `${pr.code} ${pr.discount_type}`.toLowerCase().includes(q)
+      );
+
+      const total = prodMatches.length + ordMatches.length + teamMatches.length + expMatches.length + promoMatches.length;
+      box.style.display = "block";
+
+      if (total === 0) {
+        box.innerHTML = `<p style="font-size:13px;color:#71717a;">No matches found across products, orders, team, expenses, or promos for "${q}".</p>`;
+        return;
+      }
+
+      let html = `<p style="font-size:12px;color:#52525b;margin-bottom:10px;">Found <strong>${total}</strong> matches across storefront &amp; admin:</p>`;
+
+      prodMatches.forEach(p => {
+        html += `
+          <div class="omni-row">
+            <div><strong>[Product]</strong> ${p.name} (${p.category}) • $${Number(p.price).toFixed(2)}</div>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="mini-action-btn" onclick="switchAdminTab('inventory'); document.getElementById('inv-search-input').value='${p.name.replace(/'/g, "\\'")}'; renderInventoryList(); clearGlobalAdminSearch();">Edit in Inventory</button>
+              <a href="shop.html" target="_blank" class="mini-action-btn" style="text-decoration:none;">View on Store</a>
+            </div>
+          </div>
+        `;
+      });
+
+      ordMatches.forEach(o => {
+        html += `
+          <div class="omni-row">
+            <div><strong>[Order #${o.order_number}]</strong> ${o.customer_name} • $${Number(o.total).toFixed(2)} • ${o.fulfillment_status}</div>
+            <button type="button" class="mini-action-btn" onclick="switchAdminTab('orders'); document.getElementById('order-search-input').value='${o.order_number}'; renderOrdersList(); clearGlobalAdminSearch();">Open Order</button>
+          </div>
+        `;
+      });
+
+      teamMatches.forEach(m => {
+        html += `
+          <div class="omni-row">
+            <div><strong>[Team]</strong> ${m.name} — ${m.role}</div>
+            <button type="button" class="mini-action-btn" onclick="switchAdminTab('team'); clearGlobalAdminSearch();">Open Roster</button>
+          </div>
+        `;
+      });
+
+      expMatches.forEach(ex => {
+        html += `
+          <div class="omni-row">
+            <div><strong>[Expense]</strong> ${ex.vendor_description} (${ex.category}) • -$${Number(ex.amount).toFixed(2)}</div>
+            <button type="button" class="mini-action-btn" onclick="switchAdminTab('expenses'); document.getElementById('exp-search-input').value='${ex.vendor_description.replace(/'/g, "\\'")}'; renderExpensesList(); clearGlobalAdminSearch();">Open Expense</button>
+          </div>
+        `;
+      });
+
+      promoMatches.forEach(pr => {
+        html += `
+          <div class="omni-row">
+            <div><strong>[Promo]</strong> ${pr.code}</div>
+            <button type="button" class="mini-action-btn" onclick="switchAdminTab('promos'); clearGlobalAdminSearch();">Open Promos</button>
+          </div>
+        `;
+      });
+
+      box.innerHTML = html;
     }
 
     async function loadAllAdminData() {
@@ -1316,10 +1533,80 @@
       }
 
       refreshDashboardAnalytics();
+      renderTeamRoster();
       renderOrdersList();
       renderInventoryList();
       renderExpensesList();
       renderPromosList();
+    }
+
+    // ============================================================
+    // CO-OWNERS & TEAM PAYROLL MANAGEMENT
+    // ============================================================
+    document.getElementById("new-team-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const payType = document.getElementById("team-paytype").value;
+      cachedTeam.push({
+        id: `tm-${Date.now()}`,
+        name: document.getElementById("team-name").value.trim(),
+        role: document.getElementById("team-role").value.trim(),
+        payType,
+        rate: parseFloat(document.getElementById("team-rate").value || "0"),
+        hours: payType === "hourly" ? parseFloat(document.getElementById("team-hours").value || "0") : 1,
+        active: true
+      });
+      saveTeamRoster();
+      e.target.reset();
+      document.getElementById("team-hours").value = "8";
+      renderTeamRoster();
+      refreshDashboardAnalytics();
+    });
+
+    function updateTeamField(id, field, val) {
+      cachedTeam = cachedTeam.map(m => (m.id === id ? { ...m, [field]: val } : m));
+      saveTeamRoster();
+      renderTeamRoster();
+      refreshDashboardAnalytics();
+    }
+
+    function removeTeamMember(id) {
+      cachedTeam = cachedTeam.filter(m => m.id !== id);
+      saveTeamRoster();
+      renderTeamRoster();
+      refreshDashboardAnalytics();
+    }
+
+    function renderTeamRoster() {
+      const list = document.getElementById("admin-team-list");
+      const totalPayroll = cachedTeam.reduce((s, m) => s + getTeamMemberPayout(m), 0);
+      document.getElementById("team-payroll-total").textContent = `Active Payroll: $${totalPayroll.toFixed(2)}`;
+
+      list.innerHTML = cachedTeam.map(m => {
+        const payout = getTeamMemberPayout(m);
+        return `
+          <div class="order-card" style="flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;opacity:${m.active ? "1" : "0.6"};">
+            <div>
+              <strong style="font-size:16px;">${m.name}</strong>
+              <p style="font-size:13px;color:#71717a;">${m.role} • ${m.payType === "hourly" ? "Hourly" : "Flat Stipend / Draw"}</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="width:95px;">
+                <label class="field-label">${m.payType === "hourly" ? "$ / Hr" : "Flat $"}</label>
+                <input type="number" step="0.5" min="0" value="${m.rate}" onchange="updateTeamField('${m.id}', 'rate', parseFloat(this.value || 0))">
+              </div>
+              ${m.payType === "hourly" ? `
+                <div style="width:85px;">
+                  <label class="field-label">Hours</label>
+                  <input type="number" step="0.5" min="0" value="${m.hours}" onchange="updateTeamField('${m.id}', 'hours', parseFloat(this.value || 0))">
+                </div>
+              ` : ""}
+              <strong style="color:#ef4444;min-width:80px;text-align:right;">-$${payout.toFixed(2)}</strong>
+              <button type="button" class="filter-btn ${m.active ? "active" : ""}" onclick="updateTeamField('${m.id}', 'active', ${!m.active})">${m.active ? "Active" : "Off-Cycle"}</button>
+              <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="removeTeamMember('${m.id}')">&times;</button>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     function getStockMap(item) {
@@ -1396,15 +1683,15 @@
       const cogs = validOrders.reduce((s, o) => s + getOrderCogs(o), 0);
       const shipPaid = validOrders.reduce((s, o) => s + Number(o.actual_shipping_cost || 0), 0);
       const fees = validOrders.reduce((s, o) => s + Number(o.payment_fee || 0), 0);
+      const payroll = cachedTeam.reduce((s, m) => s + getTeamMemberPayout(m), 0);
       const overhead = periodExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
 
       const grossProfit = grossReceipts - cogs - shipPaid - fees;
       const grossMarginPct = grossReceipts > 0 ? (grossProfit / grossReceipts) * 100 : 0;
-      const netProfit = grossProfit - overhead - manualDed;
+      const netProfit = grossProfit - payroll - overhead - manualDed;
       const netMarginPct = grossReceipts > 0 ? (netProfit / grossReceipts) * 100 : 0;
       const aov = validOrders.length > 0 ? (grossReceipts - manualRev) / validOrders.length : 0;
 
-      // Inventory Valuation & Alerts
       let stockRetailVal = 0;
       let stockCostVal = 0;
       let lowStockAlerts = 0;
@@ -1427,8 +1714,8 @@
       netEl.textContent = `${netProfit < 0 ? "-" : ""}$${Math.abs(netProfit).toFixed(2)}`;
       netEl.style.color = netProfit >= 0 ? "#10b981" : "#ef4444";
       document.getElementById("kpi-net-margin").textContent = `${netMarginPct.toFixed(1)}% true net margin`;
-      document.getElementById("kpi-total-costs").textContent = `$${(cogs + shipPaid + fees + overhead + manualDed).toFixed(2)}`;
-      document.getElementById("kpi-costs-sub").textContent = `COGS $${cogs.toFixed(0)} • Overhead $${overhead.toFixed(0)}`;
+      document.getElementById("kpi-total-costs").textContent = `$${(cogs + shipPaid + fees + payroll + overhead + manualDed).toFixed(2)}`;
+      document.getElementById("kpi-costs-sub").textContent = `COGS $${cogs.toFixed(0)} • Payroll $${payroll.toFixed(0)} • Ops $${overhead.toFixed(0)}`;
       document.getElementById("kpi-aov").textContent = `$${aov.toFixed(2)}`;
       document.getElementById("kpi-order-count").textContent = `${validOrders.length} orders in period`;
       document.getElementById("kpi-stock-retail").textContent = `$${stockRetailVal.toFixed(2)}`;
@@ -1436,7 +1723,6 @@
       document.getElementById("kpi-unfulfilled").textContent = unfulfilledCount;
       document.getElementById("kpi-lowstock").textContent = `${lowStockAlerts} low-stock size alerts`;
 
-      // Update P&L Statement
       document.getElementById("pnl-merch").textContent = `$${merchSales.toFixed(2)}`;
       document.getElementById("pnl-manual-rev").textContent = `+$${manualRev.toFixed(2)}`;
       document.getElementById("pnl-discounts").textContent = `-$${discounts.toFixed(2)}`;
@@ -1447,6 +1733,7 @@
       document.getElementById("pnl-fees").textContent = `-$${fees.toFixed(2)}`;
       document.getElementById("pnl-gross-margin-badge").textContent = `(${grossMarginPct.toFixed(1)}% Gross Margin)`;
       document.getElementById("pnl-gross-profit").textContent = `$${grossProfit.toFixed(2)}`;
+      document.getElementById("pnl-payroll").textContent = `-$${payroll.toFixed(2)}`;
       document.getElementById("pnl-expenses").textContent = `-$${overhead.toFixed(2)}`;
       document.getElementById("pnl-manual-ded").textContent = `-$${manualDed.toFixed(2)}`;
       const pnlNetEl = document.getElementById("pnl-net-profit");
@@ -1455,7 +1742,6 @@
 
       renderPnlAdjustmentsList(periodAdjs);
 
-      // Update Profit-First Budget Buckets
       const allocBase = Math.max(0, netProfit);
       const rPct = Number(budgetSettings.restock_pct || 35);
       const tPct = Number(budgetSettings.tax_pct || 25);
@@ -2165,7 +2451,7 @@
                 ).join("")}
               </select>
 
-              <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="openEditModal('${item.id}')">Edit Product &amp; COGS</button>
+              <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="openEditModal('${item.id}')">Edit Photo &amp; COGS</button>
               <button type="button" class="filter-btn" style="color: #ef4444; height:42px;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
             </div>
           </div>

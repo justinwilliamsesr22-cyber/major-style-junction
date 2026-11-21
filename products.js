@@ -8,7 +8,8 @@ const MSJ_CONFIG = {
   formspreeOrderEndpoint: "https://formspree.io/f/myeypbka",
   supportEmail: "MajorStyleJunction@MajorStyleJunction.com",
   techSupportEmail: "cloud@majorstylejunction.com",
-  techSupportSite: "https://cloud.majorstylejunction.com"
+  techSupportSite: "https://cloud.majorstylejunction.com",
+  itemsPerPage: 6
 };
 
 const MSJ_PRODUCTS = [
@@ -656,8 +657,18 @@ function closeCartDrawer() {
 }
 
 // ============================================================
-// PRODUCT GRID, FILTER & SORT ENGINE
+// PRODUCT GRID, FILTER, SIZE FILTER, SORT & PAGINATION ENGINE
 // ============================================================
+
+function changeCatalogPage(containerId, targetPage) {
+  const existing = activeGridRenders[containerId];
+  if (!existing) return;
+  renderProducts(containerId, { ...existing, page: targetPage });
+  const grid = document.getElementById(containerId);
+  if (grid) {
+    grid.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
 
 function renderProducts(containerId, options = {}) {
   activeGridRenders[containerId] = options;
@@ -666,9 +677,12 @@ function renderProducts(containerId, options = {}) {
 
   const {
     category = "all",
+    sizeFilter = "all",
     search = "",
     sort = "featured",
-    limit = null
+    limit = null,
+    page = 1,
+    perPage = MSJ_CONFIG.itemsPerPage
   } = options;
 
   let items = [...LIVE_PRODUCTS];
@@ -677,30 +691,58 @@ function renderProducts(containerId, options = {}) {
     items = items.filter((item) => item.category === category);
   }
 
+  if (sizeFilter !== "all") {
+    items = items.filter((item) => getSizeAvailableQty(item, sizeFilter) > 0);
+  }
+
   if (search.trim() !== "") {
     const q = search.trim().toLowerCase();
-    items = items.filter(
-      (item) =>
+    items = items.filter((item) => {
+      const availSizes = ["S", "M", "L", "XL", "2XL"]
+        .filter((s) => getSizeAvailableQty(item, s) > 0)
+        .join(" ")
+        .toLowerCase();
+      return (
         item.name.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
-        item.category.toLowerCase().includes(q)
-    );
+        item.category.toLowerCase().includes(q) ||
+        (item.badge || "").toLowerCase().includes(q) ||
+        availSizes.includes(q)
+      );
+    });
   }
 
   if (sort === "price-asc") {
-    items.sort((a, b) => a.price - b.price);
+    items.sort((a, b) => Number(a.price) - Number(b.price));
   } else if (sort === "price-desc") {
-    items.sort((a, b) => b.price - a.price);
+    items.sort((a, b) => Number(b.price) - Number(a.price));
+  } else if (sort === "newest") {
+    items.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   } else if (sort === "instock") {
     items = items.filter((item) => getProductTotalStock(item) > 0 && item.status.toLowerCase() !== "sold out");
   }
 
+  const totalMatches = items.length;
+  const countBadge = document.getElementById("catalog-results-count");
+  if (countBadge && !limit) {
+    countBadge.textContent = `${totalMatches} piece${totalMatches === 1 ? "" : "s"} found`;
+  }
+
+  let totalPages = 1;
+  let safePage = 1;
   if (limit) {
     items = items.slice(0, limit);
+  } else if (perPage && items.length > perPage) {
+    totalPages = Math.ceil(items.length / perPage);
+    safePage = Math.min(Math.max(1, page), totalPages);
+    const startIdx = (safePage - 1) * perPage;
+    items = items.slice(startIdx, startIdx + perPage);
   }
 
   if (items.length === 0) {
-    grid.innerHTML = `<p class="empty-state">No pieces match your current filter. Try clearing your search or checking all categories.</p>`;
+    grid.innerHTML = `<p class="empty-state">No pieces match your current search or filter. Try clearing your search, size, or category.</p>`;
+    const pagBar = document.getElementById(`${containerId}-pagination`);
+    if (pagBar) pagBar.innerHTML = "";
     return;
   }
 
@@ -731,8 +773,9 @@ function renderProducts(containerId, options = {}) {
       const sizePillsHtml = allSizes
         .map((s) => {
           const qty = getSizeAvailableQty(item, s);
+          const isHighlighted = sizeFilter === s && qty > 0;
           return qty > 0
-            ? `<span>${s}</span>`
+            ? `<span style="${isHighlighted ? "background:#09090b;color:#fff;border-color:#09090b;" : ""}">${s}</span>`
             : `<span style="opacity:0.35;text-decoration:line-through;">${s}</span>`;
         })
         .join("");
@@ -764,6 +807,35 @@ function renderProducts(containerId, options = {}) {
       `;
     })
     .join("");
+
+  // Render Pagination Bar if multiple pages exist
+  if (!limit) {
+    let pagBar = document.getElementById(`${containerId}-pagination`);
+    if (!pagBar) {
+      pagBar = document.createElement("div");
+      pagBar.id = `${containerId}-pagination`;
+      pagBar.style.cssText = "display:flex;justify-content:center;align-items:center;gap:8px;margin-top:28px;flex-wrap:wrap;";
+      grid.insertAdjacentElement("afterend", pagBar);
+    }
+
+    if (totalPages <= 1) {
+      pagBar.innerHTML = "";
+    } else {
+      const pageButtons = Array.from({ length: totalPages }, (_, idx) => idx + 1)
+        .map(
+          (pNum) => `
+          <button type="button" class="filter-btn ${pNum === safePage ? "active" : ""}" onclick="changeCatalogPage('${containerId}', ${pNum})">${pNum}</button>
+        `
+        )
+        .join("");
+
+      pagBar.innerHTML = `
+        <button type="button" class="filter-btn" ${safePage <= 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : `onclick="changeCatalogPage('${containerId}', ${safePage - 1})"`}>&larr; Prev</button>
+        ${pageButtons}
+        <button type="button" class="filter-btn" ${safePage >= totalPages ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : `onclick="changeCatalogPage('${containerId}', ${safePage + 1})"`}>Next &rarr;</button>
+      `;
+    }
+  }
 }
 
 // ============================================================
@@ -1088,13 +1160,78 @@ async function submitDirectOrderToDatabase(e) {
 }
 
 // ============================================================
-// AUTO-INJECT NAV LINKS, FOOTER BAR & OVERLAYS
+// HEADER CUSTOMER SEARCH MODAL + NAV & FOOTER INJECTION
 // ============================================================
+
+function openHeaderSearchModal(prefill = "") {
+  const modal = document.getElementById("msj-header-search-modal");
+  const input = document.getElementById("msj-header-search-input");
+  if (!modal || !input) return;
+  if (prefill) input.value = prefill;
+  modal.classList.add("active");
+  renderHeaderSearchResults();
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeHeaderSearchModal() {
+  const modal = document.getElementById("msj-header-search-modal");
+  if (modal) modal.classList.remove("active");
+}
+
+function renderHeaderSearchResults() {
+  const input = document.getElementById("msj-header-search-input");
+  const box = document.getElementById("msj-header-search-results");
+  if (!input || !box) return;
+
+  const q = input.value.trim().toLowerCase();
+  const matches = q
+    ? LIVE_PRODUCTS.filter((item) =>
+        `${item.name} ${item.category} ${item.badge || ""} ${item.description || ""}`
+          .toLowerCase()
+          .includes(q)
+      )
+    : LIVE_PRODUCTS.slice(0, 5);
+
+  if (matches.length === 0) {
+    box.innerHTML = `<p style="padding:18px;text-align:center;font-size:13px;color:var(--text-muted);">No apparel matched "${input.value}". Try searching "tee", "hoodie", or "drop".</p>`;
+    return;
+  }
+
+  box.innerHTML = matches
+    .map((item) => {
+      const stock = getProductTotalStock(item);
+      const thumb =
+        !item.image || item.image === "typographic"
+          ? `<div class="bag-typo-thumb" style="width:48px;height:48px;font-size:12px;">MSJ</div>`
+          : `<img src="${item.image}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`;
+      return `
+        <div onclick="closeHeaderSearchModal(); openQuickView('${item.id}');" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--border,#e4e4e7);border-radius:10px;background:#fff;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            ${thumb}
+            <div>
+              <strong style="font-size:14px;display:block;">${item.name}</strong>
+              <span style="font-size:12px;color:var(--text-muted);">${item.badge} • ${stock > 0 ? `${stock} in stock` : "Sold Out"}</span>
+            </div>
+          </div>
+          <strong style="font-size:15px;">$${Number(item.price).toFixed(2)}</strong>
+        </div>
+      `;
+    })
+    .join("");
+}
 
 function injectNavAndFooterLinks() {
   const nav = document.querySelector("header nav");
   const bagTrigger = nav && nav.querySelector(".bag-trigger");
   if (nav && bagTrigger && !nav.querySelector(".js-account-btn")) {
+    const searchBtn = document.createElement("button");
+    searchBtn.type = "button";
+    searchBtn.className = "account-trigger";
+    searchBtn.textContent = "Search";
+    searchBtn.title = "Search Catalog (Ctrl+K)";
+    searchBtn.onclick = () => openHeaderSearchModal();
+    nav.insertBefore(searchBtn, bagTrigger);
+
     const trackBtn = document.createElement("button");
     trackBtn.type = "button";
     trackBtn.className = "account-trigger";
@@ -1115,7 +1252,7 @@ function injectNavAndFooterLinks() {
     const techBar = document.createElement("div");
     techBar.className = "footer-tech-bar";
     techBar.innerHTML = `
-      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="admin.html">Admin</a></span>
+      <span>Website &amp; Technical Support by <a href="${MSJ_CONFIG.techSupportSite}" target="_blank" rel="noreferrer"><strong>MSJ Cloud</strong></a> — Need site or tech help? Email <a href="mailto:${MSJ_CONFIG.techSupportEmail}">${MSJ_CONFIG.techSupportEmail}</a> • <a href="#" onclick="event.preventDefault(); openHeaderSearchModal();">Search</a> • <a href="#" onclick="event.preventDefault(); openTrackModal();">Track Order</a> • <a href="admin.html">Admin</a></span>
     `;
     footer.appendChild(techBar);
   }
@@ -1126,6 +1263,20 @@ function injectStorefrontOverlays() {
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = `
+    <!-- Instant Catalog Search Modal (Ctrl+K) -->
+    <div id="msj-header-search-modal" class="modal-overlay" onclick="if(event.target===this) closeHeaderSearchModal()">
+      <div class="modal-box" style="max-width: 540px;">
+        <button type="button" class="modal-close" onclick="closeHeaderSearchModal()" aria-label="Close">&times;</button>
+        <span class="section-kicker">Instant Catalog Search</span>
+        <h3 style="font-size:22px;margin-bottom:10px;">Search Major Style Junction</h3>
+        <input type="text" id="msj-header-search-input" placeholder="Search hoodies, tees, drops, sizes..." oninput="renderHeaderSearchResults()" style="margin-bottom:12px;">
+        <div id="msj-header-search-results" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;"></div>
+        <div style="margin-top:14px;text-align:right;">
+          <a href="shop.html" class="size-guide-link">Open Full Filter &amp; Size Catalog &rarr;</a>
+        </div>
+      </div>
+    </div>
+
     <!-- Track Order Modal -->
     <div id="msj-track-modal" class="modal-overlay" onclick="if(event.target===this) closeTrackModal()">
       <div class="modal-box" style="max-width: 480px;">
@@ -1364,6 +1515,13 @@ function checkPostCheckoutBanner() {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 }
+
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    openHeaderSearchModal();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   injectNavAndFooterLinks();
