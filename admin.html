@@ -5,8 +5,145 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive Financial &amp; Store Command Center | Major Style Junction</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
   <style>
+    /* ============================================================
+       UNIFIED MODERN ADMIN FORM & INPUT SYSTEM
+       ============================================================ */
+    #admin-login-view input,
+    #admin-dashboard-view input[type="text"],
+    #admin-dashboard-view input[type="number"],
+    #admin-dashboard-view input[type="email"],
+    #admin-dashboard-view input[type="password"],
+    #admin-dashboard-view input[type="date"],
+    #admin-dashboard-view select,
+    #admin-dashboard-view textarea,
+    .modal-box input[type="text"],
+    .modal-box input[type="number"],
+    .modal-box input[type="email"],
+    .modal-box input[type="password"],
+    .modal-box input[type="date"],
+    .modal-box select,
+    .modal-box textarea {
+      width: 100%;
+      height: 42px;
+      padding: 0 13px;
+      border: 1px solid #d4d4d8;
+      border-radius: 10px;
+      background-color: #ffffff;
+      color: #09090b;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+      box-sizing: border-box;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    #admin-dashboard-view textarea,
+    .modal-box textarea {
+      height: auto;
+      min-height: 92px;
+      padding: 11px 13px;
+      resize: vertical;
+    }
+
+    #admin-dashboard-view select,
+    .modal-box select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 36px;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2352525b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 15px;
+    }
+
+    #admin-dashboard-view input:focus,
+    #admin-dashboard-view select:focus,
+    #admin-dashboard-view textarea:focus,
+    .modal-box input:focus,
+    .modal-box select:focus,
+    .modal-box textarea:focus {
+      outline: none;
+      border-color: #09090b;
+      box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.09);
+    }
+
+    #admin-dashboard-view input[type="file"],
+    .modal-box input[type="file"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px dashed #a1a1aa;
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 13px;
+      color: #3f3f46;
+      cursor: pointer;
+    }
+
+    #admin-dashboard-view input[type="file"]::file-selector-button,
+    .modal-box input[type="file"]::file-selector-button {
+      background: #09090b;
+      color: #ffffff;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 12px;
+      margin-right: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #52525b;
+    }
+
+    /* ============================================================
+       FILTER & SORT TOOLBARS
+       ============================================================ */
+    .control-toolbar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+      align-items: end;
+    }
+
+    .date-range-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .date-range-bar select,
+    .date-range-bar input[type="date"] {
+      width: auto !important;
+      min-width: 145px;
+      height: 38px !important;
+      font-size: 13px !important;
+    }
+
+    /* ============================================================
+       DASHBOARD LAYOUT & CARDS
+       ============================================================ */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
@@ -70,7 +207,7 @@
       font-size: 14px;
     }
     .pnl-table td {
-      padding: 10px 4px;
+      padding: 10px 6px;
       border-bottom: 1px solid var(--border, #e4e4e7);
     }
     .pnl-table tr.pnl-subtotal td {
@@ -84,6 +221,18 @@
       border-top: 2px solid #09090b;
       border-bottom: none;
       padding-top: 14px;
+    }
+    .pnl-adj-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 6px;
     }
     .budget-bucket {
       background: #fafafa;
@@ -113,25 +262,18 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      margin-top: 12px;
-    }
-    .pct-input-group label {
-      font-size: 11px;
-      font-weight: 700;
-      display: block;
-      margin-bottom: 3px;
+      margin-top: 10px;
     }
     .pct-input-group input {
-      padding: 7px;
-      margin: 0;
       text-align: center;
-      font-weight: 700;
+      font-weight: 700 !important;
+      height: 38px !important;
     }
     .size-stock-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 10px;
-      margin: 10px 0 16px;
+      margin: 8px 0 14px;
     }
     .size-stock-cell {
       background: #f4f4f5;
@@ -143,14 +285,13 @@
       display: block;
       font-size: 12px;
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
     .size-stock-cell input {
-      width: 100%;
       text-align: center;
-      padding: 6px;
-      margin: 0;
-      font-weight: 700;
+      height: 36px !important;
+      padding: 0 6px !important;
+      font-weight: 700 !important;
     }
     .order-card {
       background: var(--surface, #fff);
@@ -196,7 +337,7 @@
     }
     .tracking-bar {
       display: grid;
-      grid-template-columns: 120px 1fr 130px 140px auto;
+      grid-template-columns: 125px 1fr 135px 145px auto;
       gap: 10px;
       align-items: center;
     }
@@ -207,17 +348,30 @@
     }
     .data-table th {
       text-align: left;
-      padding: 10px;
+      padding: 11px 10px;
       background: #f4f4f5;
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     .data-table td {
-      padding: 10px;
+      padding: 11px 10px;
       border-bottom: 1px solid var(--border, #e4e4e7);
     }
-    @media (max-width: 900px) {
+    .mini-action-btn {
+      background: #f4f4f5;
+      border: 1px solid #d4d4d8;
+      color: #09090b;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mini-action-btn:hover {
+      background: #e4e4e7;
+    }
+    @media (max-width: 920px) {
       .finance-grid, .charts-grid {
         grid-template-columns: 1fr;
       }
@@ -233,7 +387,7 @@
 <body>
 
   <div class="announcement-bar">
-    MSJ Executive Command Center • Financial Analytics, Budgeting, Orders &amp; Live Inventory
+    MSJ Executive Command Center • Financial Analytics, Editable P&amp;L, Budgeting &amp; Live Inventory
   </div>
 
   <header>
@@ -255,32 +409,44 @@
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
       <span class="section-kicker">Owner Access Only</span>
       <h1 style="font-size: 26px; margin-bottom: 8px;">Admin Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to access financial analytics, budgeting buckets, orders, and inventory.</p>
-      <form id="admin-login-form">
-        <input type="email" id="admin-email" placeholder="Admin Email" required>
-        <input type="password" id="admin-password" placeholder="Admin Password" required>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your Supabase admin credentials to manage financial analytics, budgeting buckets, orders, and inventory.</p>
+      <form id="admin-login-form" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field-group">
+          <label class="field-label">Admin Email</label>
+          <input type="email" id="admin-email" placeholder="you@majorstylejunction.com" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input type="password" id="admin-password" placeholder="Enter your password" required>
+        </div>
         <button type="submit" class="btn-card">Sign In to Command Center</button>
-        <p id="admin-login-msg" class="modal-status" style="margin-top: 10px;"></p>
+        <p id="admin-login-msg" class="modal-status"></p>
       </form>
     </div>
 
     <!-- ADMIN DASHBOARD VIEW -->
     <div id="admin-dashboard-view" style="display: none;">
 
-      <!-- TOP TOOLBAR: DATE RANGE & ACCOUNTING EXPORTS -->
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <!-- TOP TOOLBAR: DATE FILTERING & ACCOUNTING EXPORTS -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:20px;">
         <div>
           <span class="section-kicker">Company Financial Health</span>
           <h1 style="font-size: 28px;">Executive Command Center</h1>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <select id="analytics-period" onchange="refreshDashboardAnalytics()" style="padding: 9px 14px; border-radius: 8px; margin:0; font-weight:600;">
+        <div class="date-range-bar">
+          <select id="analytics-period" onchange="handleAnalyticsPeriodChange()">
             <option value="all">Period: All Time</option>
-            <option value="month">Period: This Calendar Month</option>
-            <option value="30d">Period: Last 30 Days</option>
-            <option value="7d">Period: Last 7 Days</option>
-            <option value="year">Period: Year to Date (2026)</option>
+            <option value="month">This Calendar Month</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="year">Year to Date (2026)</option>
+            <option value="custom">Custom Date Range</option>
           </select>
+          <div id="analytics-custom-dates" style="display:none; gap:6px; align-items:center;">
+            <input type="date" id="analytics-from-date" onchange="refreshDashboardAnalytics()" title="Start Date">
+            <span style="font-size:12px;color:#71717a;">to</span>
+            <input type="date" id="analytics-to-date" onchange="refreshDashboardAnalytics()" title="End Date">
+          </div>
           <button type="button" class="filter-btn" onclick="exportOrdersCSV()">Export Orders CSV</button>
           <button type="button" class="filter-btn" onclick="exportExpensesCSV()">Export Expenses CSV</button>
         </div>
@@ -322,7 +488,7 @@
 
       <!-- NAVIGATION TABS -->
       <div class="admin-tabs">
-        <button type="button" id="tab-analytics" class="filter-btn active" onclick="switchAdminTab('analytics')">Analytics &amp; Money Budget</button>
+        <button type="button" id="tab-analytics" class="filter-btn active" onclick="switchAdminTab('analytics')">Analytics, P&amp;L &amp; Budget</button>
         <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
         <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; COGS</button>
         <button type="button" id="tab-expenses" class="filter-btn" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
@@ -331,10 +497,9 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- TAB 1: FINANCIAL ANALYTICS, P&L & PROFIT-FIRST BUDGETING     -->
+      <!-- TAB 1: FINANCIAL ANALYTICS, EDITABLE P&L & BUDGET ALLOCATOR  -->
       <!-- ============================================================ -->
       <section id="panel-analytics">
-        <!-- CHARTS ROW -->
         <div class="charts-grid">
           <div class="panel-box">
             <span class="section-kicker">Cash Flow &amp; Growth</span>
@@ -352,25 +517,34 @@
           </div>
         </div>
 
-        <!-- P&L STATEMENT + PROFIT-FIRST MONEY ALLOCATION ENGINE -->
         <div class="finance-grid">
-          <!-- LIVE PROFIT & LOSS WATERFALL -->
+          <!-- EDITABLE PROFIT & LOSS WATERFALL -->
           <div class="panel-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
               <div>
-                <span class="section-kicker">Accounting Ledger</span>
+                <span class="section-kicker">Editable Accounting Ledger</span>
                 <h3>Profit &amp; Loss (P&amp;L) Statement</h3>
               </div>
-              <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
-                <input type="checkbox" id="pnl-paid-only" onchange="refreshDashboardAnalytics()"> Paid Orders Only
-              </label>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                  <input type="checkbox" id="pnl-paid-only" onchange="refreshDashboardAnalytics()"> Paid Orders Only
+                </label>
+                <button type="button" class="mini-action-btn" onclick="openPnlAdjModal()">+ Add / Edit P&amp;L Entry</button>
+              </div>
             </div>
 
             <table class="pnl-table">
               <tbody>
                 <tr>
-                  <td>Gross Merchandise Sales</td>
+                  <td>Online Store Merchandise Sales</td>
                   <td style="text-align:right; font-weight:600;" id="pnl-merch">$0.00</td>
+                </tr>
+                <tr>
+                  <td>
+                    (+) Manual / Off-Site Revenue Adjustments
+                    <span style="font-size:11px;color:#71717a;">(Pop-ups, cash, custom DTF)</span>
+                  </td>
+                  <td style="text-align:right; font-weight:600; color:#10b981;" id="pnl-manual-rev">$0.00</td>
                 </tr>
                 <tr>
                   <td style="color:#ef4444;">(−) Promo Code Discounts</td>
@@ -385,11 +559,17 @@
                   <td style="text-align:right;" id="pnl-gross-receipts">$0.00</td>
                 </tr>
                 <tr>
-                  <td style="color:#ef4444;">(−) Cost of Goods Sold (Blanks + DTF Prints)</td>
+                  <td style="color:#ef4444;">
+                    (−) Cost of Goods Sold (COGS)
+                    <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('inventory')">Edit Unit Costs</button>
+                  </td>
                   <td style="text-align:right; color:#ef4444;" id="pnl-cogs">-$0.00</td>
                 </tr>
                 <tr>
-                  <td style="color:#ef4444;">(−) Outbound Shipping Label Costs</td>
+                  <td style="color:#ef4444;">
+                    (−) Outbound Shipping Label Costs
+                    <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('orders')">Edit Labels</button>
+                  </td>
                   <td style="text-align:right; color:#ef4444;" id="pnl-ship-paid">-$0.00</td>
                 </tr>
                 <tr>
@@ -401,8 +581,15 @@
                   <td style="text-align:right;" id="pnl-gross-profit">$0.00</td>
                 </tr>
                 <tr>
-                  <td style="color:#ef4444;">(−) Operating &amp; Overhead Expenses</td>
+                  <td style="color:#ef4444;">
+                    (−) Operating &amp; Overhead Expenses
+                    <button type="button" class="mini-action-btn" style="margin-left:6px;" onclick="switchAdminTab('expenses')">Edit Ledger</button>
+                  </td>
                   <td style="text-align:right; color:#ef4444;" id="pnl-expenses">-$0.00</td>
+                </tr>
+                <tr>
+                  <td style="color:#ef4444;">(−) Manual P&amp;L Deductions / Refunds</td>
+                  <td style="text-align:right; color:#ef4444;" id="pnl-manual-ded">-$0.00</td>
                 </tr>
                 <tr class="pnl-total">
                   <td>TRUE NET PROFIT</td>
@@ -410,6 +597,9 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- LIST OF MANUAL P&L ADJUSTMENTS IN SELECTED PERIOD -->
+            <div id="pnl-adjustments-list" style="margin-top:14px;"></div>
           </div>
 
           <!-- PROFIT-FIRST MONEY ALLOCATION & BUDGETING ENGINE -->
@@ -426,7 +616,7 @@
                 <strong style="color:#2563eb; font-size:16px;" id="val-restock-amt">$0.00</strong>
               </div>
               <div class="budget-bar-track"><div id="bar-restock" class="budget-bar-fill" style="width:35%; background:#2563eb;"></div></div>
-              <p style="font-size:12px; color:var(--text-muted);" id="sub-restock-spent">Spent on blanks/ink in period: $0.00 • Remaining budget: $0.00</p>
+              <p style="font-size:12px; color:var(--text-muted);" id="sub-restock-spent">Spent on blanks/ink in period: $0.00 • Remaining pool: $0.00</p>
             </div>
 
             <div class="budget-bucket">
@@ -459,10 +649,10 @@
             <form id="budget-rules-form" style="border-top:1px solid var(--border,#e4e4e7); padding-top:12px; margin-top:12px;">
               <span style="font-size:12px; font-weight:700;">Customize Allocation Splits (Must Equal 100%):</span>
               <div class="pct-input-group">
-                <div><label>Restock %</label><input type="number" id="in-restock-pct" min="0" max="100" step="1" value="35"></div>
-                <div><label>Taxes %</label><input type="number" id="in-tax-pct" min="0" max="100" step="1" value="25"></div>
-                <div><label>Owner %</label><input type="number" id="in-owner-pct" min="0" max="100" step="1" value="25"></div>
-                <div><label>Growth %</label><input type="number" id="in-mkt-pct" min="0" max="100" step="1" value="15"></div>
+                <div class="field-group"><label class="field-label">Restock %</label><input type="number" id="in-restock-pct" min="0" max="100" step="1" value="35"></div>
+                <div class="field-group"><label class="field-label">Taxes %</label><input type="number" id="in-tax-pct" min="0" max="100" step="1" value="25"></div>
+                <div class="field-group"><label class="field-label">Owner %</label><input type="number" id="in-owner-pct" min="0" max="100" step="1" value="25"></div>
+                <div class="field-group"><label class="field-label">Growth %</label><input type="number" id="in-mkt-pct" min="0" max="100" step="1" value="15"></div>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                 <span id="budget-save-msg" style="font-size:12px; font-weight:600;"></span>
@@ -472,10 +662,23 @@
           </div>
         </div>
 
-        <!-- SKU PROFITABILITY LEADERBOARD -->
+        <!-- SORTABLE SKU PROFITABILITY LEADERBOARD -->
         <div class="panel-box">
-          <span class="section-kicker">Unit Economics</span>
-          <h3 style="margin-bottom: 14px;">Product Profitability &amp; Best-Sellers Leaderboard</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+              <span class="section-kicker">Unit Economics</span>
+              <h3>Product Profitability &amp; Best-Sellers Leaderboard</h3>
+            </div>
+            <div style="width: 220px;">
+              <select id="sku-sort-by" onchange="refreshDashboardAnalytics()">
+                <option value="profit-desc">Sort: Highest Total Profit</option>
+                <option value="unit-profit-desc">Sort: Highest Profit / Unit</option>
+                <option value="margin-desc">Sort: Highest Margin %</option>
+                <option value="sold-desc">Sort: Most Units Sold</option>
+                <option value="name-asc">Sort: Product Name (A–Z)</option>
+              </select>
+            </div>
+          </div>
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
@@ -496,52 +699,178 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 2: ORDERS & FULFILLMENT (WITH LABEL COST TRACKING)       -->
+      <!-- TAB 2: ORDERS & FULFILLMENT (SORTABLE & FILTERABLE)          -->
       <!-- ============================================================ -->
       <section id="panel-orders" style="display: none;">
-        <div class="section-head" style="margin-bottom: 18px;">
+        <div class="section-head" style="margin-bottom: 14px;">
           <div>
             <span class="section-kicker">Fulfillment &amp; Margin Tracking</span>
-            <h2>Customer Orders</h2>
+            <h2>Customer Orders (<span id="orders-visible-count">0</span>)</h2>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <select id="order-filter-status" onchange="renderOrdersList()" style="padding: 8px 12px; border-radius: 8px; margin:0;">
-              <option value="all">Show: All Orders</option>
-              <option value="Unfulfilled">Unfulfilled Only</option>
+          <button type="button" class="filter-btn" onclick="resetOrderFilters()">Reset Filters</button>
+        </div>
+
+        <div class="control-toolbar">
+          <div class="field-group">
+            <label class="field-label">Search Orders</label>
+            <input type="text" id="order-search-input" placeholder="Order #, name, email, tracking..." oninput="renderOrdersList()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Fulfillment Status</label>
+            <select id="order-filter-status" onchange="renderOrdersList()">
+              <option value="all">All Statuses</option>
+              <option value="Unfulfilled">Unfulfilled</option>
               <option value="Packing">Packing</option>
               <option value="Shipped">Shipped</option>
               <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
-            <button type="button" class="filter-btn" onclick="loadAllAdminData()">Refresh</button>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Payment Status</label>
+            <select id="order-filter-payment" onchange="renderOrdersList()">
+              <option value="all">All Payments</option>
+              <option value="paid">Confirmed Paid Only</option>
+              <option value="pending">Pending Invoice Only</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">From Date</label>
+            <input type="date" id="order-from-date" onchange="renderOrdersList()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">To Date</label>
+            <input type="date" id="order-to-date" onchange="renderOrdersList()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Sort Orders By</label>
+            <select id="order-sort-by" onchange="renderOrdersList()">
+              <option value="date-desc">Date: Newest First</option>
+              <option value="date-asc">Date: Oldest First</option>
+              <option value="total-desc">Total: Highest ($)</option>
+              <option value="total-asc">Total: Lowest ($)</option>
+              <option value="profit-desc">Net Profit: Highest ($)</option>
+            </select>
           </div>
         </div>
+
         <div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 16px;"></div>
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 3: INVENTORY & COGS                                      -->
+      <!-- TAB 3: INVENTORY & COGS (SORTABLE & FILTERABLE)              -->
       <!-- ============================================================ -->
       <section id="panel-inventory" style="display: none;">
-        <div class="section-head" style="margin-bottom: 18px;">
+        <div class="section-head" style="margin-bottom: 14px;">
           <div>
             <span class="section-kicker">Live Catalog &amp; Unit Margins</span>
-            <h2>Manage Inventory, Photos &amp; COGS</h2>
+            <h2>Manage Inventory, Photos &amp; COGS (<span id="inv-visible-count">0</span>)</h2>
+          </div>
+          <button type="button" class="filter-btn" onclick="resetInventoryFilters()">Reset Filters</button>
+        </div>
+
+        <div class="control-toolbar">
+          <div class="field-group">
+            <label class="field-label">Search Products</label>
+            <input type="text" id="inv-search-input" placeholder="Product name or drop badge..." oninput="renderInventoryList()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Category</label>
+            <select id="inv-filter-category" onchange="renderInventoryList()">
+              <option value="all">All Categories</option>
+              <option value="tees">Graphic Tees</option>
+              <option value="hoodies">Hoodies</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Stock Status</label>
+            <select id="inv-filter-status" onchange="renderInventoryList()">
+              <option value="all">All Statuses</option>
+              <option value="In Stock">In Stock</option>
+              <option value="Low Stock">Low Stock</option>
+              <option value="Coming Soon">Coming Soon</option>
+              <option value="Sold Out">Sold Out</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Sort Catalog By</label>
+            <select id="inv-sort-by" onchange="renderInventoryList()">
+              <option value="newest">Date Added: Newest First</option>
+              <option value="oldest">Date Added: Oldest First</option>
+              <option value="stock-asc">Total Stock: Lowest First</option>
+              <option value="stock-desc">Total Stock: Highest First</option>
+              <option value="margin-desc">Profit Margin: Highest %</option>
+              <option value="price-desc">Retail Price: High to Low</option>
+              <option value="price-asc">Retail Price: Low to High</option>
+              <option value="name-asc">Product Name (A–Z)</option>
+            </select>
           </div>
         </div>
+
         <div id="admin-inventory-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 4: BUSINESS EXPENSES & OVERHEAD LEDGER                   -->
+      <!-- TAB 4: BUSINESS EXPENSES & OVERHEAD (EDITABLE & SORTABLE)    -->
       <!-- ============================================================ -->
       <section id="panel-expenses" style="display: none;">
-        <div class="contact-card" style="max-width: 860px; margin-bottom: 24px;">
+        <div class="contact-card" style="max-width: 920px; margin-bottom: 24px;">
           <span class="section-kicker">Expense Tracking</span>
           <h2 style="margin-bottom: 14px;">Log Business Expense or Supply Purchase</h2>
-          <form id="new-expense-form">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
-              <input type="date" id="exp-date" required>
-              <select id="exp-category">
+          <form id="new-expense-form" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+              <div class="field-group">
+                <label class="field-label">Expense Date</label>
+                <input type="date" id="exp-date" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Category</label>
+                <select id="exp-category">
+                  <option value="Blank Apparel Restock">Blank Apparel Restock</option>
+                  <option value="DTF Ink, Film & Powder">DTF Ink, Film &amp; Powder</option>
+                  <option value="Packaging & Poly Mailers">Packaging &amp; Poly Mailers</option>
+                  <option value="Marketing & Ads">Marketing &amp; Ads</option>
+                  <option value="Equipment & Heat Press">Equipment &amp; Heat Press</option>
+                  <option value="Software, Domain & Hosting">Software, Domain &amp; Hosting</option>
+                  <option value="Taxes & LLC Fees">Taxes &amp; LLC Fees</option>
+                  <option value="Other Overhead">Other Overhead</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Amount ($)</label>
+                <input type="number" id="exp-amount" placeholder="0.00" min="0.01" step="0.01" required>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+              <div class="field-group">
+                <label class="field-label">Vendor &amp; Item Description</label>
+                <input type="text" id="exp-vendor" placeholder="e.g., Ninja Transfers / Bulk Heavyweight Blanks" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Receipt / Tax Note (Optional)</label>
+                <input type="text" id="exp-notes" placeholder="e.g., Invoice #1042">
+              </div>
+            </div>
+            <button type="submit" class="btn-card">Record Expense</button>
+          </form>
+        </div>
+
+        <div class="panel-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <h3>Expense Ledger (<span id="exp-visible-count">0</span>)</h3>
+            <strong id="expense-ledger-total">Filtered Total: $0.00</strong>
+          </div>
+
+          <div class="control-toolbar">
+            <div class="field-group">
+              <label class="field-label">Search Expenses</label>
+              <input type="text" id="exp-search-input" placeholder="Vendor or receipt note..." oninput="renderExpensesList()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Category</label>
+              <select id="exp-filter-category" onchange="renderExpensesList()">
+                <option value="all">All Categories</option>
                 <option value="Blank Apparel Restock">Blank Apparel Restock</option>
                 <option value="DTF Ink, Film & Powder">DTF Ink, Film &amp; Powder</option>
                 <option value="Packaging & Poly Mailers">Packaging &amp; Poly Mailers</option>
@@ -551,19 +880,27 @@
                 <option value="Taxes & LLC Fees">Taxes &amp; LLC Fees</option>
                 <option value="Other Overhead">Other Overhead</option>
               </select>
-              <input type="number" id="exp-amount" placeholder="Amount ($)" min="0.01" step="0.01" required>
             </div>
-            <input type="text" id="exp-vendor" placeholder="Vendor & Item Description (e.g., Ninja Transfers / Bulk Heavyweight Blanks)" required>
-            <input type="text" id="exp-notes" placeholder="Optional Tax / Receipt Note (e.g., Invoice #1042)">
-            <button type="submit" class="btn-card">Record Expense</button>
-          </form>
-        </div>
-
-        <div class="panel-box">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <h3>Expense Ledger</h3>
-            <strong id="expense-ledger-total">Total Logged: $0.00</strong>
+            <div class="field-group">
+              <label class="field-label">From Date</label>
+              <input type="date" id="exp-from-date" onchange="renderExpensesList()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">To Date</label>
+              <input type="date" id="exp-to-date" onchange="renderExpensesList()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Sort Expenses By</label>
+              <select id="exp-sort-by" onchange="renderExpensesList()">
+                <option value="date-desc">Date: Newest First</option>
+                <option value="date-asc">Date: Oldest First</option>
+                <option value="amount-desc">Amount: Highest ($)</option>
+                <option value="amount-asc">Amount: Lowest ($)</option>
+                <option value="category-asc">Category (A–Z)</option>
+              </select>
+            </div>
           </div>
+
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
@@ -573,7 +910,7 @@
                   <th>Vendor / Description</th>
                   <th>Notes</th>
                   <th>Amount</th>
-                  <th></th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="admin-expenses-body"></tbody>
@@ -586,118 +923,260 @@
       <!-- TAB 5: ADD NEW DROP                                          -->
       <!-- ============================================================ -->
       <section id="panel-new" style="display: none;">
-        <div class="contact-card" style="max-width: 760px;">
+        <div class="contact-card" style="max-width: 780px;">
           <span class="section-kicker">New Release</span>
           <h2 style="margin-bottom: 16px;">Publish New Product / Drop</h2>
 
-          <form id="new-product-form">
-            <input type="text" id="prod-name" placeholder="Product Name (e.g., MSJ Chrome Eagle Heavyweight Tee)" required>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-              <select id="prod-category">
-                <option value="tees">Category: Graphic Tees</option>
-                <option value="hoodies">Category: Hoodies</option>
-                <option value="accessories">Category: Accessories</option>
-              </select>
-
-              <input type="number" id="prod-price" placeholder="Retail Price ($)" min="1" step="0.01" oninput="updateNewMarginPreview()" required>
-
-              <input type="number" id="prod-cost" placeholder="Unit Cost / COGS ($)" min="0" step="0.01" value="11.50" oninput="updateNewMarginPreview()" required>
-
-              <select id="prod-status">
-                <option value="In Stock">Status: In Stock</option>
-                <option value="Low Stock">Status: Low Stock</option>
-                <option value="Coming Soon">Status: Coming Soon</option>
-                <option value="Sold Out">Status: Sold Out</option>
-              </select>
+          <form id="new-product-form" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="field-group">
+              <label class="field-label">Product Name</label>
+              <input type="text" id="prod-name" placeholder="e.g., MSJ Chrome Eagle Heavyweight Tee" required>
             </div>
 
-            <p id="new-margin-preview" style="font-size:13px; font-weight:700; color:#10b981; margin: 6px 0 12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px;">
+              <div class="field-group">
+                <label class="field-label">Category</label>
+                <select id="prod-category">
+                  <option value="tees">Graphic Tees</option>
+                  <option value="hoodies">Hoodies</option>
+                  <option value="accessories">Accessories</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Retail Price ($)</label>
+                <input type="number" id="prod-price" placeholder="38.00" min="1" step="0.01" oninput="updateNewMarginPreview()" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Unit Cost / COGS ($)</label>
+                <input type="number" id="prod-cost" placeholder="11.50" min="0" step="0.01" value="11.50" oninput="updateNewMarginPreview()" required>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Store Status</label>
+                <select id="prod-status">
+                  <option value="In Stock">In Stock</option>
+                  <option value="Low Stock">Low Stock</option>
+                  <option value="Coming Soon">Coming Soon</option>
+                  <option value="Sold Out">Sold Out</option>
+                </select>
+              </div>
+            </div>
+
+            <p id="new-margin-preview" style="font-size:13px; font-weight:700; color:#10b981;">
               Enter a retail price to preview unit profit margin.
             </p>
 
-            <input type="text" id="prod-badge" placeholder="Drop Badge (e.g., Drop 02, Limited)" value="Drop 02">
-
-            <label style="display:block; font-size: 13px; font-weight: 700; margin-top: 10px;">Starting Inventory Count by Size:</label>
-            <div class="size-stock-grid">
-              <div class="size-stock-cell"><label>S</label><input type="number" id="new-stock-S" min="0" value="10"></div>
-              <div class="size-stock-cell"><label>M</label><input type="number" id="new-stock-M" min="0" value="15"></div>
-              <div class="size-stock-cell"><label>L</label><input type="number" id="new-stock-L" min="0" value="15"></div>
-              <div class="size-stock-cell"><label>XL</label><input type="number" id="new-stock-XL" min="0" value="10"></div>
-              <div class="size-stock-cell"><label>2XL</label><input type="number" id="new-stock-2XL" min="0" value="5"></div>
+            <div class="field-group">
+              <label class="field-label">Drop Badge Label</label>
+              <input type="text" id="prod-badge" placeholder="e.g., Drop 02, Limited Run" value="Drop 02">
             </div>
 
-            <div style="margin: 12px 0;">
-              <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Product Photo (Optional):</label>
+            <div>
+              <span class="field-label">Starting Inventory Count by Size</span>
+              <div class="size-stock-grid">
+                <div class="size-stock-cell"><label>S</label><input type="number" id="new-stock-S" min="0" value="10"></div>
+                <div class="size-stock-cell"><label>M</label><input type="number" id="new-stock-M" min="0" value="15"></div>
+                <div class="size-stock-cell"><label>L</label><input type="number" id="new-stock-L" min="0" value="15"></div>
+                <div class="size-stock-cell"><label>XL</label><input type="number" id="new-stock-XL" min="0" value="10"></div>
+                <div class="size-stock-cell"><label>2XL</label><input type="number" id="new-stock-2XL" min="0" value="5"></div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Product Photo (Optional — leave blank for MSJ Emblem)</label>
               <input type="file" id="prod-image-file" accept="image/*">
             </div>
 
-            <input type="text" id="prod-fit" placeholder="Fit Notes" value="Boxy streetwear fit — true to size with slightly dropped shoulders.">
-            <input type="text" id="prod-care" placeholder="Fabric & Care" value="100% combed ring-spun cotton. Machine wash cold inside-out.">
-            <textarea id="prod-desc" placeholder="Product Description" required></textarea>
+            <div class="field-group">
+              <label class="field-label">Fit Notes</label>
+              <input type="text" id="prod-fit" value="Boxy streetwear fit — true to size with slightly dropped shoulders.">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Fabric &amp; Care Instructions</label>
+              <input type="text" id="prod-care" value="100% combed ring-spun cotton. Machine wash cold inside-out.">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Product Description</label>
+              <textarea id="prod-desc" placeholder="Describe the garment weight, print style, and vibe..." required></textarea>
+            </div>
 
             <button type="submit" id="create-prod-btn" class="btn-card">Publish Product to Live Store</button>
-            <p id="create-prod-msg" class="modal-status" style="margin-top: 10px;"></p>
+            <p id="create-prod-msg" class="modal-status"></p>
           </form>
         </div>
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 6: PROMO CODES                                           -->
+      <!-- TAB 6: PROMO CODES (FILTERABLE & SORTABLE)                   -->
       <!-- ============================================================ -->
       <section id="panel-promos" style="display: none;">
-        <div class="contact-card" style="max-width: 680px; margin-bottom: 24px;">
+        <div class="contact-card" style="max-width: 760px; margin-bottom: 24px;">
           <span class="section-kicker">Marketing &amp; Drops</span>
           <h2 style="margin-bottom: 14px;">Create Promo / Discount Code</h2>
-          <form id="new-promo-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
-            <input type="text" id="promo-code-input" placeholder="Code (e.g., VIP20)" style="text-transform: uppercase; margin: 0;" required>
-            <select id="promo-type-input" style="margin: 0;">
-              <option value="percent">Percent Off (%)</option>
-              <option value="fixed">Fixed Amount ($)</option>
-            </select>
-            <input type="number" id="promo-val-input" placeholder="Amount (e.g., 20)" min="1" step="0.01" style="margin: 0;" required>
-            <button type="submit" class="btn-card" style="margin: 0;">Create Code</button>
+          <form id="new-promo-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; align-items: end;">
+            <div class="field-group">
+              <label class="field-label">Promo Code</label>
+              <input type="text" id="promo-code-input" placeholder="e.g., VIP20" style="text-transform: uppercase;" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Discount Type</label>
+              <select id="promo-type-input">
+                <option value="percent">Percent Off (%)</option>
+                <option value="fixed">Fixed Dollar Off ($)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Discount Value</label>
+              <input type="number" id="promo-val-input" placeholder="20" min="1" step="0.01" required>
+            </div>
+            <button type="submit" class="btn-card" style="height:42px;">Create Code</button>
           </form>
         </div>
-        <div id="admin-promos-list" style="display: flex; flex-direction: column; gap: 12px; max-width: 680px;"></div>
+
+        <div class="control-toolbar" style="max-width: 760px;">
+          <div class="field-group">
+            <label class="field-label">Filter Status</label>
+            <select id="promo-filter-status" onchange="renderPromosList()">
+              <option value="all">All Promo Codes</option>
+              <option value="active">Active Only</option>
+              <option value="paused">Paused Only</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Sort Codes By</label>
+            <select id="promo-sort-by" onchange="renderPromosList()">
+              <option value="newest">Date Created: Newest</option>
+              <option value="uses-desc">Usage: Most Used</option>
+              <option value="val-desc">Value: Highest Discount</option>
+              <option value="code-asc">Code Name (A–Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="admin-promos-list" style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;"></div>
       </section>
 
     </div>
   </main>
 
-  <!-- FULL EDIT PRODUCT & COGS MODAL -->
+  <!-- MODAL 1: ADD / EDIT MANUAL P&L ADJUSTMENT -->
+  <div id="pnl-adj-modal" class="modal-overlay" onclick="if(event.target===this) closePnlAdjModal()">
+    <div class="modal-box" style="max-width: 500px;">
+      <button type="button" class="modal-close" onclick="closePnlAdjModal()">&times;</button>
+      <span class="section-kicker">Profit &amp; Loss Adjustment</span>
+      <h3 id="pnl-adj-modal-title" style="font-size: 22px; margin-bottom: 14px;">Add P&amp;L Entry</h3>
+
+      <form id="pnl-adj-form" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" id="pnl-adj-id">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="field-group">
+            <label class="field-label">Date</label>
+            <input type="date" id="pnl-adj-date" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Entry Type</label>
+            <select id="pnl-adj-type">
+              <option value="revenue">(+) Add Revenue / Off-Site Sale</option>
+              <option value="deduction">(−) Deduct Refund / Adjustment</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Description</label>
+          <input type="text" id="pnl-adj-title" placeholder="e.g., Pop-up Booth Cash Sales or Order Refund" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Amount ($)</label>
+          <input type="number" id="pnl-adj-amount" min="0.01" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Notes (Optional)</label>
+          <input type="text" id="pnl-adj-notes" placeholder="e.g., Harrisburg Sneaker Expo">
+        </div>
+        <button type="submit" class="btn-card">Save P&amp;L Entry</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: EDIT LOGGED EXPENSE -->
+  <div id="edit-expense-modal" class="modal-overlay" onclick="if(event.target===this) closeEditExpenseModal()">
+    <div class="modal-box" style="max-width: 500px;">
+      <button type="button" class="modal-close" onclick="closeEditExpenseModal()">&times;</button>
+      <span class="section-kicker">Expense Ledger</span>
+      <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Expense Entry</h3>
+
+      <form id="edit-expense-form" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" id="edit-exp-id">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="field-group">
+            <label class="field-label">Date</label>
+            <input type="date" id="edit-exp-date" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Amount ($)</label>
+            <input type="number" id="edit-exp-amount" min="0.01" step="0.01" required>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Category</label>
+          <select id="edit-exp-category">
+            <option value="Blank Apparel Restock">Blank Apparel Restock</option>
+            <option value="DTF Ink, Film & Powder">DTF Ink, Film &amp; Powder</option>
+            <option value="Packaging & Poly Mailers">Packaging &amp; Poly Mailers</option>
+            <option value="Marketing & Ads">Marketing &amp; Ads</option>
+            <option value="Equipment & Heat Press">Equipment &amp; Heat Press</option>
+            <option value="Software, Domain & Hosting">Software, Domain &amp; Hosting</option>
+            <option value="Taxes & LLC Fees">Taxes &amp; LLC Fees</option>
+            <option value="Other Overhead">Other Overhead</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Vendor / Description</label>
+          <input type="text" id="edit-exp-vendor" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Notes</label>
+          <input type="text" id="edit-exp-notes">
+        </div>
+        <button type="submit" class="btn-card">Update Expense</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: FULL EDIT PRODUCT & COGS MODAL -->
   <div id="edit-product-modal" class="modal-overlay" onclick="if(event.target===this) closeEditModal()">
     <div class="modal-box" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
       <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
       <span class="section-kicker">Full Product &amp; Margin Editor</span>
       <h3 style="font-size: 22px; margin-bottom: 14px;">Edit Product, COGS, Photo &amp; Stock</h3>
 
-      <form id="edit-product-form">
+      <form id="edit-product-form" style="display:flex; flex-direction:column; gap:12px;">
         <input type="hidden" id="edit-prod-id">
         <input type="hidden" id="edit-prod-existing-image">
 
-        <label style="font-size:12px; font-weight:700;">Product Name</label>
-        <input type="text" id="edit-prod-name" required>
+        <div class="field-group">
+          <label class="field-label">Product Name</label>
+          <input type="text" id="edit-prod-name" required>
+        </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-          <div>
-            <label style="font-size:12px; font-weight:700;">Category</label>
+          <div class="field-group">
+            <label class="field-label">Category</label>
             <select id="edit-prod-category">
               <option value="tees">Graphic Tees</option>
               <option value="hoodies">Hoodies</option>
               <option value="accessories">Accessories</option>
             </select>
           </div>
-          <div>
-            <label style="font-size:12px; font-weight:700;">Retail Price ($)</label>
+          <div class="field-group">
+            <label class="field-label">Retail Price ($)</label>
             <input type="number" id="edit-prod-price" min="1" step="0.01" oninput="updateEditMarginPreview()" required>
           </div>
-          <div>
-            <label style="font-size:12px; font-weight:700;">Unit Cost / COGS ($)</label>
+          <div class="field-group">
+            <label class="field-label">Unit Cost / COGS ($)</label>
             <input type="number" id="edit-prod-cost" min="0" step="0.01" oninput="updateEditMarginPreview()" required>
           </div>
-          <div>
-            <label style="font-size:12px; font-weight:700;">Status</label>
+          <div class="field-group">
+            <label class="field-label">Status</label>
             <select id="edit-prod-status">
               <option value="In Stock">In Stock</option>
               <option value="Low Stock">Low Stock</option>
@@ -707,39 +1186,47 @@
           </div>
         </div>
 
-        <p id="edit-margin-preview" style="font-size:12px; font-weight:700; color:#10b981; margin: 4px 0 8px;"></p>
+        <p id="edit-margin-preview" style="font-size:12px; font-weight:700; color:#10b981;"></p>
 
-        <label style="font-size:12px; font-weight:700;">Badge</label>
-        <input type="text" id="edit-prod-badge">
-
-        <label style="display:block; font-size: 12px; font-weight: 700; margin-top: 8px;">Inventory Count by Size:</label>
-        <div class="size-stock-grid">
-          <div class="size-stock-cell"><label>S</label><input type="number" id="edit-stock-S" min="0"></div>
-          <div class="size-stock-cell"><label>M</label><input type="number" id="edit-stock-M" min="0"></div>
-          <div class="size-stock-cell"><label>L</label><input type="number" id="edit-stock-L" min="0"></div>
-          <div class="size-stock-cell"><label>XL</label><input type="number" id="edit-stock-XL" min="0"></div>
-          <div class="size-stock-cell"><label>2XL</label><input type="number" id="edit-stock-2XL" min="0"></div>
+        <div class="field-group">
+          <label class="field-label">Drop Badge</label>
+          <input type="text" id="edit-prod-badge">
         </div>
 
-        <div style="margin: 10px 0;">
-          <label style="display:block; font-size: 12px; font-weight: 700; margin-bottom: 4px;">Upload New Photo (Replaces current image):</label>
+        <div>
+          <span class="field-label">Inventory Count by Size</span>
+          <div class="size-stock-grid">
+            <div class="size-stock-cell"><label>S</label><input type="number" id="edit-stock-S" min="0"></div>
+            <div class="size-stock-cell"><label>M</label><input type="number" id="edit-stock-M" min="0"></div>
+            <div class="size-stock-cell"><label>L</label><input type="number" id="edit-stock-L" min="0"></div>
+            <div class="size-stock-cell"><label>XL</label><input type="number" id="edit-stock-XL" min="0"></div>
+            <div class="size-stock-cell"><label>2XL</label><input type="number" id="edit-stock-2XL" min="0"></div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Upload New Photo (Replaces current image)</label>
           <input type="file" id="edit-prod-image-file" accept="image/*">
-          <label style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;">
+          <label style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; cursor:pointer;">
             <input type="checkbox" id="edit-reset-emblem"> Revert to default MSJ typographic emblem
           </label>
         </div>
 
-        <label style="font-size:12px; font-weight:700;">Fit Notes</label>
-        <input type="text" id="edit-prod-fit">
-
-        <label style="font-size:12px; font-weight:700;">Fabric &amp; Care</label>
-        <input type="text" id="edit-prod-care">
-
-        <label style="font-size:12px; font-weight:700;">Description</label>
-        <textarea id="edit-prod-desc" required></textarea>
+        <div class="field-group">
+          <label class="field-label">Fit Notes</label>
+          <input type="text" id="edit-prod-fit">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Fabric &amp; Care</label>
+          <input type="text" id="edit-prod-care">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Description</label>
+          <textarea id="edit-prod-desc" required></textarea>
+        </div>
 
         <button type="submit" id="save-edit-btn" class="btn-card">Save All Product Changes</button>
-        <p id="edit-prod-msg" class="modal-status" style="margin-top: 8px;"></p>
+        <p id="edit-prod-msg" class="modal-status"></p>
       </form>
     </div>
   </div>
@@ -750,6 +1237,7 @@
     let cachedProducts = [];
     let cachedOrders = [];
     let cachedExpenses = [];
+    let cachedPnlAdjustments = [];
     let cachedPromos = [];
     let budgetSettings = { restock_pct: 35, tax_pct: 25, owner_pct: 25, marketing_pct: 15 };
     let trendChartInstance = null;
@@ -804,10 +1292,11 @@
     }
 
     async function loadAllAdminData() {
-      const [prodRes, ordRes, expRes, promoRes, budgetRes] = await Promise.all([
+      const [prodRes, ordRes, expRes, pnlRes, promoRes, budgetRes] = await Promise.all([
         msjSupabase.from("products").select("*").order("created_at", { ascending: false }),
         msjSupabase.from("orders").select("*").order("created_at", { ascending: false }),
         msjSupabase.from("expenses").select("*").order("expense_date", { ascending: false }),
+        msjSupabase.from("pnl_adjustments").select("*").order("entry_date", { ascending: false }),
         msjSupabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
         msjSupabase.from("budget_settings").select("*").eq("id", 1).maybeSingle()
       ]);
@@ -815,6 +1304,7 @@
       cachedProducts = prodRes.data || [];
       cachedOrders = ordRes.data || [];
       cachedExpenses = expRes.data || [];
+      cachedPnlAdjustments = pnlRes.data || [];
       cachedPromos = promoRes.data || [];
 
       if (budgetRes.data) {
@@ -836,6 +1326,17 @@
       return item.size_stock || { S: 10, M: 10, L: 10, XL: 10, "2XL": 10 };
     }
 
+    function getProductTotalUnits(item) {
+      const map = getStockMap(item);
+      return Object.values(map).reduce((s, q) => s + Number(q || 0), 0);
+    }
+
+    function handleAnalyticsPeriodChange() {
+      const period = document.getElementById("analytics-period").value;
+      document.getElementById("analytics-custom-dates").style.display = period === "custom" ? "flex" : "none";
+      refreshDashboardAnalytics();
+    }
+
     function filterByPeriod(dateStr) {
       const period = document.getElementById("analytics-period").value;
       if (period === "all") return true;
@@ -845,6 +1346,14 @@
       if (period === "30d") return (now - d) <= 30 * 86400000;
       if (period === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       if (period === "year") return d.getFullYear() === now.getFullYear();
+      if (period === "custom") {
+        const fromVal = document.getElementById("analytics-from-date").value;
+        const toVal = document.getElementById("analytics-to-date").value;
+        const isoDay = d.toISOString().slice(0, 10);
+        if (fromVal && isoDay < fromVal) return false;
+        if (toVal && isoDay > toVal) return false;
+        return true;
+      }
       return true;
     }
 
@@ -858,7 +1367,7 @@
     }
 
     // ============================================================
-    // PEAK ANALYTICS, P&L STATEMENT & PROFIT-FIRST ALLOCATOR
+    // ANALYTICS, EDITABLE P&L & PROFIT-FIRST BUDGET ALLOCATOR
     // ============================================================
 
     function refreshDashboardAnalytics() {
@@ -871,15 +1380,18 @@
       });
 
       const periodExpenses = cachedExpenses.filter(e => filterByPeriod(e.expense_date + "T12:00:00"));
+      const periodAdjs = cachedPnlAdjustments.filter(a => filterByPeriod(a.entry_date + "T12:00:00"));
 
       const merchSales = validOrders.reduce((s, o) => s + Number(o.subtotal || 0), 0);
+      const manualRev = periodAdjs.filter(a => a.entry_type === "revenue").reduce((s, a) => s + Number(a.amount || 0), 0);
+      const manualDed = periodAdjs.filter(a => a.entry_type === "deduction").reduce((s, a) => s + Number(a.amount || 0), 0);
       const discounts = validOrders.reduce((s, o) => s + Number(o.discount_amount || 0), 0);
       const shipCollected = validOrders.reduce((s, o) => s + Number(o.shipping_cost || 0), 0);
-      const grossReceipts = validOrders.reduce((s, o) => s + Number(o.total || 0), 0);
+      const grossReceipts = validOrders.reduce((s, o) => s + Number(o.total || 0), 0) + manualRev;
 
       const paidReceipts = cachedOrders
         .filter(o => o.fulfillment_status !== "Cancelled" && filterByPeriod(o.created_at) && (o.payment_status || "").toLowerCase().includes("paid"))
-        .reduce((s, o) => s + Number(o.total || 0), 0);
+        .reduce((s, o) => s + Number(o.total || 0), 0) + manualRev;
 
       const cogs = validOrders.reduce((s, o) => s + getOrderCogs(o), 0);
       const shipPaid = validOrders.reduce((s, o) => s + Number(o.actual_shipping_cost || 0), 0);
@@ -888,9 +1400,9 @@
 
       const grossProfit = grossReceipts - cogs - shipPaid - fees;
       const grossMarginPct = grossReceipts > 0 ? (grossProfit / grossReceipts) * 100 : 0;
-      const netProfit = grossProfit - overhead;
+      const netProfit = grossProfit - overhead - manualDed;
       const netMarginPct = grossReceipts > 0 ? (netProfit / grossReceipts) * 100 : 0;
-      const aov = validOrders.length > 0 ? grossReceipts / validOrders.length : 0;
+      const aov = validOrders.length > 0 ? (grossReceipts - manualRev) / validOrders.length : 0;
 
       // Inventory Valuation & Alerts
       let stockRetailVal = 0;
@@ -909,14 +1421,13 @@
 
       const unfulfilledCount = cachedOrders.filter(o => o.fulfillment_status === "Unfulfilled").length;
 
-      // Update Top KPI Cards
       document.getElementById("kpi-gross-rev").textContent = `$${grossReceipts.toFixed(2)}`;
       document.getElementById("kpi-paid-rev").textContent = `$${paidReceipts.toFixed(2)} confirmed paid`;
       const netEl = document.getElementById("kpi-net-profit");
       netEl.textContent = `${netProfit < 0 ? "-" : ""}$${Math.abs(netProfit).toFixed(2)}`;
       netEl.style.color = netProfit >= 0 ? "#10b981" : "#ef4444";
       document.getElementById("kpi-net-margin").textContent = `${netMarginPct.toFixed(1)}% true net margin`;
-      document.getElementById("kpi-total-costs").textContent = `$${(cogs + shipPaid + fees + overhead).toFixed(2)}`;
+      document.getElementById("kpi-total-costs").textContent = `$${(cogs + shipPaid + fees + overhead + manualDed).toFixed(2)}`;
       document.getElementById("kpi-costs-sub").textContent = `COGS $${cogs.toFixed(0)} • Overhead $${overhead.toFixed(0)}`;
       document.getElementById("kpi-aov").textContent = `$${aov.toFixed(2)}`;
       document.getElementById("kpi-order-count").textContent = `${validOrders.length} orders in period`;
@@ -927,6 +1438,7 @@
 
       // Update P&L Statement
       document.getElementById("pnl-merch").textContent = `$${merchSales.toFixed(2)}`;
+      document.getElementById("pnl-manual-rev").textContent = `+$${manualRev.toFixed(2)}`;
       document.getElementById("pnl-discounts").textContent = `-$${discounts.toFixed(2)}`;
       document.getElementById("pnl-ship-collected").textContent = `$${shipCollected.toFixed(2)}`;
       document.getElementById("pnl-gross-receipts").textContent = `$${grossReceipts.toFixed(2)}`;
@@ -936,9 +1448,12 @@
       document.getElementById("pnl-gross-margin-badge").textContent = `(${grossMarginPct.toFixed(1)}% Gross Margin)`;
       document.getElementById("pnl-gross-profit").textContent = `$${grossProfit.toFixed(2)}`;
       document.getElementById("pnl-expenses").textContent = `-$${overhead.toFixed(2)}`;
+      document.getElementById("pnl-manual-ded").textContent = `-$${manualDed.toFixed(2)}`;
       const pnlNetEl = document.getElementById("pnl-net-profit");
       pnlNetEl.textContent = `${netProfit < 0 ? "-" : ""}$${Math.abs(netProfit).toFixed(2)}`;
       pnlNetEl.style.color = netProfit >= 0 ? "#10b981" : "#ef4444";
+
+      renderPnlAdjustmentsList(periodAdjs);
 
       // Update Profit-First Budget Buckets
       const allocBase = Math.max(0, netProfit);
@@ -981,8 +1496,80 @@
       renderSkuLeaderboard(validOrders);
     }
 
+    function renderPnlAdjustmentsList(periodAdjs) {
+      const box = document.getElementById("pnl-adjustments-list");
+      if (!periodAdjs.length) {
+        box.innerHTML = "";
+        return;
+      }
+      box.innerHTML = `
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#71717a;margin-bottom:6px;">Manual P&amp;L Entries in Period</p>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${periodAdjs.map(a => `
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:7px 10px;font-size:12px;">
+              <div>
+                <strong>${a.entry_date}</strong> • ${a.title}
+                <span style="font-weight:700;color:${a.entry_type === "revenue" ? "#10b981" : "#ef4444"};margin-left:6px;">
+                  ${a.entry_type === "revenue" ? "+" : "-"}$${Number(a.amount).toFixed(2)}
+                </span>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button type="button" class="mini-action-btn" onclick="openPnlAdjModal('${a.id}')">Edit</button>
+                <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deletePnlAdj('${a.id}')">&times;</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function openPnlAdjModal(id = "") {
+      const modal = document.getElementById("pnl-adj-modal");
+      const existing = id ? cachedPnlAdjustments.find(a => a.id === id) : null;
+      document.getElementById("pnl-adj-modal-title").textContent = existing ? "Edit P&L Entry" : "Add Manual P&L Entry";
+      document.getElementById("pnl-adj-id").value = existing ? existing.id : "";
+      document.getElementById("pnl-adj-date").value = existing ? existing.entry_date : new Date().toISOString().slice(0, 10);
+      document.getElementById("pnl-adj-type").value = existing ? existing.entry_type : "revenue";
+      document.getElementById("pnl-adj-title").value = existing ? existing.title : "";
+      document.getElementById("pnl-adj-amount").value = existing ? existing.amount : "";
+      document.getElementById("pnl-adj-notes").value = existing ? existing.notes : "";
+      modal.classList.add("active");
+    }
+
+    function closePnlAdjModal() {
+      document.getElementById("pnl-adj-modal").classList.remove("active");
+    }
+
+    document.getElementById("pnl-adj-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("pnl-adj-id").value;
+      const payload = {
+        entry_date: document.getElementById("pnl-adj-date").value,
+        entry_type: document.getElementById("pnl-adj-type").value,
+        title: document.getElementById("pnl-adj-title").value.trim(),
+        amount: parseFloat(document.getElementById("pnl-adj-amount").value),
+        notes: document.getElementById("pnl-adj-notes").value.trim()
+      };
+
+      const { error } = id
+        ? await msjSupabase.from("pnl_adjustments").update(payload).eq("id", id)
+        : await msjSupabase.from("pnl_adjustments").insert([payload]);
+
+      if (error) {
+        alert("Could not save P&L entry: " + error.message);
+      } else {
+        closePnlAdjModal();
+        loadAllAdminData();
+      }
+    });
+
+    async function deletePnlAdj(id) {
+      if (!confirm("Delete this manual P&L entry?")) return;
+      await msjSupabase.from("pnl_adjustments").delete().eq("id", id);
+      loadAllAdminData();
+    }
+
     function renderCharts(validOrders) {
-      // Group orders by date for trend chart
       const byDay = {};
       validOrders.slice().reverse().forEach(o => {
         const day = new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -1010,7 +1597,6 @@
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      // Category mix chart
       const catTotals = { Tees: 0, Hoodies: 0, Accessories: 0 };
       const prodCatMap = new Map(cachedProducts.map(p => [p.id, p.category]));
       validOrders.forEach(o => {
@@ -1040,10 +1626,14 @@
     function renderSkuLeaderboard(validOrders) {
       const stats = new Map();
       cachedProducts.forEach(p => {
+        const price = Number(p.price || 0);
+        const cost = Number(p.unit_cost || 0);
         stats.set(p.id, {
           name: p.name,
-          price: Number(p.price || 0),
-          cost: Number(p.unit_cost || 0),
+          price,
+          cost,
+          unitProfit: price - cost,
+          marginPct: price > 0 ? ((price - cost) / price) * 100 : 0,
           sold: 0,
           profit: 0
         });
@@ -1052,7 +1642,17 @@
       validOrders.forEach(o => {
         (o.items || []).forEach(i => {
           if (!stats.has(i.id)) {
-            stats.set(i.id, { name: i.name, price: Number(i.price || 0), cost: Number(i.unit_cost || 11.5), sold: 0, profit: 0 });
+            const price = Number(i.price || 0);
+            const cost = Number(i.unit_cost || 11.5);
+            stats.set(i.id, {
+              name: i.name,
+              price,
+              cost,
+              unitProfit: price - cost,
+              marginPct: price > 0 ? ((price - cost) / price) * 100 : 0,
+              sold: 0,
+              profit: 0
+            });
           }
           const rec = stats.get(i.id);
           const qty = Number(i.qty || 1);
@@ -1062,22 +1662,26 @@
         });
       });
 
-      const sorted = Array.from(stats.values()).sort((a, b) => b.profit - a.profit || b.price - a.price);
-      document.getElementById("sku-profitability-body").innerHTML = sorted.map(s => {
-        const unitProfit = s.price - s.cost;
-        const margin = s.price > 0 ? (unitProfit / s.price) * 100 : 0;
-        return `
-          <tr>
-            <td><strong>${s.name}</strong></td>
-            <td>$${s.price.toFixed(2)}</td>
-            <td>$${s.cost.toFixed(2)}</td>
-            <td style="color:#10b981;font-weight:700;">$${unitProfit.toFixed(2)}</td>
-            <td>${margin.toFixed(1)}%</td>
-            <td><strong>${s.sold}</strong></td>
-            <td style="font-weight:800;">$${s.profit.toFixed(2)}</td>
-          </tr>
-        `;
-      }).join("");
+      const sortMode = document.getElementById("sku-sort-by").value;
+      const sorted = Array.from(stats.values()).sort((a, b) => {
+        if (sortMode === "unit-profit-desc") return b.unitProfit - a.unitProfit;
+        if (sortMode === "margin-desc") return b.marginPct - a.marginPct;
+        if (sortMode === "sold-desc") return b.sold - a.sold;
+        if (sortMode === "name-asc") return a.name.localeCompare(b.name);
+        return b.profit - a.profit || b.unitProfit - a.unitProfit;
+      });
+
+      document.getElementById("sku-profitability-body").innerHTML = sorted.map(s => `
+        <tr>
+          <td><strong>${s.name}</strong></td>
+          <td>$${s.price.toFixed(2)}</td>
+          <td>$${s.cost.toFixed(2)}</td>
+          <td style="color:#10b981;font-weight:700;">$${s.unitProfit.toFixed(2)}</td>
+          <td>${s.marginPct.toFixed(1)}%</td>
+          <td><strong>${s.sold}</strong></td>
+          <td style="font-weight:800;">$${s.profit.toFixed(2)}</td>
+        </tr>
+      `).join("");
     }
 
     document.getElementById("budget-rules-form").addEventListener("submit", async (e) => {
@@ -1115,7 +1719,7 @@
     });
 
     // ============================================================
-    // EXPENSES LEDGER
+    // EXPENSES LEDGER (SORTABLE, FILTERABLE & EDITABLE)
     // ============================================================
 
     document.getElementById("new-expense-form").addEventListener("submit", async (e) => {
@@ -1139,25 +1743,89 @@
 
     function renderExpensesList() {
       const body = document.getElementById("admin-expenses-body");
-      const total = cachedExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-      document.getElementById("expense-ledger-total").textContent = `Total Logged: $${total.toFixed(2)}`;
+      const q = (document.getElementById("exp-search-input").value || "").trim().toLowerCase();
+      const cat = document.getElementById("exp-filter-category").value;
+      const fromDate = document.getElementById("exp-from-date").value;
+      const toDate = document.getElementById("exp-to-date").value;
+      const sortBy = document.getElementById("exp-sort-by").value;
 
-      if (cachedExpenses.length === 0) {
-        body.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted);">No operating expenses logged yet. Add blank restocks, DTF ink/film, mailers, or ad spend above.</td></tr>`;
+      let filtered = cachedExpenses.filter(exp => {
+        if (cat !== "all" && exp.category !== cat) return false;
+        if (fromDate && exp.expense_date < fromDate) return false;
+        if (toDate && exp.expense_date > toDate) return false;
+        if (q) {
+          const hay = `${exp.vendor_description} ${exp.notes} ${exp.category}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortBy === "date-asc") return a.expense_date.localeCompare(b.expense_date);
+        if (sortBy === "amount-desc") return Number(b.amount) - Number(a.amount);
+        if (sortBy === "amount-asc") return Number(a.amount) - Number(b.amount);
+        if (sortBy === "category-asc") return a.category.localeCompare(b.category);
+        return b.expense_date.localeCompare(a.expense_date);
+      });
+
+      document.getElementById("exp-visible-count").textContent = filtered.length;
+      const total = filtered.reduce((s, e) => s + Number(e.amount || 0), 0);
+      document.getElementById("expense-ledger-total").textContent = `Filtered Total: $${total.toFixed(2)}`;
+
+      if (filtered.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted);">No expenses match your filters.</td></tr>`;
         return;
       }
 
-      body.innerHTML = cachedExpenses.map(exp => `
+      body.innerHTML = filtered.map(exp => `
         <tr>
-          <td>${exp.expense_date}</td>
-          <td><strong>${exp.category}</strong></td>
+          <td><strong>${exp.expense_date}</strong></td>
+          <td>${exp.category}</td>
           <td>${exp.vendor_description}</td>
           <td style="color:var(--text-muted);">${exp.notes || "—"}</td>
           <td style="font-weight:700;color:#ef4444;">-$${Number(exp.amount).toFixed(2)}</td>
-          <td><button type="button" class="filter-btn" style="padding:4px 8px;color:#ef4444;" onclick="deleteExpense('${exp.id}')">&times;</button></td>
+          <td style="white-space:nowrap;">
+            <button type="button" class="mini-action-btn" onclick="openEditExpenseModal('${exp.id}')">Edit</button>
+            <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteExpense('${exp.id}')">&times;</button>
+          </td>
         </tr>
       `).join("");
     }
+
+    function openEditExpenseModal(id) {
+      const exp = cachedExpenses.find(e => e.id === id);
+      if (!exp) return;
+      document.getElementById("edit-exp-id").value = exp.id;
+      document.getElementById("edit-exp-date").value = exp.expense_date;
+      document.getElementById("edit-exp-amount").value = exp.amount;
+      document.getElementById("edit-exp-category").value = exp.category;
+      document.getElementById("edit-exp-vendor").value = exp.vendor_description;
+      document.getElementById("edit-exp-notes").value = exp.notes || "";
+      document.getElementById("edit-expense-modal").classList.add("active");
+    }
+
+    function closeEditExpenseModal() {
+      document.getElementById("edit-expense-modal").classList.remove("active");
+    }
+
+    document.getElementById("edit-expense-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("edit-exp-id").value;
+      const { error } = await msjSupabase.from("expenses").update({
+        expense_date: document.getElementById("edit-exp-date").value,
+        amount: parseFloat(document.getElementById("edit-exp-amount").value),
+        category: document.getElementById("edit-exp-category").value,
+        vendor_description: document.getElementById("edit-exp-vendor").value.trim(),
+        notes: document.getElementById("edit-exp-notes").value.trim()
+      }).eq("id", id);
+
+      if (error) {
+        alert("Failed to update expense: " + error.message);
+      } else {
+        closeEditExpenseModal();
+        loadAllAdminData();
+      }
+    });
 
     async function deleteExpense(id) {
       if (!confirm("Delete this expense entry?")) return;
@@ -1166,18 +1834,61 @@
     }
 
     // ============================================================
-    // ORDERS & FULFILLMENT (WITH LABEL COST & NET ORDER MARGIN)
+    // ORDERS & FULFILLMENT (SORTABLE & FILTERABLE)
     // ============================================================
+
+    function resetOrderFilters() {
+      document.getElementById("order-search-input").value = "";
+      document.getElementById("order-filter-status").value = "all";
+      document.getElementById("order-filter-payment").value = "all";
+      document.getElementById("order-from-date").value = "";
+      document.getElementById("order-to-date").value = "";
+      document.getElementById("order-sort-by").value = "date-desc";
+      renderOrdersList();
+    }
 
     function renderOrdersList() {
       const list = document.getElementById("admin-orders-list");
-      const filter = document.getElementById("order-filter-status").value;
-      const filtered = filter === "all"
-        ? cachedOrders
-        : cachedOrders.filter(o => o.fulfillment_status === filter);
+      const q = (document.getElementById("order-search-input").value || "").trim().toLowerCase();
+      const statusFilter = document.getElementById("order-filter-status").value;
+      const payFilter = document.getElementById("order-filter-payment").value;
+      const fromDate = document.getElementById("order-from-date").value;
+      const toDate = document.getElementById("order-to-date").value;
+      const sortBy = document.getElementById("order-sort-by").value;
+
+      let filtered = cachedOrders.filter(o => {
+        if (statusFilter !== "all" && o.fulfillment_status !== statusFilter) return false;
+        const isPaid = (o.payment_status || "").toLowerCase().includes("paid");
+        if (payFilter === "paid" && !isPaid) return false;
+        if (payFilter === "pending" && isPaid) return false;
+
+        const isoDay = new Date(o.created_at).toISOString().slice(0, 10);
+        if (fromDate && isoDay < fromDate) return false;
+        if (toDate && isoDay > toDate) return false;
+
+        if (q) {
+          const hay = `${o.order_number} ${o.customer_name} ${o.customer_email} ${o.tracking_number} ${o.shipping_address}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortBy === "date-asc") return new Date(a.created_at) - new Date(b.created_at);
+        if (sortBy === "total-desc") return Number(b.total) - Number(a.total);
+        if (sortBy === "total-asc") return Number(a.total) - Number(b.total);
+        if (sortBy === "profit-desc") {
+          const profA = Number(a.total) - getOrderCogs(a) - Number(a.actual_shipping_cost || 0) - Number(a.payment_fee || 0);
+          const profB = Number(b.total) - getOrderCogs(b) - Number(b.actual_shipping_cost || 0) - Number(b.payment_fee || 0);
+          return profB - profA;
+        }
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      document.getElementById("orders-visible-count").textContent = filtered.length;
 
       if (filtered.length === 0) {
-        list.innerHTML = `<div class="contact-card" style="max-width:100%;"><p style="color:var(--text-muted);">No orders match this filter yet.</p></div>`;
+        list.innerHTML = `<div class="contact-card" style="max-width:100%;"><p style="color:var(--text-muted);">No orders match your current search or filters.</p></div>`;
         return;
       }
 
@@ -1224,26 +1935,26 @@
             </div>
 
             <div class="tracking-bar">
-              <select id="carrier-${ord.id}" style="padding: 9px 10px; border-radius: 8px; margin:0;">
+              <select id="carrier-${ord.id}">
                 ${["USPS", "UPS", "FedEx", "DHL", "Local Pickup"].map(c =>
                   `<option value="${c}" ${ord.tracking_carrier === c ? "selected" : ""}>${c}</option>`
                 ).join("")}
               </select>
 
-              <input type="text" id="track-${ord.id}" value="${ord.tracking_number || ""}" placeholder="Tracking Number..." style="margin:0;">
+              <input type="text" id="track-${ord.id}" value="${ord.tracking_number || ""}" placeholder="Tracking Number...">
 
-              <input type="number" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : ""}" step="0.01" min="0" placeholder="Label Cost ($)" style="margin:0;">
+              <input type="number" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : ""}" step="0.01" min="0" placeholder="Label Cost ($)">
 
-              <select id="status-${ord.id}" style="padding: 9px 10px; border-radius: 8px; margin:0;">
+              <select id="status-${ord.id}">
                 ${["Unfulfilled", "Packing", "Shipped", "Delivered", "Cancelled"].map(st =>
                   `<option value="${st}" ${ord.fulfillment_status === st ? "selected" : ""}>${st}</option>`
                 ).join("")}
               </select>
 
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save</button>
-                ${!isPaid ? `<button type="button" class="filter-btn" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
-                <button type="button" class="filter-btn" onclick="printPackingSlip('${ord.id}')">Slip</button>
+                <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save</button>
+                ${!isPaid ? `<button type="button" class="filter-btn" style="height:42px;" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
+                <button type="button" class="filter-btn" style="height:42px;" onclick="printPackingSlip('${ord.id}')">Slip</button>
               </div>
             </div>
           </div>
@@ -1342,8 +2053,16 @@
     }
 
     // ============================================================
-    // INVENTORY, COGS & PRODUCT EDITOR
+    // INVENTORY, COGS & PRODUCT EDITOR (SORTABLE & FILTERABLE)
     // ============================================================
+
+    function resetInventoryFilters() {
+      document.getElementById("inv-search-input").value = "";
+      document.getElementById("inv-filter-category").value = "all";
+      document.getElementById("inv-filter-status").value = "all";
+      document.getElementById("inv-sort-by").value = "newest";
+      renderInventoryList();
+    }
 
     function updateNewMarginPreview() {
       const price = parseFloat(document.getElementById("prod-price").value || "0");
@@ -1371,8 +2090,47 @@
 
     function renderInventoryList() {
       const list = document.getElementById("admin-inventory-list");
-      list.innerHTML = cachedProducts.map(item => {
+      const q = (document.getElementById("inv-search-input").value || "").trim().toLowerCase();
+      const cat = document.getElementById("inv-filter-category").value;
+      const status = document.getElementById("inv-filter-status").value;
+      const sortBy = document.getElementById("inv-sort-by").value;
+
+      let filtered = cachedProducts.filter(p => {
+        if (cat !== "all" && p.category !== cat) return false;
+        if (status !== "all" && p.status !== status) return false;
+        if (q) {
+          const hay = `${p.name} ${p.badge} ${p.description}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        const unitsA = getProductTotalUnits(a);
+        const unitsB = getProductTotalUnits(b);
+        const marginA = Number(a.price) > 0 ? (Number(a.price) - Number(a.unit_cost || 0)) / Number(a.price) : 0;
+        const marginB = Number(b.price) > 0 ? (Number(b.price) - Number(b.unit_cost || 0)) / Number(b.price) : 0;
+
+        if (sortBy === "oldest") return new Date(a.created_at) - new Date(b.created_at);
+        if (sortBy === "stock-asc") return unitsA - unitsB;
+        if (sortBy === "stock-desc") return unitsB - unitsA;
+        if (sortBy === "margin-desc") return marginB - marginA;
+        if (sortBy === "price-desc") return Number(b.price) - Number(a.price);
+        if (sortBy === "price-asc") return Number(a.price) - Number(b.price);
+        if (sortBy === "name-asc") return a.name.localeCompare(b.name);
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      document.getElementById("inv-visible-count").textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="contact-card" style="max-width:100%;"><p style="color:var(--text-muted);">No products match your filters.</p></div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(item => {
         const stock = getStockMap(item);
+        const totalUnits = getProductTotalUnits(item);
         const price = Number(item.price || 0);
         const cost = Number(item.unit_cost || 0);
         const unitProfit = price - cost;
@@ -1394,21 +2152,21 @@
               <div>
                 <strong style="font-size:16px;">${item.name}</strong>
                 <p style="font-size: 13px; color: var(--text-muted); margin: 3px 0 6px;">
-                  Retail: <strong>$${price.toFixed(2)}</strong> • COGS: <strong>$${cost.toFixed(2)}</strong> • Profit: <strong style="color:#10b981;">+$${unitProfit.toFixed(2)} (${marginPct.toFixed(0)}%)</strong>
+                  Retail: <strong>$${price.toFixed(2)}</strong> • COGS: <strong>$${cost.toFixed(2)}</strong> • Profit: <strong style="color:#10b981;">+$${unitProfit.toFixed(2)} (${marginPct.toFixed(0)}%)</strong> • Total: <strong>${totalUnits} units</strong>
                 </p>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">${stockBadges}</div>
               </div>
             </div>
 
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <select onchange="quickUpdateStatus('${item.id}', this.value)" style="padding: 8px 12px; border-radius: 8px; margin:0;">
+              <select onchange="quickUpdateStatus('${item.id}', this.value)" style="width:145px;">
                 ${["In Stock", "Low Stock", "Coming Soon", "Sold Out"].map(st =>
                   `<option value="${st}" ${item.status === st ? "selected" : ""}>${st}</option>`
                 ).join("")}
               </select>
 
-              <button type="button" class="btn-card" style="padding: 9px 14px; width:auto;" onclick="openEditModal('${item.id}')">Edit Product &amp; COGS</button>
-              <button type="button" class="filter-btn" style="color: #ef4444;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
+              <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="openEditModal('${item.id}')">Edit Product &amp; COGS</button>
+              <button type="button" class="filter-btn" style="color: #ef4444; height:42px;" onclick="deleteProduct('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
             </div>
           </div>
         `;
@@ -1590,12 +2348,28 @@
     }
 
     // ============================================================
-    // PROMO CODES & CSV ACCOUNTING EXPORTS
+    // PROMO CODES (SORTABLE & FILTERABLE) & CSV EXPORTS
     // ============================================================
 
     function renderPromosList() {
       const list = document.getElementById("admin-promos-list");
-      list.innerHTML = cachedPromos.map(p => `
+      const statusFilter = document.getElementById("promo-filter-status").value;
+      const sortBy = document.getElementById("promo-sort-by").value;
+
+      let filtered = cachedPromos.filter(p => {
+        if (statusFilter === "active" && !p.active) return false;
+        if (statusFilter === "paused" && p.active) return false;
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortBy === "uses-desc") return Number(b.uses_count || 0) - Number(a.uses_count || 0);
+        if (sortBy === "val-desc") return Number(b.discount_value || 0) - Number(a.discount_value || 0);
+        if (sortBy === "code-asc") return a.code.localeCompare(b.code);
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      list.innerHTML = filtered.map(p => `
         <div class="contact-card" style="max-width:100%; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:16px 20px;">
           <div>
             <strong style="font-size:17px; letter-spacing:0.05em;">${p.code}</strong>
@@ -1605,7 +2379,7 @@
           </div>
           <div style="display:flex; gap:8px;">
             <button type="button" class="filter-btn" onclick="togglePromo('${p.id}', ${!p.active})">
-              ${p.active ? "Active (Click to Pause)" : "Paused (Click to Activate)"}
+              ${p.active ? "Active (Pause)" : "Paused (Activate)"}
             </button>
             <button type="button" class="filter-btn" style="color:#ef4444;" onclick="deletePromo('${p.id}')">Delete</button>
           </div>
