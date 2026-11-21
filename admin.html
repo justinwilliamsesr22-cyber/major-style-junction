@@ -161,6 +161,19 @@
       font-size: 11px;
       font-weight: 700;
     }
+    .staff-scope-callout {
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+    }
 
     /* ============================================================
        UNIVERSAL SITE & ADMIN OMNISEARCH
@@ -477,6 +490,7 @@
       <nav>
         <a href="index.html">Live Site</a>
         <a href="shop.html">Shop</a>
+        <button type="button" id="exit-staff-preview-btn" class="filter-btn" style="display:none;" onclick="setStaffPreviewMode(false)">Back to Owner View</button>
         <button type="button" id="admin-signout-btn" class="filter-btn" style="display:none;" onclick="adminSignOut()">Sign Out</button>
       </nav>
     </div>
@@ -580,9 +594,9 @@
 
       <!-- STAFF-ONLY HEADER BANNER -->
       <div id="staff-welcome-banner" style="display:none; margin-bottom:20px;">
-        <span class="section-kicker">Staff Operations Mode</span>
+        <span class="section-kicker">Restricted Staff Operations View</span>
         <h1 id="staff-welcome-heading" style="font-size:26px;">Welcome to MSJ Studio Shift Portal</h1>
-        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Clock in/out for your shift, pack customer orders, add tracking numbers, and update garment stock counts.</p>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Clock in/out for your shift, pack customer orders, add tracking numbers, and update garment stock counts. Financial P&amp;L, COGS, expenses, and payroll rates are hidden.</p>
       </div>
 
       <!-- NAVIGATION TABS -->
@@ -843,39 +857,37 @@
           <div id="active-shifts-container" style="margin-top:16px;"></div>
         </div>
 
-        <!-- OWNER-ONLY: OVERTIME POLICY & SUGGESTED PRESETS -->
+        <!-- OWNER-ONLY: FOOLPROOF OVERTIME SETUP -->
         <div class="panel-box js-owner-only" style="margin-bottom: 22px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
             <div>
-              <span class="section-kicker">Payroll Automation</span>
-              <h2 style="font-size:20px;">Overtime Policy &amp; Suggested Thresholds</h2>
+              <span class="section-kicker">Simple Overtime Setup</span>
+              <h2 style="font-size:20px;">When Does Overtime Kick In?</h2>
               <p style="font-size:13px; color:var(--text-muted); margin-top:3px;">
-                Set how many hours an employee works before overtime automatically kicks in. Suggested US standards are provided below for 1-click setup.
+                Pick a suggested setup below or type your own hour limit. Any hours worked past that limit automatically count as overtime.
               </p>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 1.5)">Suggested: 40h Weekly (1.5x)</button>
-              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(8, 1.5)">Suggested: 8h Daily Shift (1.5x)</button>
-              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 2.0)">Double-Time (40h @ 2.0x)</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 1.5)">Suggested: 40 hrs/wk @ 1.5x</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(8, 1.5)">8 hrs/day @ 1.5x</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 2.0)">40 hrs/wk @ 2.0x</button>
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; align-items:end; background:#fafafa; border:1px solid #e4e4e7; border-radius:12px; padding:14px;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:12px; align-items:end; background:#fafafa; border:1px solid #e4e4e7; border-radius:12px; padding:14px;">
             <div class="field-group">
-              <label class="field-label">Overtime Kicks In After (Hours)</label>
+              <label class="field-label">Overtime Starts After (Hours)</label>
               <input type="number" id="ot-threshold-input" min="1" max="168" step="0.5" value="40" onchange="updateOvertimeSettings()">
             </div>
             <div class="field-group">
-              <label class="field-label">Overtime Rate Multiplier</label>
+              <label class="field-label">Overtime Pay Multiplier</label>
               <select id="ot-multiplier-input" onchange="updateOvertimeSettings()">
-                <option value="1.5">1.5x (Standard Time-and-a-Half)</option>
-                <option value="1.25">1.25x (Quarter-Time Bonus)</option>
-                <option value="2">2.0x (Double-Time)</option>
+                <option value="1.5">1.5x (1.5× Normal Pay)</option>
+                <option value="1.25">1.25x (1.25× Normal Pay)</option>
+                <option value="2">2.0x (Double Pay)</option>
               </select>
             </div>
-            <div style="font-size:12px; color:#52525b; padding-bottom:6px;" id="ot-policy-summary">
-              Active Rule: Hours over <strong>40 hrs</strong> automatically pay at <strong>1.5x</strong> base rate.
-            </div>
+            <div style="font-size:12px; color:#3f3f46; padding-bottom:6px; line-height:1.45;" id="ot-policy-summary"></div>
           </div>
         </div>
 
@@ -883,9 +895,20 @@
         <div class="contact-card js-owner-only" style="max-width: 100%; margin-bottom: 22px;">
           <span class="section-kicker">In-Store Staff Onboarding (Owner Only)</span>
           <h2 style="margin-bottom: 6px;">Create Staff Login Account &amp; Roster Profile</h2>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
-            Create a restricted staff login while at work. Staff can sign in from the main site&apos;s <strong>Sign In</strong> button to clock in, pack orders, and update stock counts—without seeing your P&amp;L, expenses, or payroll rates.
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+            Create a restricted staff login while at work. Staff sign in from the main site&apos;s <strong>Sign In</strong> button to clock in, pack orders, and update stock counts.
           </p>
+
+          <!-- RESTRICTED ACCESS DISCLOSURE & STAFF VIEW PREVIEW LINK -->
+          <div class="staff-scope-callout">
+            <div>
+              <strong>Staff Cannot View:</strong> P&amp;L &amp; Net Profit, Budget Vaults, Expenses, Unit COGS / Margins, Payroll Rates, or Promo Codes.
+            </div>
+            <button type="button" class="mini-action-btn" onclick="setStaffPreviewMode(true)">
+              Preview Restricted Staff View &rarr;
+            </button>
+          </div>
+
           <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; align-items: end;">
             <div class="field-group">
               <label class="field-label">Staff Full Name</label>
@@ -1500,6 +1523,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>
+    let isActualStaffAccount = false;
+    let isStaffPreviewActive = false;
     let isStaffUser = false;
     let currentSessionUser = null;
     let cachedProducts = [];
@@ -1595,7 +1620,9 @@
       if (threshInput) threshInput.value = overtimeSettings.thresholdHours;
       if (multInput) multInput.value = String(overtimeSettings.multiplier);
       if (summaryEl) {
-        summaryEl.innerHTML = `Active Rule: Hours over <strong>${overtimeSettings.thresholdHours} hrs</strong> automatically pay at <strong>${overtimeSettings.multiplier}x</strong> base rate.`;
+        const sampleBase = 20;
+        const sampleOt = (sampleBase * Number(overtimeSettings.multiplier || 1.5)).toFixed(2);
+        summaryEl.innerHTML = `After <strong>${overtimeSettings.thresholdHours} hrs</strong>, overtime kicks in at <strong>${overtimeSettings.multiplier}×</strong> pay.<br><span style="color:#71717a;">Example at $20/hr: First ${overtimeSettings.thresholdHours}h = $20.00/hr • Extra hours = <strong>$${sampleOt}/hr</strong></span>`;
       }
     }
 
@@ -1657,6 +1684,7 @@
     const loginView = document.getElementById("admin-login-view");
     const dashView = document.getElementById("admin-dashboard-view");
     const signoutBtn = document.getElementById("admin-signout-btn");
+    const exitPreviewBtn = document.getElementById("exit-staff-preview-btn");
 
     document.getElementById("exp-date").valueAsDate = new Date();
 
@@ -1668,6 +1696,14 @@
       }
     });
 
+    function setStaffPreviewMode(enable) {
+      if (isActualStaffAccount) return;
+      isStaffPreviewActive = Boolean(enable);
+      isStaffUser = isStaffPreviewActive;
+      applyRolePermissions();
+      loadAllAdminData();
+    }
+
     function applyRolePermissions() {
       document.querySelectorAll(".js-owner-only").forEach(el => {
         el.style.display = isStaffUser ? "none" : "";
@@ -1678,8 +1714,14 @@
       const omniLabel = document.getElementById("omnisearch-label");
       const invHeading = document.getElementById("inventory-section-heading");
 
+      if (exitPreviewBtn) {
+        exitPreviewBtn.style.display = (!isActualStaffAccount && isStaffPreviewActive) ? "inline-block" : "none";
+      }
+
       if (isStaffUser) {
-        const displayName = currentSessionUser?.user_metadata?.display_name || currentSessionUser?.email || "Team Member";
+        const displayName = isStaffPreviewActive
+          ? "Staff Preview (Owner Testing)"
+          : (currentSessionUser?.user_metadata?.display_name || currentSessionUser?.email || "Team Member");
         if (staffBanner) staffBanner.style.display = "block";
         document.getElementById("staff-welcome-heading").textContent = `Welcome, ${displayName}`;
         if (headerTitle) headerTitle.textContent = "Major Style Junction — Staff Shift & Fulfillment";
@@ -1699,7 +1741,8 @@
       const { data: { session } } = await msjSupabase.auth.getSession();
       if (session && session.user) {
         currentSessionUser = session.user;
-        isStaffUser = session.user.user_metadata?.role === "staff";
+        isActualStaffAccount = session.user.user_metadata?.role === "staff";
+        isStaffUser = isActualStaffAccount || isStaffPreviewActive;
         loginView.style.display = "none";
         dashView.style.display = "block";
         signoutBtn.style.display = "inline-block";
@@ -1707,10 +1750,13 @@
         loadAllAdminData();
       } else {
         currentSessionUser = null;
+        isActualStaffAccount = false;
+        isStaffPreviewActive = false;
         isStaffUser = false;
         loginView.style.display = "block";
         dashView.style.display = "none";
         signoutBtn.style.display = "none";
+        if (exitPreviewBtn) exitPreviewBtn.style.display = "none";
       }
     }
 
