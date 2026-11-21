@@ -122,6 +122,23 @@
       margin-bottom: 22px;
       border: 1px solid var(--border, #e4e4e7);
     }
+    .pos-clock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+    .pos-clock-grid > *,
+    .roster-card > *,
+    .roster-controls > * {
+      min-width: 0;
+    }
+    .roster-controls {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
     .live-clock-display {
       font-variant-numeric: tabular-nums;
       font-size: 26px;
@@ -288,7 +305,7 @@
        ============================================================ */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
       gap: 14px;
       margin-bottom: 24px;
     }
@@ -519,6 +536,9 @@
       background: #e4e4e7;
     }
     @media (max-width: 920px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
       .finance-grid, .charts-grid {
         grid-template-columns: 1fr;
       }
@@ -527,6 +547,11 @@
       }
       .pct-input-group {
         grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 600px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -891,7 +916,7 @@
             </div>
           </div>
 
-          <form id="pos-timeclock-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap:12px; align-items:end;">
+          <form id="pos-timeclock-form" class="pos-clock-grid">
             <div class="field-group">
               <label class="field-label">Select Team Member</label>
               <select id="clock-employee-select" required></select>
@@ -904,7 +929,7 @@
               <label class="field-label">Shift Station / Note</label>
               <input type="text" id="clock-note-input" placeholder="e.g., DTF Press / Packing / Pop-Up">
             </div>
-            <div style="display:flex; gap:8px;">
+            <div>
               <button type="submit" class="btn-card" style="height:42px;">Clock In / Out</button>
             </div>
           </form>
@@ -2087,21 +2112,28 @@
 
     function renderTeamRoster() {
       const selectEl = document.getElementById("clock-employee-select");
+      const activeMembers = cachedTeam.filter(m => m.active);
+      const matchedStaff = currentSessionUser
+        ? activeMembers.find(m => m.email && m.email.toLowerCase() === currentSessionUser.email.toLowerCase())
+        : null;
+
       if (selectEl) {
         const prevVal = selectEl.value;
-        const activeMembers = cachedTeam.filter(m => m.active);
         selectEl.innerHTML = activeMembers
           .map(m => `<option value="${m.id}">${m.name} (${activeShifts[m.id] ? "Currently Clocked In" : m.role})</option>`)
           .join("");
 
-        const matchedStaff = currentSessionUser
-          ? activeMembers.find(m => m.email && m.email.toLowerCase() === currentSessionUser.email.toLowerCase())
-          : null;
         if (matchedStaff) {
           selectEl.value = matchedStaff.id;
         } else if (prevVal && activeMembers.some(m => m.id === prevVal)) {
           selectEl.value = prevVal;
         }
+      }
+
+      const statusMsg = document.getElementById("timeclock-status-msg");
+      if (isStaffUser && matchedStaff && statusMsg && !statusMsg.textContent) {
+        statusMsg.style.color = "#52525b";
+        statusMsg.textContent = `Your assigned clock-in PIN: ${matchedStaff.pin || "1001"}`;
       }
 
       const activeBox = document.getElementById("active-shifts-container");
@@ -2160,7 +2192,7 @@
                 </p>
               </div>
 
-              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div class="roster-controls">
                 <div style="width:118px;">
                   <label class="field-label">Pay Type</label>
                   <select onchange="updateTeamField('${m.id}', 'payType', this.value)" style="height:42px;">
@@ -2213,9 +2245,10 @@
           logsBody.innerHTML = `<tr><td colspan="9" style="color:var(--text-muted);">No completed shifts logged yet. Clock in and out above to record shifts automatically.</td></tr>`;
         } else {
           logsBody.innerHTML = shiftLogs.map(log => {
+            const hasOt = Number(log.otHours || 0) > 0;
             const otCol = isStaffUser
               ? ""
-              : `<td>${Number(log.otHours || 0) > 0 ? `<span class="ot-badge">+${Number(log.otHours).toFixed(2)}h OT</span>` : "0.00h"}</td>`;
+              : `<td>${hasOt ? `<span class="ot-badge">+${Number(log.otHours).toFixed(2)}h OT</span>` : "0.00h"}</td>`;
             const payCol = isStaffUser ? "" : `<td style="color:#ef4444;font-weight:700;">-$${Number(log.earned).toFixed(2)}</td>`;
             const actCol = isStaffUser ? "" : `<td><button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteShiftLog('${log.id}')">&times;</button></td>`;
             return `
@@ -2224,7 +2257,7 @@
                 <td>${log.empName}</td>
                 <td>${log.clockIn}</td>
                 <td>${log.clockOut}</td>
-                <td><strong>${Number(log.hours).toFixed(2)} hrs</strong></td>
+                <td><strong>${Number(log.hours).toFixed(2)} hrs</strong> ${isStaffUser && hasOt ? `<span class="ot-badge">+OT</span>` : ""}</td>
                 ${otCol}
                 ${payCol}
                 <td>${log.note}</td>
