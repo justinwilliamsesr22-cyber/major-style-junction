@@ -113,6 +113,7 @@ let currentUser = null;
 let activeStaffSession = null;
 let activeQuickViewProduct = null;
 let selectedQuickViewSize = "L";
+let editingAccountOrderNum = null;
 
 function getAccountsDB() {
   try {
@@ -273,6 +274,7 @@ function handleRegisterAccount(e) {
   saveAccountsDB(db);
   localStorage.setItem(SESSION_KEY, email);
   loadCurrentUser();
+  syncCustomerOrdersFromSupabase();
   statusEl.textContent = "";
 }
 
@@ -318,6 +320,7 @@ async function handleSignInAccount(e) {
 
   localStorage.setItem(SESSION_KEY, email);
   await loadCurrentUser();
+  await syncCustomerOrdersFromSupabase();
   statusEl.textContent = "";
   if (submitBtn) {
     submitBtn.disabled = false;
@@ -355,6 +358,7 @@ function handleSaveProfile(e) {
 function handleSignOut() {
   localStorage.removeItem(SESSION_KEY);
   currentUser = null;
+  editingAccountOrderNum = null;
   updateAccountUI();
 }
 
@@ -397,6 +401,121 @@ function switchAccountPanel(panelName) {
   }
 }
 
+async function syncCustomerOrdersFromSupabase() {
+  if (!currentUser || !window.msjSupabase) return;
+  try {
+    const { data, error } = await window.msjSupabase
+      .from("orders")
+      .select("order_number, fulfillment_status, tracking_carrier, tracking_number, total, created_at, shipping_address, items")
+      .ilike("customer_email", currentUser.email)
+      .order("created_at", { ascending: false });
+
+    if (error || !Array.isArray(data) || data.length === 0) return;
+
+    const db = getAccountsDB();
+    const record = db[currentUser.email];
+    if (!record) return;
+
+    const localByNum = new Map((record.orders || []).map((o) => [o.orderNumber, o]));
+    record.orders = data.map((row) => {
+      const existing = localByNum.get(row.order_number);
+      const itemsSummary =
+        existing?.itemsSummary ||
+        (row.items || [])
+          .map((i) => `${i.qty}x ${i.name} [Size: ${i.size}] ($${(Number(i.price) * Number(i.qty)).toFixed(2)})`)
+          .join(" | ");
+      return {
+        orderNumber: row.order_number,
+        date:
+          existing?.date ||
+          new Date(row.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric"
+          }),
+        status: row.fulfillment_status || existing?.status || "Unfulfilled",
+        carrier: row.tracking_carrier || "",
+        tracking: row.tracking_number || "",
+        itemsSummary,
+        shippingAddress: row.shipping_address || existing?.shippingAddress || "",
+        phone: existing?.phone || record.phone || "",
+        subtotal: `$${Number(row.total || 0).toFixed(2)}`,
+        rawItems:
+          existing?.rawItems ||
+          (row.items || []).map((i) => ({ id: i.id, size: i.size, qty: i.qty }))
+      };
+    });
+
+    saveAccountsDB(db);
+    currentUser = db[currentUser.email];
+    renderOrderHistory();
+  } catch {}
+}
+
+function startEditAccountOrderAddress(orderNumber) {
+  editingAccountOrderNum = orderNumber;
+  renderOrderHistory();
+}
+
+function cancelEditAccountOrderAddress() {
+  editingAccountOrderNum = null;
+  renderOrderHistory();
+}
+
+async function saveAccountOrderAddress(orderNumber) {
+  if (!currentUser) return;
+  const input = document.getElementById(`edit-ord-addr-${orderNumber}`);
+  const nextAddress = input ? input.value.trim() : "";
+  if (!nextAddress) return;
+
+  const db = getAccountsDB();
+  const record = db[currentUser.email];
+  if (record && Array.isArray(record.orders)) {
+    record.orders = record.orders.map((o) =>
+      o.orderNumber === orderNumber ? { ...o, shippingAddress: nextAddress } : o
+    );
+    saveAccountsDB(db);
+    currentUser = db[currentUser.email];
+  }
+
+  if (window.msjSupabase) {
+    await window.msjSupabase
+      .from("orders")
+      .update({ shipping_address: nextAddress })
+      .eq("order_number", orderNumber)
+      .catch(() => {});
+  }
+
+  editingAccountOrderNum = null;
+  renderOrderHistory();
+}
+
+async function cancelUnfulfilledAccountOrder(orderNumber) {
+  if (!currentUser) return;
+  const db = getAccountsDB();
+  const record = db[currentUser.email];
+  if (!record || !Array.isArray(record.orders)) return;
+
+  const target = record.orders.find((o) => o.orderNumber === orderNumber);
+  if (!target || (target.status || "Unfulfilled") !== "Unfulfilled") return;
+
+  record.orders = record.orders.map((o) =>
+    o.orderNumber === orderNumber ? { ...o, status: "Cancelled" } : o
+  );
+  saveAccountsDB(db);
+  currentUser = db[currentUser.email];
+
+  if (window.msjSupabase) {
+    await window.msjSupabase
+      .from("orders")
+      .update({ fulfillment_status: "Cancelled" })
+      .eq("order_number", orderNumber)
+      .catch(() => {});
+  }
+
+  renderOrderHistory();
+}
+
 function renderOrderHistory() {
   const listEl = document.getElementById("acct-order-history-list");
   if (!listEl || !currentUser) return;
@@ -413,26 +532,47 @@ function renderOrderHistory() {
 
   listEl.innerHTML = orders
     .map(
-      (ord, index) => `
-      <div class="order-history-card">
-        <div class="order-history-top">
-          <div>
-            <strong>Order #${ord.orderNumber}</strong>
-            <span class="order-date">${ord.date}</span>
+      (ord, index) => {
+        const isEditing = editingAccountOrderNum === ord.orderNumber;
+        const canModify = (ord.status || "Unfulfilled") === "Unfulfilled";
+        const trackingLine = ord.tracking
+          ? `<p class="order-ship-line"><strong>${ord.carrier || "Carrier"} Tracking:</strong> ${ord.tracking}</p>`
+          : "";
+
+        return `
+          <div class="order-history-card">
+            <div class="order-history-top">
+              <div>
+                <strong>Order #${ord.orderNumber}</strong>
+                <span class="order-date">${ord.date}</span>
+              </div>
+              <span class="order-badge">${ord.status}</span>
+            </div>
+            <p class="order-items-line">${ord.itemsSummary}</p>
+            ${
+              isEditing
+                ? `
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
+                    <input type="text" id="edit-ord-addr-${ord.orderNumber}" value="${String(ord.shippingAddress || "").replace(/"/g, "&quot;")}" style="flex:1;min-width:200px;margin:0;padding:8px 10px;font-size:13px;">
+                    <button type="button" class="filter-btn active" onclick="saveAccountOrderAddress('${ord.orderNumber}')">Save Address</button>
+                    <button type="button" class="filter-btn" onclick="cancelEditAccountOrderAddress()">Cancel</button>
+                  </div>
+                `
+                : `<p class="order-ship-line">Ship to: ${ord.shippingAddress}${ord.phone ? ` • ${ord.phone}` : ""}</p>`
+            }
+            ${trackingLine}
+            <div class="order-history-bottom">
+              <strong>Total: ${ord.subtotal}</strong>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                ${canModify && !isEditing ? `<button type="button" class="size-guide-link" onclick="startEditAccountOrderAddress('${ord.orderNumber}')">Edit Address</button>` : ""}
+                ${canModify ? `<button type="button" class="size-guide-link" style="color:#ef4444;" onclick="cancelUnfulfilledAccountOrder('${ord.orderNumber}')">Cancel Order</button>` : ""}
+                <button type="button" class="size-guide-link" onclick="closeAccountModal(); openTrackModal('${ord.orderNumber}', '${currentUser.email}')">Track Status</button>
+                <button type="button" class="size-guide-link" onclick="reorderPastPurchase(${index})">Reorder</button>
+              </div>
+            </div>
           </div>
-          <span class="order-badge">${ord.status}</span>
-        </div>
-        <p class="order-items-line">${ord.itemsSummary}</p>
-        <p class="order-ship-line">Ship to: ${ord.shippingAddress}${ord.phone ? ` • ${ord.phone}` : ""}</p>
-        <div class="order-history-bottom">
-          <strong>Total: ${ord.subtotal}</strong>
-          <div style="display:flex;gap:10px;">
-            <button type="button" class="size-guide-link" onclick="closeAccountModal(); openTrackModal('${ord.orderNumber}', '${currentUser.email}')">Track Status</button>
-            <button type="button" class="size-guide-link" onclick="reorderPastPurchase(${index})">Reorder</button>
-          </div>
-        </div>
-      </div>
-    `
+        `;
+      }
     )
     .join("");
 }
@@ -440,13 +580,45 @@ function renderOrderHistory() {
 function reorderPastPurchase(orderIndex) {
   if (!currentUser || !currentUser.orders || !currentUser.orders[orderIndex]) return;
   const pastItems = currentUser.orders[orderIndex].rawItems || [];
+  let addedAny = false;
+
   pastItems.forEach((item) => {
-    for (let i = 0; i < item.qty; i++) {
-      addToBag(item.id, item.size);
+    const product = LIVE_PRODUCTS.find((p) => p.id === item.id);
+    if (!product) return;
+    const chosenSize = item.size || "L";
+    const maxAvailable = getSizeAvailableQty(product, chosenSize);
+    if (maxAvailable <= 0) return;
+
+    const wantQty = Math.min(Number(item.qty || 1), maxAvailable);
+    const existingIndex = msjCart.findIndex(
+      (entry) => entry.id === product.id && entry.size === chosenSize
+    );
+
+    if (existingIndex > -1) {
+      msjCart[existingIndex].qty = Math.min(
+        maxAvailable,
+        msjCart[existingIndex].qty + wantQty
+      );
+    } else {
+      msjCart.push({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        unit_cost: Number(product.unit_cost || 11.5),
+        image: product.image,
+        status: product.status,
+        size: chosenSize,
+        qty: wantQty
+      });
     }
+    addedAny = true;
   });
-  closeAccountModal();
-  openCartDrawer();
+
+  if (addedAny) {
+    saveCart();
+    closeAccountModal();
+    openCartDrawer();
+  }
 }
 
 function openAccountModal(defaultTab = "login") {
@@ -460,6 +632,9 @@ function openAccountModal(defaultTab = "login") {
     switchAuthTab(defaultTab);
   }
   updateAccountUI();
+  if (currentUser) {
+    syncCustomerOrdersFromSupabase();
+  }
   modal.classList.add("active");
 }
 
@@ -1270,6 +1445,8 @@ async function submitDirectOrderToDatabase(e) {
           orderNumber,
           date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
           status: "Unfulfilled",
+          carrier: "",
+          tracking: "",
           itemsSummary: orderSummary,
           shippingAddress,
           phone: customerPhone,
