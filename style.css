@@ -15,7 +15,9 @@
   --radius-lg: 18px;
 }
 
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -63,6 +65,10 @@ header {
   background-color: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+header ~ header {
+  display: none !important;
 }
 
 .nav-inner {
@@ -339,7 +345,7 @@ nav a.active {
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 72px 24px;
+  padding: 48px 24px 72px;
 }
 
 .section-head {
@@ -348,7 +354,7 @@ nav a.active {
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .section-kicker {
@@ -383,6 +389,7 @@ nav a.active {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .filter-btn {
@@ -395,6 +402,7 @@ nav a.active {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .filter-btn:hover,
@@ -743,7 +751,7 @@ nav a.active {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 36px;
+  padding: 28px;
   box-shadow: 0 12px 30px rgba(9, 9, 11, 0.04);
 }
 
@@ -757,13 +765,15 @@ nav a.active {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="number"],
+input[type="date"],
 select,
 textarea {
   width: 100%;
-  padding: 12px 15px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid var(--border-subtle);
-  background: #fafafa;
+  background: #ffffff;
   font-size: 14px;
   font-family: inherit;
   color: var(--text-main);
@@ -778,7 +788,7 @@ textarea:focus {
 }
 
 textarea {
-  min-height: 115px;
+  min-height: 100px;
   resize: vertical;
 }
 
@@ -1298,7 +1308,7 @@ footer a:hover {
 
   .contact-card,
   .legal-card {
-    padding: 24px;
+    padding: 20px;
   }
 
   .search-sort-group,
