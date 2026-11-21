@@ -34,6 +34,17 @@
       border-color: #09090b;
       box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.09);
     }
+    .setup-card input.field-error,
+    .setup-card select.field-error {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+    }
+    .field-error-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ef4444;
+      min-height: 16px;
+    }
     .field-group {
       display: flex;
       flex-direction: column;
@@ -131,30 +142,35 @@
         <strong>Access Boundary:</strong> Staff accounts can only clock in/out, pack orders, add tracking numbers, and update size stock. They cannot view P&amp;L, net profit, expenses, unit COGS, payroll rates, or promo codes.
       </div>
 
-      <form id="provision-staff-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+      <form id="provision-staff-form" novalidate style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
         <div class="field-group">
           <label class="field-label">Full Name</label>
           <input type="text" id="staff-full-name" placeholder="e.g., Maya Lin" required>
+          <span class="field-error-text" id="err-staff-name"></span>
         </div>
 
         <div class="field-group">
           <label class="field-label">Role / Position</label>
           <input type="text" id="staff-role" placeholder="e.g., DTF Print & Fulfillment" required>
+          <span class="field-error-text" id="err-staff-role"></span>
         </div>
 
         <div class="field-group">
           <label class="field-label">Work Email (Login)</label>
           <input type="email" id="staff-email" placeholder="maya@majorstylejunction.com" required>
+          <span class="field-error-text" id="err-staff-email"></span>
         </div>
 
         <div class="field-group">
           <label class="field-label">Password (Min 6 Characters)</label>
           <input type="password" id="staff-password" minlength="6" placeholder="Set temporary password" required>
+          <span class="field-error-text" id="err-staff-password"></span>
         </div>
 
         <div class="field-group">
           <label class="field-label">4-Digit Timeclock PIN</label>
           <input type="text" id="staff-pin" maxlength="6" placeholder="e.g., 1004" required>
+          <span class="field-error-text" id="err-staff-pin"></span>
         </div>
 
         <div class="field-group">
@@ -163,11 +179,13 @@
             <option value="hourly">Hourly ($/hr)</option>
             <option value="flat">Flat Stipend ($)</option>
           </select>
+          <span class="field-error-text" id="err-staff-paytype"></span>
         </div>
 
         <div class="field-group" style="grid-column: 1 / -1;">
           <label class="field-label">Pay Rate ($)</label>
           <input type="number" id="staff-rate" min="0" step="0.5" placeholder="e.g., 18.50" required>
+          <span class="field-error-text" id="err-staff-rate"></span>
         </div>
 
         <div style="grid-column: 1 / -1; margin-top:4px;">
@@ -193,6 +211,44 @@
   <script src="supabase-config.js"></script>
   <script>
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
+
+    const FIELD_ERROR_MAP = {
+      name: { inputId: "staff-full-name", errId: "err-staff-name" },
+      role: { inputId: "staff-role", errId: "err-staff-role" },
+      email: { inputId: "staff-email", errId: "err-staff-email" },
+      password: { inputId: "staff-password", errId: "err-staff-password" },
+      pin: { inputId: "staff-pin", errId: "err-staff-pin" },
+      rate: { inputId: "staff-rate", errId: "err-staff-rate" }
+    };
+
+    function clearStaffFieldErrors() {
+      Object.values(FIELD_ERROR_MAP).forEach(({ inputId, errId }) => {
+        const inp = document.getElementById(inputId);
+        const errEl = document.getElementById(errId);
+        if (inp) inp.classList.remove("field-error");
+        if (errEl) errEl.textContent = "";
+      });
+      const statusEl = document.getElementById("provision-staff-status");
+      if (statusEl) statusEl.textContent = "";
+    }
+
+    function showStaffFieldError(fieldKey, message) {
+      const mapping = FIELD_ERROR_MAP[fieldKey];
+      if (mapping) {
+        const inp = document.getElementById(mapping.inputId);
+        const errEl = document.getElementById(mapping.errId);
+        if (inp) {
+          inp.classList.add("field-error");
+          inp.focus();
+        }
+        if (errEl) errEl.textContent = message;
+      }
+      const statusEl = document.getElementById("provision-staff-status");
+      if (statusEl) {
+        statusEl.style.color = "#ef4444";
+        statusEl.textContent = `Check the highlighted field: ${message}`;
+      }
+    }
 
     function loadRoster() {
       try {
@@ -259,30 +315,63 @@
 
     document.getElementById("provision-staff-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      clearStaffFieldErrors();
+
       const btn = document.getElementById("provision-staff-submit");
       const status = document.getElementById("provision-staff-status");
       const summaryBox = document.getElementById("last-created-summary");
-      btn.disabled = true;
-      btn.textContent = "Saving...";
-      status.textContent = "";
       summaryBox.innerHTML = "";
 
       const name = document.getElementById("staff-full-name").value.trim();
       const role = document.getElementById("staff-role").value.trim();
       const email = document.getElementById("staff-email").value.trim().toLowerCase();
       const password = document.getElementById("staff-password").value;
-      const pin = document.getElementById("staff-pin").value.trim() || "1001";
+      const pin = document.getElementById("staff-pin").value.trim();
       const payType = document.getElementById("staff-paytype").value;
-      const rate = parseFloat(document.getElementById("staff-rate").value || "0");
+      const rateRaw = document.getElementById("staff-rate").value;
+      const rate = parseFloat(rateRaw);
+
+      if (!name) {
+        showStaffFieldError("name", "Full Name is required.");
+        return;
+      }
+      if (!role) {
+        showStaffFieldError("role", "Role / Position is required.");
+        return;
+      }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showStaffFieldError("email", "Enter a valid work email address.");
+        return;
+      }
 
       const currentRoster = loadRoster();
       if (currentRoster.some(m => m.email && m.email.toLowerCase() === email)) {
-        status.style.color = "#ef4444";
-        status.textContent = `A staff member with email ${email} is already on your roster.`;
-        btn.disabled = false;
-        btn.textContent = "Add Staff Member";
+        showStaffFieldError("email", `The email ${email} is already used by another team member.`);
         return;
       }
+
+      if (!password || password.length < 6) {
+        showStaffFieldError("password", "Password must be at least 6 characters long.");
+        return;
+      }
+
+      if (!pin || !/^\d{4,6}$/.test(pin)) {
+        showStaffFieldError("pin", "Timeclock PIN must be 4 to 6 digits (numbers only).");
+        return;
+      }
+
+      if (currentRoster.some(m => m.active !== false && String(m.pin || "") === pin)) {
+        showStaffFieldError("pin", `PIN ${pin} is already assigned to another active team member.`);
+        return;
+      }
+
+      if (rateRaw === "" || Number.isNaN(rate) || rate < 0) {
+        showStaffFieldError("rate", "Enter a valid pay rate ($0 or higher).");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
 
       try {
         const tempClient = window.supabase.createClient(
@@ -327,8 +416,15 @@
         `;
         e.target.reset();
       } catch (err) {
-        status.style.color = "#ef4444";
-        status.textContent = "Error: " + err.message;
+        const msgLower = (err.message || "").toLowerCase();
+        if (msgLower.includes("email") || msgLower.includes("registered") || msgLower.includes("already")) {
+          showStaffFieldError("email", `Login email error: ${err.message}`);
+        } else if (msgLower.includes("password")) {
+          showStaffFieldError("password", `Password error: ${err.message}`);
+        } else {
+          status.style.color = "#ef4444";
+          status.textContent = `Account creation failed: ${err.message}`;
+        }
       } finally {
         btn.disabled = false;
         btn.textContent = "Add Staff Member";

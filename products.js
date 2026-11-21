@@ -211,15 +211,50 @@ function updateAccountUI() {
 function handleRegisterAccount(e) {
   e.preventDefault();
   const statusEl = document.getElementById("auth-status-msg");
-  const name = document.getElementById("reg-name").value.trim();
-  const email = document.getElementById("reg-email").value.trim().toLowerCase();
-  const password = document.getElementById("reg-password").value;
-  const preferredSize = document.getElementById("reg-size").value;
+  const nameInput = document.getElementById("reg-name");
+  const emailInput = document.getElementById("reg-email");
+  const passInput = document.getElementById("reg-password");
+  const sizeInput = document.getElementById("reg-size");
+
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passInput.value;
+  const preferredSize = sizeInput.value;
+
+  [nameInput, emailInput, passInput].forEach((el) => {
+    if (el) el.style.borderColor = "";
+  });
+
+  if (!name) {
+    nameInput.style.borderColor = "#ef4444";
+    nameInput.focus();
+    statusEl.style.color = "#ef4444";
+    statusEl.textContent = "Full Name field error: please enter your name.";
+    return;
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    emailInput.style.borderColor = "#ef4444";
+    emailInput.focus();
+    statusEl.style.color = "#ef4444";
+    statusEl.textContent = "Email field error: enter a valid email address.";
+    return;
+  }
 
   const db = getAccountsDB();
   if (db[email]) {
+    emailInput.style.borderColor = "#ef4444";
+    emailInput.focus();
     statusEl.style.color = "#ef4444";
-    statusEl.textContent = "An account with this email already exists. Switch to Sign In.";
+    statusEl.textContent = `Email field error: an account with ${email} already exists. Switch to Sign In.`;
+    return;
+  }
+
+  if (!password || password.length < 6) {
+    passInput.style.borderColor = "#ef4444";
+    passInput.focus();
+    statusEl.style.color = "#ef4444";
+    statusEl.textContent = "Password field error: must be at least 6 characters.";
     return;
   }
 
