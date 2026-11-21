@@ -628,6 +628,7 @@ function openAccountModal(defaultTab = "login") {
   }
   const modal = document.getElementById("msj-account-modal");
   if (!modal) return;
+  document.body.style.overflow = "hidden";
   if (!currentUser) {
     switchAuthTab(defaultTab);
   }
@@ -641,10 +642,13 @@ function openAccountModal(defaultTab = "login") {
 function closeAccountModal() {
   const modal = document.getElementById("msj-account-modal");
   if (modal) modal.classList.remove("active");
+  if (!document.getElementById("msj-cart-drawer")?.classList.contains("active")) {
+    document.body.style.overflow = "";
+  }
 }
 
 // ============================================================
-// SHOPPING BAG, PROMO CODE & STOCK VALIDATION ENGINE
+// SHOPPING BAG, PROMO CODE, IMAGE LIGHTBOX & STOCK ENGINE
 // ============================================================
 
 function renderTypographicGraphic(subLabel = "MAJOR STYLE JUNCTION") {
@@ -654,6 +658,24 @@ function renderTypographicGraphic(subLabel = "MAJOR STYLE JUNCTION") {
       <span class="emblem-sub">${subLabel}</span>
     </div>
   `;
+}
+
+function inspectBagImage(src, title) {
+  if (!src || src === "typographic") return;
+  const viewer = document.getElementById("msj-bag-img-lightbox");
+  const imgEl = document.getElementById("msj-lightbox-img");
+  const titleEl = document.getElementById("msj-lightbox-title");
+  if (!viewer || !imgEl || !titleEl) return;
+
+  titleEl.textContent = title || "Item Preview";
+  imgEl.src = src;
+  imgEl.alt = title || "Item Preview";
+  viewer.classList.add("active");
+}
+
+function closeBagImageLightbox() {
+  const viewer = document.getElementById("msj-bag-img-lightbox");
+  if (viewer) viewer.classList.remove("active");
 }
 
 function loadCart() {
@@ -869,10 +891,12 @@ function updateCartUI() {
 
   itemsContainer.innerHTML = msjCart
     .map((item, idx) => {
+      const safeName = String(item.name || "").replace(/'/g, "\\'");
+      const safeImg = String(item.image || "").replace(/'/g, "\\'");
       const thumbMarkup =
         !item.image || item.image === "typographic"
           ? `<div class="bag-typo-thumb">MSJ</div>`
-          : `<img src="${item.image}" alt="${item.name}">`;
+          : `<img src="${item.image}" alt="${item.name}" title="Click to preview photo" onclick="inspectBagImage('${safeImg}', '${safeName}')">`;
 
       return `
         <div class="bag-item">
@@ -901,6 +925,7 @@ function updateCartUI() {
 function openCartDrawer() {
   const drawer = document.getElementById("msj-cart-drawer");
   if (!drawer) return;
+  document.body.style.overflow = "hidden";
 
   const noteEl = document.getElementById("msj-bag-account-note");
   const nameInput = document.getElementById("bag-cust-name");
@@ -930,8 +955,10 @@ function openCartDrawer() {
 }
 
 function closeCartDrawer() {
+  closeBagImageLightbox();
   const drawer = document.getElementById("msj-cart-drawer");
   if (drawer) drawer.classList.remove("active");
+  document.body.style.overflow = "";
 }
 
 // ============================================================
@@ -1445,8 +1472,6 @@ async function submitDirectOrderToDatabase(e) {
           orderNumber,
           date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
           status: "Unfulfilled",
-          carrier: "",
-          tracking: "",
           itemsSummary: orderSummary,
           shippingAddress,
           phone: customerPhone,
@@ -1524,8 +1549,8 @@ function renderHeaderSearchResults() {
       const stock = getProductTotalStock(item);
       const thumb =
         !item.image || item.image === "typographic"
-          ? `<div class="bag-typo-thumb" style="width:48px;height:48px;font-size:12px;">MSJ</div>`
-          : `<img src="${item.image}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`;
+          ? `<div class="bag-typo-thumb" style="width:56px;height:56px;min-width:56px;font-size:13px;">MSJ</div>`
+          : `<img src="${item.image}" alt="${item.name}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;">`;
       return `
         <div onclick="closeHeaderSearchModal(); openQuickView('${item.id}');" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--border,#e4e4e7);border-radius:10px;background:#fff;cursor:pointer;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -1585,6 +1610,16 @@ function injectStorefrontOverlays() {
 
   const wrapper = document.createElement("div");
   wrapper.innerHTML = `
+    <!-- Bag Photo Zoom Lightbox -->
+    <div id="msj-bag-img-lightbox" class="modal-overlay" style="z-index: 400;" onclick="if(event.target===this) closeBagImageLightbox()">
+      <div class="modal-box" style="max-width: 520px; text-align: center;">
+        <button type="button" class="modal-close" onclick="closeBagImageLightbox()" aria-label="Close Preview">&times;</button>
+        <span class="section-kicker">Bag Item Preview</span>
+        <h3 id="msj-lightbox-title" style="font-size: 18px; margin-bottom: 14px;">Item Preview</h3>
+        <img id="msj-lightbox-img" src="" alt="" style="width: 100%; max-height: 65vh; object-fit: contain; border-radius: 12px; background: #f4f4f5; padding: 12px;">
+      </div>
+    </div>
+
     <!-- Instant Catalog Search Modal (Ctrl+K) -->
     <div id="msj-header-search-modal" class="modal-overlay" onclick="if(event.target===this) closeHeaderSearchModal()">
       <div class="modal-box" style="max-width: 540px;">
