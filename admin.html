@@ -165,13 +165,13 @@
       background: #fafafa;
       border: 1px solid #e4e4e7;
       border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 16px;
+      padding: 14px 16px;
+      margin-bottom: 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       font-size: 13px;
     }
 
@@ -396,6 +396,13 @@
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border, #e4e4e7);
     }
+    .customer-ship-box {
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
     .pill-paid {
       background: #dcfce7;
       color: #166534;
@@ -458,6 +465,10 @@
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .mini-action-btn:hover {
       background: #e4e4e7;
@@ -596,14 +607,14 @@
       <div id="staff-welcome-banner" style="display:none; margin-bottom:20px;">
         <span class="section-kicker">Restricted Staff Operations View</span>
         <h1 id="staff-welcome-heading" style="font-size:26px;">Welcome to MSJ Studio Shift Portal</h1>
-        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Clock in/out for your shift, pack customer orders, add tracking numbers, and update garment stock counts. Financial P&amp;L, COGS, expenses, and payroll rates are hidden.</p>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Clock in/out for your shift, pack customer orders, send shipping/tracking updates, and update stock counts. Financial P&amp;L, COGS, expenses, and payroll rates are hidden.</p>
       </div>
 
       <!-- NAVIGATION TABS -->
       <div class="admin-tabs">
         <button type="button" id="tab-analytics" class="filter-btn active js-owner-only" onclick="switchAdminTab('analytics')">Analytics, P&amp;L &amp; Budget</button>
         <button type="button" id="tab-team" class="filter-btn" onclick="switchAdminTab('team')">Time Clock &amp; Shifts</button>
-        <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders &amp; Fulfillment</button>
+        <button type="button" id="tab-orders" class="filter-btn" onclick="switchAdminTab('orders')">Orders, Shipping &amp; Customers</button>
         <button type="button" id="tab-inventory" class="filter-btn" onclick="switchAdminTab('inventory')">Inventory &amp; Stock</button>
         <button type="button" id="tab-expenses" class="filter-btn js-owner-only" onclick="switchAdminTab('expenses')">Expenses &amp; Overhead</button>
         <button type="button" id="tab-new" class="filter-btn js-owner-only" onclick="switchAdminTab('new')">+ Add New Drop</button>
@@ -817,7 +828,7 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 2: POS TIME CLOCK, OVERTIME RULES & STAFF ONBOARDING     -->
+      <!-- TAB 2: POS TIME CLOCK, OVERTIME RULES & STAFF ACCOUNT LINK   -->
       <!-- ============================================================ -->
       <section id="panel-team" style="display: none;">
         <!-- LIVE POS TIME CLOCK TERMINAL (VISIBLE TO BOTH STAFF & OWNERS) -->
@@ -857,101 +868,64 @@
           <div id="active-shifts-container" style="margin-top:16px;"></div>
         </div>
 
-        <!-- OWNER-ONLY: FOOLPROOF OVERTIME SETUP -->
+        <!-- OWNER-ONLY: DEDICATED PAGE LINK FOR STAFF ACCOUNTS & VIEW PREVIEW -->
+        <div class="staff-scope-callout js-owner-only">
+          <div>
+            <strong>Staff Account Provisioning:</strong> Create restricted staff accounts on the dedicated setup page. Staff cannot view P&amp;L, net profit, expenses, unit COGS, payroll rates, or promo codes.
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="mini-action-btn" onclick="setStaffPreviewMode(true)">Preview Staff View</button>
+            <a href="create-staff.html" class="mini-action-btn" style="background:#09090b; color:#ffffff; border-color:#09090b;">Staff Account Setup &rarr;</a>
+          </div>
+        </div>
+
+        <!-- OWNER-ONLY: OVERTIME POLICY (DAY OR WEEK) -->
         <div class="panel-box js-owner-only" style="margin-bottom: 22px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
             <div>
-              <span class="section-kicker">Simple Overtime Setup</span>
-              <h2 style="font-size:20px;">When Does Overtime Kick In?</h2>
+              <span class="section-kicker">Overtime Policy</span>
+              <h2 style="font-size:20px;">Overtime Threshold &amp; Pay Rate</h2>
               <p style="font-size:13px; color:var(--text-muted); margin-top:3px;">
-                Pick a suggested setup below or type your own hour limit. Any hours worked past that limit automatically count as overtime.
+                Choose whether overtime is tracked per week or per day, set the hour limit, and pick your pay multiplier.
               </p>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 1.5)">Suggested: 40 hrs/wk @ 1.5x</button>
-              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(8, 1.5)">8 hrs/day @ 1.5x</button>
-              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime(40, 2.0)">40 hrs/wk @ 2.0x</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime('week', 40, 1.5)">40 hrs / Week (1.5x)</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime('day', 8, 1.5)">8 hrs / Day (1.5x)</button>
+              <button type="button" class="mini-action-btn" onclick="applySuggestedOvertime('week', 40, 2.0)">40 hrs / Week (2.0x)</button>
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:12px; align-items:end; background:#fafafa; border:1px solid #e4e4e7; border-radius:12px; padding:14px;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap:12px; align-items:end; background:#fafafa; border:1px solid #e4e4e7; border-radius:12px; padding:14px;">
             <div class="field-group">
-              <label class="field-label">Overtime Starts After (Hours)</label>
+              <label class="field-label">Track By</label>
+              <select id="ot-basis-input" onchange="updateOvertimeSettings()">
+                <option value="week">Per Week</option>
+                <option value="day">Per Day</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Overtime After (Hours)</label>
               <input type="number" id="ot-threshold-input" min="1" max="168" step="0.5" value="40" onchange="updateOvertimeSettings()">
             </div>
             <div class="field-group">
-              <label class="field-label">Overtime Pay Multiplier</label>
+              <label class="field-label">Overtime Multiplier</label>
               <select id="ot-multiplier-input" onchange="updateOvertimeSettings()">
-                <option value="1.5">1.5x (1.5× Normal Pay)</option>
-                <option value="1.25">1.25x (1.25× Normal Pay)</option>
-                <option value="2">2.0x (Double Pay)</option>
+                <option value="1.5">1.5x (Time-and-a-Half)</option>
+                <option value="1.25">1.25x (1.25× Pay)</option>
+                <option value="2">2.0x (Double-Time)</option>
               </select>
             </div>
             <div style="font-size:12px; color:#3f3f46; padding-bottom:6px; line-height:1.45;" id="ot-policy-summary"></div>
           </div>
         </div>
 
-        <!-- OWNER-ONLY: CREATE NEW STAFF LOGIN ACCOUNT AT WORK -->
-        <div class="contact-card js-owner-only" style="max-width: 100%; margin-bottom: 22px;">
-          <span class="section-kicker">In-Store Staff Onboarding (Owner Only)</span>
-          <h2 style="margin-bottom: 6px;">Create Staff Login Account &amp; Roster Profile</h2>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
-            Create a restricted staff login while at work. Staff sign in from the main site&apos;s <strong>Sign In</strong> button to clock in, pack orders, and update stock counts.
-          </p>
-
-          <!-- RESTRICTED ACCESS DISCLOSURE & STAFF VIEW PREVIEW LINK -->
-          <div class="staff-scope-callout">
-            <div>
-              <strong>Staff Cannot View:</strong> P&amp;L &amp; Net Profit, Budget Vaults, Expenses, Unit COGS / Margins, Payroll Rates, or Promo Codes.
-            </div>
-            <button type="button" class="mini-action-btn" onclick="setStaffPreviewMode(true)">
-              Preview Restricted Staff View &rarr;
-            </button>
-          </div>
-
-          <form id="new-team-form" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; align-items: end;">
-            <div class="field-group">
-              <label class="field-label">Staff Full Name</label>
-              <input type="text" id="team-name" placeholder="e.g., Maya Lin" required>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Role / Title</label>
-              <input type="text" id="team-role" placeholder="e.g., DTF Print Tech" required>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Staff Work Email (For Login)</label>
-              <input type="email" id="team-email" placeholder="maya@majorstylejunction.com" required>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Login Password (Min 6 Chars)</label>
-              <input type="password" id="team-password" minlength="6" placeholder="Temporary password" required>
-            </div>
-            <div class="field-group">
-              <label class="field-label">4-Digit Clock PIN</label>
-              <input type="text" id="team-pin" maxlength="6" placeholder="e.g., 1004" required>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Pay Structure</label>
-              <select id="team-paytype">
-                <option value="hourly">Hourly ($/hr)</option>
-                <option value="flat">Flat Stipend / Draw ($)</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Rate ($)</label>
-              <input type="number" id="team-rate" placeholder="18.50" min="0" step="0.5" required>
-            </div>
-            <button type="submit" id="create-staff-btn" class="btn-card" style="height:42px;">Create Staff Account</button>
-          </form>
-          <p id="create-staff-msg" class="modal-status" style="margin-top:10px;"></p>
-        </div>
-
-        <!-- OWNER-ONLY: TEAM ROSTER & PAYROLL (WITH REGULAR + OVERTIME BREAKDOWN) -->
+        <!-- OWNER-ONLY: TEAM ROSTER & PAYROLL -->
         <div class="panel-box js-owner-only" style="margin-bottom: 22px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
               <h3>Active Roster &amp; Live Payroll</h3>
-              <p style="font-size:12px;color:#71717a;">Hours past your overtime threshold automatically calculate at your overtime multiplier and deduct from True Net Profit.</p>
+              <p style="font-size:12px;color:#71717a;">Overtime hours calculate automatically using your rule above and deduct from True Net Profit.</p>
             </div>
             <strong id="team-payroll-total" style="color:#ef4444;">Active Payroll: $0.00</strong>
           </div>
@@ -988,12 +962,12 @@
       </section>
 
       <!-- ============================================================ -->
-      <!-- TAB 3: ORDERS & FULFILLMENT (STAFF + OWNER)                  -->
+      <!-- TAB 3: ORDERS, CUSTOMER ADDRESSES & SHIPPING UPDATES         -->
       <!-- ============================================================ -->
       <section id="panel-orders" style="display: none;">
         <div class="section-head" style="margin-bottom: 14px;">
           <div>
-            <span class="section-kicker">Fulfillment &amp; Packing</span>
+            <span class="section-kicker">Customers, Shipping &amp; Fulfillment</span>
             <h2>Customer Orders (<span id="orders-visible-count">0</span>)</h2>
           </div>
           <button type="button" class="filter-btn" onclick="resetOrderFilters()">Reset Filters</button>
@@ -1001,8 +975,8 @@
 
         <div class="control-toolbar">
           <div class="field-group">
-            <label class="field-label">Search Orders</label>
-            <input type="text" id="order-search-input" placeholder="Order #, name, email, tracking..." oninput="renderOrdersList()">
+            <label class="field-label">Search Orders &amp; Addresses</label>
+            <input type="text" id="order-search-input" placeholder="Order #, name, email, city, tracking..." oninput="renderOrdersList()">
           </div>
           <div class="field-group">
             <label class="field-label">Fulfillment Status</label>
@@ -1551,9 +1525,14 @@
     let overtimeSettings = (() => {
       try {
         const raw = localStorage.getItem(OT_SETTINGS_KEY);
-        return raw ? JSON.parse(raw) : { thresholdHours: 40, multiplier: 1.5 };
+        const parsed = raw ? JSON.parse(raw) : null;
+        return {
+          basis: parsed?.basis === "day" ? "day" : "week",
+          thresholdHours: Number(parsed?.thresholdHours || 40),
+          multiplier: Number(parsed?.multiplier || 1.5)
+        };
       } catch {
-        return { thresholdHours: 40, multiplier: 1.5 };
+        return { basis: "week", thresholdHours: 40, multiplier: 1.5 };
       }
     })();
 
@@ -1593,10 +1572,12 @@
       } catch {}
     }
 
-    function applySuggestedOvertime(hours, multiplier) {
-      overtimeSettings = { thresholdHours: Number(hours), multiplier: Number(multiplier) };
-      document.getElementById("ot-threshold-input").value = overtimeSettings.thresholdHours;
-      document.getElementById("ot-multiplier-input").value = String(overtimeSettings.multiplier);
+    function applySuggestedOvertime(basis, hours, multiplier) {
+      overtimeSettings = {
+        basis: basis === "day" ? "day" : "week",
+        thresholdHours: Number(hours),
+        multiplier: Number(multiplier)
+      };
       saveTimeClockState();
       renderOvertimeSummary();
       renderTeamRoster();
@@ -1604,9 +1585,10 @@
     }
 
     function updateOvertimeSettings() {
+      const basis = document.getElementById("ot-basis-input").value === "day" ? "day" : "week";
       const thresh = Math.max(1, parseFloat(document.getElementById("ot-threshold-input").value || "40"));
       const mult = Math.max(1, parseFloat(document.getElementById("ot-multiplier-input").value || "1.5"));
-      overtimeSettings = { thresholdHours: thresh, multiplier: mult };
+      overtimeSettings = { basis, thresholdHours: thresh, multiplier: mult };
       saveTimeClockState();
       renderOvertimeSummary();
       renderTeamRoster();
@@ -1614,15 +1596,18 @@
     }
 
     function renderOvertimeSummary() {
+      const basisSel = document.getElementById("ot-basis-input");
       const threshInput = document.getElementById("ot-threshold-input");
       const multInput = document.getElementById("ot-multiplier-input");
       const summaryEl = document.getElementById("ot-policy-summary");
+      if (basisSel) basisSel.value = overtimeSettings.basis;
       if (threshInput) threshInput.value = overtimeSettings.thresholdHours;
       if (multInput) multInput.value = String(overtimeSettings.multiplier);
       if (summaryEl) {
+        const periodLabel = overtimeSettings.basis === "day" ? "day" : "week";
         const sampleBase = 20;
         const sampleOt = (sampleBase * Number(overtimeSettings.multiplier || 1.5)).toFixed(2);
-        summaryEl.innerHTML = `After <strong>${overtimeSettings.thresholdHours} hrs</strong>, overtime kicks in at <strong>${overtimeSettings.multiplier}×</strong> pay.<br><span style="color:#71717a;">Example at $20/hr: First ${overtimeSettings.thresholdHours}h = $20.00/hr • Extra hours = <strong>$${sampleOt}/hr</strong></span>`;
+        summaryEl.innerHTML = `Overtime kicks in after <strong>${overtimeSettings.thresholdHours} hrs / ${periodLabel}</strong> at <strong>${overtimeSettings.multiplier}×</strong> pay.<br><span style="color:#71717a;">Example at $20/hr: First ${overtimeSettings.thresholdHours}h = $20.00/hr • Extra = <strong>$${sampleOt}/hr</strong></span>`;
       }
     }
 
@@ -1845,7 +1830,7 @@
             <div><strong>[Product]</strong> ${p.name} (${p.category}) • $${Number(p.price).toFixed(2)}</div>
             <div style="display:flex;gap:6px;">
               <button type="button" class="mini-action-btn" onclick="switchAdminTab('inventory'); document.getElementById('inv-search-input').value='${p.name.replace(/'/g, "\\'")}'; renderInventoryList(); clearGlobalAdminSearch();">Open Stock</button>
-              <a href="shop.html" target="_blank" class="mini-action-btn" style="text-decoration:none;">View on Store</a>
+              <a href="shop.html" target="_blank" class="mini-action-btn">View on Store</a>
             </div>
           </div>
         `;
@@ -1932,7 +1917,7 @@
     }
 
     // ============================================================
-    // POS TIME CLOCK, OVERTIME CALCULATION & STAFF ACCOUNT CREATION
+    // POS TIME CLOCK & OVERTIME CALCULATION
     // ============================================================
     document.getElementById("pos-timeclock-form").addEventListener("submit", (e) => {
       e.preventDefault();
@@ -2022,74 +2007,6 @@
       saveTimeClockState();
       renderTeamRoster();
     }
-
-    // Owner-Only: Create a Restricted Staff Supabase Login + Roster Entry Without Logging Owner Out
-    document.getElementById("new-team-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (isStaffUser) return;
-
-      const btn = document.getElementById("create-staff-btn");
-      const msg = document.getElementById("create-staff-msg");
-      btn.disabled = true;
-      btn.textContent = "Creating Account...";
-      msg.textContent = "";
-
-      const fullName = document.getElementById("team-name").value.trim();
-      const roleTitle = document.getElementById("team-role").value.trim();
-      const staffEmail = document.getElementById("team-email").value.trim().toLowerCase();
-      const staffPassword = document.getElementById("team-password").value;
-      const pin = document.getElementById("team-pin").value.trim() || "1001";
-      const payType = document.getElementById("team-paytype").value;
-      const rate = parseFloat(document.getElementById("team-rate").value || "0");
-
-      try {
-        const tempClient = window.supabase.createClient(
-          msjSupabase.supabaseUrl,
-          msjSupabase.supabaseKey,
-          { auth: { persistSession: false, autoRefreshToken: false } }
-        );
-
-        const { data: signUpData, error: signUpErr } = await tempClient.auth.signUp({
-          email: staffEmail,
-          password: staffPassword,
-          options: {
-            data: {
-              role: "staff",
-              display_name: fullName
-            }
-          }
-        });
-
-        if (signUpErr) throw signUpErr;
-
-        cachedTeam.push({
-          id: `tm-${Date.now()}`,
-          name: fullName,
-          role: roleTitle,
-          email: staffEmail,
-          pin,
-          payType,
-          rate,
-          hours: 0,
-          active: true
-        });
-        saveTimeClockState();
-        e.target.reset();
-        renderTeamRoster();
-        refreshDashboardAnalytics();
-
-        msg.style.color = "#10b981";
-        msg.textContent = signUpData?.session
-          ? `Staff account active! ${fullName} can now sign in from the main site with ${staffEmail}.`
-          : `Staff account created for ${staffEmail}! (Toggle Auto-Confirm in Supabase Auth if email confirmation is enabled.)`;
-      } catch (err) {
-        msg.style.color = "#ef4444";
-        msg.textContent = "Could not create staff account: " + err.message;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Create Staff Account";
-      }
-    });
 
     function updateTeamField(id, field, val) {
       if (isStaffUser) return;
@@ -2758,8 +2675,32 @@
     }
 
     // ============================================================
-    // ORDERS & FULFILLMENT (SCOPED BY ROLE)
+    // ORDERS, CUSTOMER ADDRESSES & SHIPPING UPDATES
     // ============================================================
+
+    function copyShippingAddress(text) {
+      navigator.clipboard?.writeText(text).catch(() => {});
+      alert("Customer shipping address copied to clipboard.");
+    }
+
+    function buildCustomerUpdateMailto(ordId) {
+      const ord = cachedOrders.find(o => o.id === ordId);
+      if (!ord) return "#";
+      const carrier = document.getElementById(`carrier-${ordId}`)?.value || ord.tracking_carrier || "Carrier";
+      const tracking = document.getElementById(`track-${ordId}`)?.value.trim() || ord.tracking_number || "Pending";
+      const status = document.getElementById(`status-${ordId}`)?.value || ord.fulfillment_status;
+
+      const subject = encodeURIComponent(`Major Style Junction — Order #${ord.order_number} (${status})`);
+      const body = encodeURIComponent(
+        `Hi ${ord.customer_name},\n\n` +
+        `Here is an update on your Major Style Junction order #${ord.order_number}:\n` +
+        `• Status: ${status}\n` +
+        `• Shipping Address: ${ord.shipping_address}\n` +
+        `• Carrier & Tracking: ${carrier} — ${tracking}\n\n` +
+        `Thank you for repping Major Style Junction!`
+      );
+      return `mailto:${encodeURIComponent(ord.customer_email)}?subject=${subject}&body=${body}`;
+    }
 
     function resetOrderFilters() {
       document.getElementById("order-search-input").value = "";
@@ -2838,6 +2779,8 @@
           ? `<input type="hidden" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : "0"}">`
           : `<input type="number" id="labelcost-${ord.id}" value="${labelCost > 0 ? labelCost.toFixed(2) : ""}" step="0.01" min="0" placeholder="Label Cost ($)">`;
 
+        const safeAddr = String(ord.shipping_address || "").replace(/'/g, "\\'");
+
         return `
           <div class="order-card">
             <div class="order-card-header">
@@ -2847,7 +2790,7 @@
                   <span class="${isPaid ? "pill-paid" : "pill-pending"}">${ord.payment_status}</span>
                   <span class="pill-shipped">${ord.fulfillment_status}</span>
                 </div>
-                <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">${dateStr} • <strong>${ord.customer_name}</strong> (${ord.customer_email})</p>
+                <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">${dateStr} • Placed by <strong>${ord.customer_name}</strong></p>
               </div>
               <div style="text-align:right;">
                 <strong style="font-size:20px;">$${Number(ord.total).toFixed(2)}</strong>
@@ -2855,14 +2798,20 @@
               </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; font-size: 14px;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; font-size: 14px;">
               <div>
-                <span class="kpi-label">Items Ordered</span>
+                <span class="kpi-label">Items to Pack</span>
                 <ul style="padding-left: 18px; margin-top: 4px;">${itemsHtml}</ul>
               </div>
-              <div>
-                <span class="kpi-label">Ship To</span>
-                <p style="margin-top: 4px;">${ord.shipping_address}</p>
+              <div class="customer-ship-box">
+                <span class="kpi-label">Customer Contact &amp; Shipping Address</span>
+                <p style="margin-top:4px;"><strong>${ord.customer_name}</strong></p>
+                <p style="color:#52525b;">Email: <a href="mailto:${ord.customer_email}" style="color:#09090b;font-weight:600;">${ord.customer_email}</a></p>
+                <p style="margin-top:4px;font-weight:600;">${ord.shipping_address}</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+                  <button type="button" class="mini-action-btn" onclick="copyShippingAddress('${safeAddr}')">Copy Address</button>
+                  <a href="${buildCustomerUpdateMailto(ord.id)}" class="mini-action-btn">Email Customer Update</a>
+                </div>
               </div>
             </div>
 
@@ -2886,7 +2835,7 @@
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="btn-card" style="padding: 0 14px; height:42px; width:auto;" onclick="saveOrderFulfillment('${ord.id}')">Save</button>
                 ${!isPaid && !isStaffUser ? `<button type="button" class="filter-btn" style="height:42px;" onclick="markOrderPaid('${ord.id}')">Mark Paid</button>` : ""}
-                <button type="button" class="filter-btn" style="height:42px;" onclick="printPackingSlip('${ord.id}')">Slip</button>
+                <button type="button" class="filter-btn" style="height:42px;" onclick="printPackingSlip('${ord.id}')">Packing Slip</button>
               </div>
             </div>
           </div>
@@ -2954,7 +2903,7 @@
           <div style="display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:16px;">
             <div>
               <h1 style="margin:0;font-size:22px;">MAJOR STYLE JUNCTION</h1>
-              <p style="margin:4px 0 0;font-size:13px;color:#555;">Official Order Packing Slip</p>
+              <p style="margin:4px 0 0;font-size:13px;color:#555;">Official Order Packing Slip &amp; Shipping Label Info</p>
             </div>
             <div style="text-align:right;">
               <strong style="font-size:18px;">Order #${ord.order_number}</strong>
@@ -3385,7 +3334,7 @@
 
     function exportOrdersCSV() {
       if (isStaffUser) return;
-      const headers = ["Order Number", "Date", "Customer", "Email", "Subtotal", "Discount", "Shipping Collected", "Total Collected", "COGS", "Shipping Label Cost", "Payment Fee", "Net Profit", "Payment Status", "Fulfillment Status", "Tracking"];
+      const headers = ["Order Number", "Date", "Customer", "Email", "Shipping Address", "Subtotal", "Discount", "Shipping Collected", "Total Collected", "COGS", "Shipping Label Cost", "Payment Fee", "Net Profit", "Payment Status", "Fulfillment Status", "Tracking"];
       const rows = cachedOrders.map(o => {
         const cogs = getOrderCogs(o);
         const ship = Number(o.actual_shipping_cost || 0);
@@ -3396,6 +3345,7 @@
           new Date(o.created_at).toISOString().split("T")[0],
           o.customer_name,
           o.customer_email,
+          o.shipping_address,
           o.subtotal,
           o.discount_amount,
           o.shipping_cost,
