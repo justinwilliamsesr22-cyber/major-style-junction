@@ -176,6 +176,20 @@
       font-size: 11px;
       font-weight: 700;
     }
+    .ot-alert-banner {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+      color: #78350f;
+    }
     .staff-scope-callout {
       background: #fafafa;
       border: 1px solid #e4e4e7;
@@ -955,6 +969,14 @@
       <!-- TAB 2: POS TIME CLOCK, OVERTIME RULES & STAFF ACCOUNT LINK   -->
       <!-- ============================================================ -->
       <section id="panel-team" style="display: none;">
+        <!-- LIVE OVERTIME UPDATE BANNER (OWNER) -->
+        <div id="overtime-alert-banner" class="ot-alert-banner js-owner-only" style="display:none;">
+          <div id="overtime-alert-text"></div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" id="enable-browser-ot-btn" class="mini-action-btn" onclick="requestOvertimeBrowserAlerts()">Enable Browser Alerts</button>
+          </div>
+        </div>
+
         <!-- LIVE POS TIME CLOCK TERMINAL (VISIBLE TO BOTH STAFF & OWNERS) -->
         <div class="timeclock-terminal">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:16px;">
@@ -1063,6 +1085,7 @@
               <span class="section-kicker">Shift History</span>
               <h3>Completed Shift Time Logs (<span id="shift-logs-count">0</span>)</h3>
             </div>
+            <button type="button" class="mini-action-btn js-owner-only" onclick="openShiftLogModal()">+ Fix Missed Clock-Out / Log Shift</button>
           </div>
           <div style="overflow-x:auto;">
             <table class="data-table">
@@ -1446,6 +1469,48 @@
     </div>
   </main>
 
+  <!-- MODAL 0: FIX MISSED CLOCK-OUT / EDIT COMPLETED SHIFT -->
+  <div id="shift-log-modal" class="modal-overlay" onclick="if(event.target===this) closeShiftLogModal()">
+    <div class="modal-box" style="max-width: 520px;">
+      <button type="button" class="modal-close" onclick="closeShiftLogModal()">&times;</button>
+      <span class="section-kicker">Time Clock Correction</span>
+      <h3 id="shift-log-modal-title" style="font-size: 22px; margin-bottom: 14px;">Fix Missed Clock-Out / Edit Shift</h3>
+
+      <form id="shift-log-form" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" id="shift-log-id">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="field-group">
+            <label class="field-label">Date</label>
+            <input type="date" id="shift-log-date" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Employee</label>
+            <select id="shift-log-emp" required></select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="field-group">
+            <label class="field-label">Clock In Time</label>
+            <input type="text" id="shift-log-in" placeholder="e.g., 09:00 AM" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Clock Out Time (Fixed)</label>
+            <input type="text" id="shift-log-out" placeholder="e.g., 05:00 PM" required>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Total Shift Hours</label>
+          <input type="number" id="shift-log-hours" min="0.01" step="0.01" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Station / Correction Note</label>
+          <input type="text" id="shift-log-note" placeholder="e.g., Forgot to clock out — corrected by owner">
+        </div>
+        <button type="submit" class="btn-card">Save Shift Correction</button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL 1: ADD / EDIT MANUAL P&L ADJUSTMENT -->
   <div id="pnl-adj-modal" class="modal-overlay" onclick="if(event.target===this) closePnlAdjModal()">
     <div class="modal-box" style="max-width: 500px;">
@@ -1638,6 +1703,7 @@
     let trendChartInstance = null;
     let categoryChartInstance = null;
     let lastSavedOrderId = null;
+    const notifiedOvertimeIds = new Set();
 
     // Team Roster, Overtime Settings, Live Active Shifts & Shift Audit Logs
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
@@ -1707,9 +1773,11 @@
         thresholdHours: Number(hours),
         multiplier: Number(multiplier)
       };
+      notifiedOvertimeIds.clear();
       saveTimeClockState();
       renderOvertimeSummary();
       renderTeamRoster();
+      checkOvertimeUpdates();
       if (!isStaffUser) refreshDashboardAnalytics();
     }
 
@@ -1734,9 +1802,11 @@
 
       const mult = Math.max(1, parseFloat(multEl.value || "1.5"));
       overtimeSettings = { basis, thresholdHours: thresh, multiplier: mult };
+      notifiedOvertimeIds.clear();
       saveTimeClockState();
       renderOvertimeSummary();
       renderTeamRoster();
+      checkOvertimeUpdates();
       if (!isStaffUser) refreshDashboardAnalytics();
     }
 
@@ -1793,6 +1863,77 @@
       return `${hrs}:${mins}:${secs}`;
     }
 
+    function requestOvertimeBrowserAlerts() {
+      if (!("Notification" in window)) return;
+      Notification.requestPermission().then(perm => {
+        const btn = document.getElementById("enable-browser-ot-btn");
+        if (btn && perm === "granted") {
+          btn.textContent = "Browser Alerts On";
+          checkOvertimeUpdates();
+        }
+      });
+    }
+
+    function checkOvertimeUpdates() {
+      const banner = document.getElementById("overtime-alert-banner");
+      const textEl = document.getElementById("overtime-alert-text");
+      const btn = document.getElementById("enable-browser-ot-btn");
+      if (!banner || !textEl || isStaffUser) {
+        if (banner) banner.style.display = "none";
+        return;
+      }
+
+      if (btn && "Notification" in window && Notification.permission === "granted") {
+        btn.textContent = "Browser Alerts On";
+      }
+
+      const thresh = Math.max(1, Number(overtimeSettings.thresholdHours || 40));
+      const mult = Number(overtimeSettings.multiplier || 1.5);
+      const otWorkers = [];
+
+      cachedTeam.forEach(m => {
+        if (!m.active || m.payType !== "hourly") return;
+        const activeShift = activeShifts[m.id];
+        const liveShiftHrs = activeShift ? Math.max(0, (Date.now() - activeShift.startMs) / 3600000) : 0;
+        const effectiveHrs = Number(m.hours || 0) + liveShiftHrs;
+        if (effectiveHrs > thresh) {
+          const otHrs = effectiveHrs - thresh;
+          const otRate = Number(m.rate || 0) * mult;
+          otWorkers.push({
+            id: m.id,
+            name: m.name,
+            effectiveHrs,
+            otHrs,
+            otRate,
+            onShift: Boolean(activeShift)
+          });
+        }
+      });
+
+      if (otWorkers.length === 0) {
+        banner.style.display = "none";
+        return;
+      }
+
+      banner.style.display = "flex";
+      const summaryParts = otWorkers.map(w =>
+        `<strong>${w.name}</strong> (${w.effectiveHrs.toFixed(2)}h total / <strong>+${w.otHrs.toFixed(2)}h OT</strong> @ $${w.otRate.toFixed(2)}/hr${w.onShift ? " • On Shift" : ""})`
+      );
+      textEl.innerHTML = `<strong>Overtime Update:</strong> ${summaryParts.join(" • ")}`;
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        otWorkers.forEach(w => {
+          const alertKey = `${w.id}-${overtimeSettings.basis}-${thresh}`;
+          if (!notifiedOvertimeIds.has(alertKey)) {
+            notifiedOvertimeIds.add(alertKey);
+            new Notification("MSJ Overtime Alert", {
+              body: `${w.name} is in overtime (${w.effectiveHrs.toFixed(2)} hrs vs. ${thresh}h threshold).`
+            });
+          }
+        });
+      }
+    }
+
     setInterval(() => {
       const now = new Date();
       const clockEl = document.getElementById("pos-live-clock");
@@ -1809,6 +1950,7 @@
           el.textContent = formatDuration(Date.now() - startMs);
         }
       });
+      checkOvertimeUpdates();
     }, 1000);
 
     const loginView = document.getElementById("admin-login-view");
@@ -2099,12 +2241,13 @@
       }
 
       renderTeamRoster();
+      checkOvertimeUpdates();
       renderOrdersList();
       renderInventoryList();
     }
 
     // ============================================================
-    // POS TIME CLOCK, OVERTIME CALCULATION & ROSTER CONTROLS
+    // POS TIME CLOCK, MISSED CLOCK-OUT EDITOR, OVERTIME & ROSTER
     // ============================================================
     document.getElementById("pos-timeclock-form").addEventListener("submit", (e) => {
       e.preventDefault();
@@ -2140,6 +2283,7 @@
       document.getElementById("clock-note-input").value = "";
       saveTimeClockState();
       renderTeamRoster();
+      checkOvertimeUpdates();
       if (!isStaffUser) refreshDashboardAnalytics();
     });
 
@@ -2185,8 +2329,88 @@
       if (!shiftData) return;
       completeClockOut(empId, shiftData);
       renderTeamRoster();
+      checkOvertimeUpdates();
       if (!isStaffUser) refreshDashboardAnalytics();
     }
+
+    function openShiftLogModal(logId = "") {
+      if (isStaffUser) return;
+      const modal = document.getElementById("shift-log-modal");
+      const empSelect = document.getElementById("shift-log-emp");
+      empSelect.innerHTML = cachedTeam
+        .map(m => `<option value="${m.name}">${m.name}</option>`)
+        .join("");
+
+      const existing = logId ? shiftLogs.find(l => l.id === logId) : null;
+      document.getElementById("shift-log-modal-title").textContent = existing
+        ? "Fix Clock-Out / Edit Shift"
+        : "Log Missed Clock-Out / Shift";
+      document.getElementById("shift-log-id").value = existing ? existing.id : "";
+      document.getElementById("shift-log-date").value = existing ? existing.date : new Date().toISOString().slice(0, 10);
+      if (existing) {
+        empSelect.value = existing.empName;
+      }
+      document.getElementById("shift-log-in").value = existing ? existing.clockIn : "09:00 AM";
+      document.getElementById("shift-log-out").value = existing ? existing.clockOut : new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      document.getElementById("shift-log-hours").value = existing ? existing.hours : "8";
+      document.getElementById("shift-log-note").value = existing ? existing.note : "Missed clock-out corrected by admin";
+      modal.classList.add("active");
+    }
+
+    function closeShiftLogModal() {
+      document.getElementById("shift-log-modal").classList.remove("active");
+    }
+
+    document.getElementById("shift-log-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (isStaffUser) return;
+
+      const logId = document.getElementById("shift-log-id").value;
+      const dateVal = document.getElementById("shift-log-date").value;
+      const empName = document.getElementById("shift-log-emp").value;
+      const clockIn = document.getElementById("shift-log-in").value.trim() || "09:00 AM";
+      const clockOut = document.getElementById("shift-log-out").value.trim() || "05:00 PM";
+      const nextHours = Math.max(0.01, Number(parseFloat(document.getElementById("shift-log-hours").value || "0").toFixed(2)));
+      const note = document.getElementById("shift-log-note").value.trim() || "Shift corrected by admin";
+
+      const emp = cachedTeam.find(m => m.name === empName);
+      const existingLog = logId ? shiftLogs.find(l => l.id === logId) : null;
+      const prevHours = existingLog ? Number(existingLog.hours || 0) : 0;
+      const deltaHours = Number((nextHours - prevHours).toFixed(2));
+
+      if (emp && emp.payType === "hourly") {
+        emp.hours = Math.max(0, Number((Number(emp.hours || 0) + deltaHours).toFixed(2)));
+      }
+
+      const breakdown = emp ? getEmployeePayBreakdown(emp) : { otHours: 0, totalPay: 0 };
+      const earned = emp && emp.payType === "hourly"
+        ? Number((nextHours * Number(emp.rate || 0)).toFixed(2))
+        : Number(existingLog?.earned || 0);
+
+      const updatedEntry = {
+        id: existingLog ? existingLog.id : `sh-${Date.now()}`,
+        date: dateVal,
+        empName,
+        clockIn,
+        clockOut,
+        hours: nextHours,
+        otHours: breakdown.otHours,
+        earned,
+        note
+      };
+
+      if (existingLog) {
+        shiftLogs = shiftLogs.map(l => (l.id === existingLog.id ? updatedEntry : l));
+      } else {
+        shiftLogs.unshift(updatedEntry);
+      }
+
+      saveTimeClockState();
+      closeShiftLogModal();
+      renderTeamRoster();
+      checkOvertimeUpdates();
+      refreshDashboardAnalytics();
+    });
 
     function deleteShiftLog(logId) {
       if (isStaffUser) return;
@@ -2200,6 +2424,7 @@
       cachedTeam = cachedTeam.map(m => (m.id === id ? { ...m, [field]: val } : m));
       saveTimeClockState();
       renderTeamRoster();
+      checkOvertimeUpdates();
       refreshDashboardAnalytics();
     }
 
@@ -2219,6 +2444,7 @@
       });
       saveTimeClockState();
       renderTeamRoster();
+      checkOvertimeUpdates();
       refreshDashboardAnalytics();
     }
 
@@ -2228,6 +2454,7 @@
       cachedTeam = cachedTeam.filter(m => m.id !== id);
       saveTimeClockState();
       renderTeamRoster();
+      checkOvertimeUpdates();
       refreshDashboardAnalytics();
     }
 
@@ -2374,7 +2601,12 @@
               ? ""
               : `<td>${hasOt ? `<span class="ot-badge">+${Number(log.otHours).toFixed(2)}h OT</span>` : "0.00h"}</td>`;
             const payCol = isStaffUser ? "" : `<td style="color:#ef4444;font-weight:700;">-$${Number(log.earned).toFixed(2)}</td>`;
-            const actCol = isStaffUser ? "" : `<td><button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteShiftLog('${log.id}')">&times;</button></td>`;
+            const actCol = isStaffUser ? "" : `
+              <td style="white-space:nowrap;">
+                <button type="button" class="mini-action-btn" onclick="openShiftLogModal('${log.id}')">Fix Clock-Out</button>
+                <button type="button" class="mini-action-btn" style="color:#ef4444;" onclick="deleteShiftLog('${log.id}')">&times;</button>
+              </td>
+            `;
             return `
               <tr>
                 <td><strong>${log.date}</strong></td>
