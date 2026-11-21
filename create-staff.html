@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     .setup-card {
-      max-width: 680px;
+      max-width: 740px;
       margin: 36px auto;
       background: #ffffff;
       border: 1px solid #e4e4e7;
@@ -55,6 +55,39 @@
       color: #3f3f46;
       margin-bottom: 18px;
     }
+    .created-summary-box {
+      background: #fafafa;
+      border: 1px solid #09090b;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      font-size: 13px;
+    }
+    .roster-mini-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .mini-btn {
+      background: #ffffff;
+      border: 1px solid #d4d4d8;
+      color: #09090b;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mini-btn:hover {
+      background: #f4f4f5;
+    }
   </style>
 </head>
 <body>
@@ -81,7 +114,7 @@
     <div id="owner-gate-box" class="setup-card" style="text-align:center;">
       <span class="section-kicker">Owner Verification</span>
       <h1 style="font-size:24px; margin-top:4px;">Sign In as Owner to Provision Staff</h1>
-      <p style="font-size:13px; color:#71717a; margin:8px 0 18px;">Only an active Owner account can create staff logins.</p>
+      <p style="font-size:13px; color:#71717a; margin:8px 0 18px;">Only an active Owner account can create or manage staff logins.</p>
       <a href="admin.html" class="btn-card" style="display:inline-block; width:auto; padding:12px 22px; text-decoration:none;">Go to Owner Sign In</a>
     </div>
 
@@ -143,6 +176,16 @@
       </form>
 
       <p id="provision-staff-status" class="modal-status" style="margin-top:12px;"></p>
+      <div id="last-created-summary"></div>
+
+      <!-- CURRENT ROSTER LIST ON THIS PAGE -->
+      <div style="border-top:1px solid #e4e4e7; margin-top:24px; padding-top:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 style="font-size:17px;">Current Team Roster (<span id="roster-count">0</span>)</h2>
+          <a href="admin.html" style="font-size:12px; font-weight:700; color:#09090b;">Edit Hours &amp; Payroll in Admin &rarr;</a>
+        </div>
+        <div id="staff-roster-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
     </div>
   </main>
 
@@ -151,20 +194,78 @@
   <script>
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
 
+    function loadRoster() {
+      try {
+        const raw = localStorage.getItem(TEAM_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRoster(list) {
+      localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function renderStaffRosterList() {
+      const list = loadRoster();
+      const box = document.getElementById("staff-roster-list");
+      const countEl = document.getElementById("roster-count");
+      if (!box || !countEl) return;
+
+      countEl.textContent = list.length;
+      if (list.length === 0) {
+        box.innerHTML = `<p style="font-size:13px; color:#71717a;">No staff members saved yet. Add one above to get started.</p>`;
+        return;
+      }
+
+      box.innerHTML = list.map(m => `
+        <div class="roster-mini-row" style="opacity:${m.active === false ? "0.6" : "1"};">
+          <div>
+            <strong>${m.name}</strong> — <span style="color:#52525b;">${m.role}</span>
+            <div style="font-size:12px; color:#71717a; margin-top:2px;">
+              ${m.email ? `Login: ${m.email} • ` : ""}PIN: <strong>${m.pin || "1001"}</strong> • ${m.payType === "hourly" ? `$${Number(m.rate || 0).toFixed(2)}/hr` : `Flat $${Number(m.rate || 0).toFixed(2)}`}
+            </div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="mini-btn" onclick="toggleRosterActive('${m.id}')">${m.active === false ? "Activate" : "Active"}</button>
+            <button type="button" class="mini-btn" style="color:#ef4444;" onclick="removeRosterMember('${m.id}')">Remove</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function toggleRosterActive(id) {
+      const updated = loadRoster().map(m => (m.id === id ? { ...m, active: m.active === false ? true : false } : m));
+      saveRoster(updated);
+      renderStaffRosterList();
+    }
+
+    function removeRosterMember(id) {
+      const updated = loadRoster().filter(m => m.id !== id);
+      saveRoster(updated);
+      renderStaffRosterList();
+    }
+
     async function verifyOwnerForCreator() {
       const { data: { session } } = await msjSupabase.auth.getSession();
       const isOwner = Boolean(session && session.user && session.user.user_metadata?.role !== "staff");
       document.getElementById("owner-gate-box").style.display = isOwner ? "none" : "block";
       document.getElementById("staff-creator-box").style.display = isOwner ? "block" : "none";
+      if (isOwner) {
+        renderStaffRosterList();
+      }
     }
 
     document.getElementById("provision-staff-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("provision-staff-submit");
       const status = document.getElementById("provision-staff-status");
+      const summaryBox = document.getElementById("last-created-summary");
       btn.disabled = true;
       btn.textContent = "Saving...";
       status.textContent = "";
+      summaryBox.innerHTML = "";
 
       const name = document.getElementById("staff-full-name").value.trim();
       const role = document.getElementById("staff-role").value.trim();
@@ -173,6 +274,15 @@
       const pin = document.getElementById("staff-pin").value.trim() || "1001";
       const payType = document.getElementById("staff-paytype").value;
       const rate = parseFloat(document.getElementById("staff-rate").value || "0");
+
+      const currentRoster = loadRoster();
+      if (currentRoster.some(m => m.email && m.email.toLowerCase() === email)) {
+        status.style.color = "#ef4444";
+        status.textContent = `A staff member with email ${email} is already on your roster.`;
+        btn.disabled = false;
+        btn.textContent = "Add Staff Member";
+        return;
+      }
 
       try {
         const tempClient = window.supabase.createClient(
@@ -190,13 +300,7 @@
         });
         if (authErr) throw authErr;
 
-        let roster = [];
-        try {
-          roster = JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY) || "[]");
-        } catch {
-          roster = [];
-        }
-        roster.push({
+        currentRoster.push({
           id: `tm-${Date.now()}`,
           name,
           role,
@@ -207,10 +311,20 @@
           hours: 0,
           active: true
         });
-        localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(roster));
+        saveRoster(currentRoster);
+        renderStaffRosterList();
 
         status.style.color = "#10b981";
-        status.textContent = `${name} (${email}) has been added. They can sign in from the storefront or portal using their work email and password.`;
+        status.textContent = "Staff member added and linked to restricted staff portal access.";
+        summaryBox.innerHTML = `
+          <div class="created-summary-box">
+            <strong>Handoff Details for ${name}</strong>
+            <p style="margin-top:6px;">Role: <strong>${role}</strong></p>
+            <p>Login Email: <strong>${email}</strong></p>
+            <p>Timeclock PIN: <strong>${pin}</strong></p>
+            <p>Pay Rate: <strong>${payType === "hourly" ? `$${rate.toFixed(2)}/hr` : `Flat $${rate.toFixed(2)}`}</strong></p>
+          </div>
+        `;
         e.target.reset();
       } catch (err) {
         status.style.color = "#ef4444";
