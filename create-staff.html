@@ -246,6 +246,15 @@
       rate: { inputId: "staff-rate", errId: "err-staff-rate" }
     };
 
+    function getMemberRoleKey(member) {
+      const explicit = String(member?.accountRole || "").toLowerCase();
+      if (explicit === "staff") return "staff";
+      if (explicit === "admin" || explicit === "owner") return "admin";
+      const title = String(member?.role || "").toLowerCase();
+      if (title.includes("founder") || title.includes("owner") || title.includes("admin")) return "admin";
+      return "staff";
+    }
+
     function clearStaffFieldErrors() {
       Object.values(FIELD_ERROR_MAP).forEach(({ inputId, errId }) => {
         const inp = document.getElementById(inputId);
@@ -301,7 +310,7 @@
       }
 
       box.innerHTML = list.map(m => {
-        const isAdmin = m.accountRole === "admin";
+        const isAdmin = getMemberRoleKey(m) === "admin";
         return `
           <div class="roster-mini-row" style="opacity:${m.active === false ? "0.6" : "1"};">
             <div>
@@ -323,9 +332,10 @@
     }
 
     function toggleRosterRole(id) {
-      const updated = loadRoster().map(m =>
-        m.id === id ? { ...m, accountRole: m.accountRole === "admin" ? "staff" : "admin" } : m
-      );
+      const updated = loadRoster().map(m => {
+        const currentIsAdmin = getMemberRoleKey(m) === "admin";
+        return m.id === id ? { ...m, accountRole: currentIsAdmin ? "staff" : "admin" } : m;
+      });
       saveRoster(updated);
       renderStaffRosterList();
     }

@@ -638,7 +638,7 @@
       <nav>
         <a href="index.html">Live Site</a>
         <a href="shop.html">Shop</a>
-        <a href="create-staff.html" class="js-owner-only">Add Staff</a>
+        <a href="create-staff.html" class="js-owner-only">Add Staff / Admin</a>
         <button type="button" id="exit-staff-preview-btn" class="filter-btn" style="display:none;" onclick="setStaffPreviewMode(false)">Back to Owner View</button>
         <button type="button" id="admin-signout-btn" class="filter-btn" style="display:none;" onclick="adminSignOut()">Sign Out</button>
       </nav>
@@ -650,7 +650,7 @@
     <div id="admin-login-view" class="contact-card" style="max-width: 460px; margin: 40px auto;">
       <span class="section-kicker">Team &amp; Owner Access</span>
       <h1 style="font-size: 26px; margin-bottom: 8px;">Studio Portal Sign In</h1>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your MSJ work email and password. Staff accounts open directly to Time Clock &amp; Fulfillment; Owner accounts unlock full financial controls.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Sign in with your MSJ work email and password. Staff accounts open directly to Time Clock &amp; Fulfillment; Owner/Admin accounts unlock full financial controls.</p>
       <form id="admin-login-form" style="display:flex; flex-direction:column; gap:12px;">
         <div class="field-group">
           <label class="field-label">Work Email</label>
@@ -1014,14 +1014,14 @@
           <div id="active-shifts-container" style="margin-top:16px;"></div>
         </div>
 
-        <!-- OWNER-ONLY: DEDICATED PAGE LINK FOR STAFF ACCOUNTS & VIEW PREVIEW -->
+        <!-- OWNER-ONLY: DEDICATED PAGE LINK FOR STAFF/ADMIN ACCOUNTS & VIEW PREVIEW -->
         <div class="staff-scope-callout js-owner-only">
           <div>
-            <strong>Staff Account Provisioning:</strong> Create restricted staff accounts on the dedicated setup page. Staff cannot view P&amp;L, net profit, expenses, unit COGS, payroll rates, or promo codes.
+            <strong>Staff &amp; Admin Account Provisioning:</strong> Create restricted staff or admin accounts on the dedicated setup page. Staff cannot view P&amp;L, net profit, expenses, unit COGS, payroll rates, or promo codes.
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button type="button" class="mini-action-btn" onclick="setStaffPreviewMode(true)">Preview Staff View</button>
-            <a href="create-staff.html" class="mini-action-btn" style="background:#09090b; color:#ffffff; border-color:#09090b;">Add Staff Member &rarr;</a>
+            <a href="create-staff.html" class="mini-action-btn" style="background:#09090b; color:#ffffff; border-color:#09090b;">Add Staff / Admin &rarr;</a>
           </div>
         </div>
 
@@ -1071,7 +1071,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
               <h3>Active Roster &amp; Live Payroll</h3>
-              <p style="font-size:12px;color:#71717a;">Adjust pay type, hourly rate, PIN, or hours directly below. Changes update payroll and True Net Profit immediately.</p>
+              <p style="font-size:12px;color:#71717a;">View Admin vs. Staff roles, switch access levels, or adjust pay type, hourly rate, PIN, or hours directly below.</p>
             </div>
             <strong id="team-payroll-total" style="color:#ef4444;">Active Payroll: $0.00</strong>
           </div>
@@ -1705,17 +1705,31 @@
     let lastSavedOrderId = null;
     const notifiedOvertimeIds = new Set();
 
-    // Team Roster, Overtime Settings, Live Active Shifts & Shift Audit Logs
     const TEAM_STORAGE_KEY = "msj_admin_team_roster_v2";
     const ACTIVE_SHIFTS_KEY = "msj_admin_active_shifts_v1";
     const SHIFT_LOGS_KEY = "msj_admin_shift_logs_v1";
     const OT_SETTINGS_KEY = "msj_admin_overtime_settings_v1";
 
     const DEFAULT_TEAM = [
-      { id: "tm-1", name: "Justin Williams", role: "Founder & Creative Director", email: "", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
-      { id: "tm-2", name: "MSJ Co-Owner", role: "Co-Owner & Brand Operations", email: "", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
-      { id: "tm-3", name: "Maya Lin", role: "DTF Print & Heat-Press Tech", email: "", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
+      { id: "tm-1", name: "Justin Williams", accountRole: "admin", role: "Founder & Creative Director", email: "", pin: "1711", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-2", name: "MSJ Co-Owner", accountRole: "admin", role: "Co-Owner & Brand Operations", email: "", pin: "2026", payType: "flat", rate: 0, hours: 0, active: true },
+      { id: "tm-3", name: "Maya Lin", accountRole: "staff", role: "DTF Print & Heat-Press Tech", email: "", pin: "1001", payType: "hourly", rate: 18.5, hours: 8, active: true }
     ];
+
+    function getMemberRoleBadge(member) {
+      const explicit = String(member?.accountRole || "").toLowerCase();
+      if (explicit === "staff") {
+        return { key: "staff", label: "Staff", cssClass: "pill-pending" };
+      }
+      if (explicit === "admin" || explicit === "owner") {
+        return { key: "admin", label: "Admin", cssClass: "pill-paid" };
+      }
+      const title = String(member?.role || "").toLowerCase();
+      if (title.includes("founder") || title.includes("owner") || title.includes("admin")) {
+        return { key: "admin", label: "Admin", cssClass: "pill-paid" };
+      }
+      return { key: "staff", label: "Staff", cssClass: "pill-pending" };
+    }
 
     let overtimeSettings = (() => {
       try {
@@ -2046,7 +2060,7 @@
 
       if (isStaffUser) {
         const displayName = isStaffPreviewActive
-          ? "Staff Preview (Owner Testing)"
+          ? "Staff Preview (Admin Testing)"
           : (currentSessionUser?.user_metadata?.display_name || currentSessionUser?.email || "Team Member");
         if (staffBanner) staffBanner.style.display = "block";
         document.getElementById("staff-welcome-heading").textContent = `Welcome, ${displayName}`;
@@ -2056,8 +2070,8 @@
         switchAdminTab(initialTab, { recordHistory: false });
       } else {
         if (staffBanner) staffBanner.style.display = "none";
-        if (headerTitle) headerTitle.textContent = "Major Style Junction — POS & CFO";
-        if (omniLabel) omniLabel.textContent = "Global Site & Admin Omnisearch (Storefront Drops • Orders • Team & Shifts • Expenses • Promos)";
+        if (headerTitle) headerTitle.textContent = "Major Style Junction — Admin & CFO";
+        if (omniLabel) omniLabel.textContent = "Global Site & Admin Omnisearch (Storefront Drops • Orders • Admin & Staff • Expenses • Promos)";
         renderOvertimeSummary();
         switchAdminTab(initialTab, { recordHistory: false });
       }
@@ -2129,9 +2143,10 @@
       const ordMatches = cachedOrders.filter(o =>
         `${o.order_number} ${o.customer_name} ${o.customer_email} ${o.tracking_number} ${o.shipping_address}`.toLowerCase().includes(q)
       );
-      const teamMatches = cachedTeam.filter(m =>
-        `${m.name} ${m.role}`.toLowerCase().includes(q)
-      );
+      const teamMatches = cachedTeam.filter(m => {
+        const roleLabel = getMemberRoleBadge(m).label;
+        return `${m.name} ${m.role} ${roleLabel}`.toLowerCase().includes(q);
+      });
       const expMatches = isStaffUser
         ? []
         : cachedExpenses.filter(ex =>
@@ -2175,9 +2190,10 @@
       });
 
       teamMatches.forEach(m => {
+        const badge = getMemberRoleBadge(m);
         html += `
           <div class="omni-row">
-            <div><strong>[Team]</strong> ${m.name} — ${m.role}</div>
+            <div><strong>[${badge.label}]</strong> ${m.name} — ${m.role}</div>
             <button type="button" class="mini-action-btn" onclick="switchAdminTab('team'); clearGlobalAdminSearch();">Open Time Clock</button>
           </div>
         `;
@@ -2496,11 +2512,13 @@
               ${activeEntries.map(([empId, sh]) => {
                 const emp = cachedTeam.find(m => m.id === empId);
                 if (!emp) return "";
+                const roleBadge = getMemberRoleBadge(emp);
                 return `
                   <div class="active-shift-row">
                     <div>
                       <span class="active-shift-pill">● ON SHIFT</span>
                       <strong style="margin-left:8px;color:#09090b;">${emp.name}</strong>
+                      <span class="${roleBadge.cssClass}" style="margin-left:6px;">${roleBadge.label}</span>
                       <span style="font-size:12px;color:#71717a;margin-left:6px;">• ${sh.note}</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -2525,11 +2543,15 @@
           const onShift = Boolean(activeShifts[m.id]);
           const otRate = Number(m.rate || 0) * Number(overtimeSettings.multiplier || 1.5);
           const showResetBtn = m.payType === "hourly" && Number(m.hours || 0) > 0;
+          const roleBadge = getMemberRoleBadge(m);
+          const nextRoleKey = roleBadge.key === "admin" ? "staff" : "admin";
+
           return `
             <div class="roster-card" style="opacity:${m.active ? "1" : "0.65"};">
               <div class="roster-info">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                   <strong style="font-size:16px;">${m.name}</strong>
+                  <span class="${roleBadge.cssClass}">${roleBadge.label}</span>
                   ${onShift ? `<span class="pill-paid">Clocked In</span>` : ""}
                   ${breakdown.otHours > 0 ? `<span class="ot-badge">OT Active: ${breakdown.otHours.toFixed(2)}h @ $${otRate.toFixed(2)}/hr</span>` : ""}
                 </div>
@@ -2577,9 +2599,10 @@
                 </div>
 
                 <div class="roster-actions-slot">
+                  <button type="button" class="mini-action-btn" style="height:36px;" onclick="updateTeamField('${m.id}', 'accountRole', '${nextRoleKey}')" title="Switch between Admin and Staff">Set ${nextRoleKey === "admin" ? "Admin" : "Staff"}</button>
                   ${showResetBtn
                     ? `<button type="button" class="mini-action-btn" style="height:36px;" onclick="stepTeamHours('${m.id}', 0)" title="Reset hours to 0">Reset Hrs</button>`
-                    : `<span style="display:inline-block;width:68px;"></span>`}
+                    : ""}
                   <button type="button" class="filter-btn ${m.active ? "active" : ""}" style="height:36px;" onclick="updateTeamField('${m.id}', 'active', ${!m.active})">${m.active ? "Active" : "Off-Cycle"}</button>
                   <button type="button" class="mini-action-btn" style="color:#ef4444;height:36px;" onclick="removeTeamMember('${m.id}')">&times;</button>
                 </div>
@@ -3552,7 +3575,7 @@
             <div style="display: flex; align-items: center; gap: 14px;">
               ${item.image && item.image !== "typographic"
                 ? `<img src="${item.image}" alt="${item.name}" style="width: 64px; height: 64px; object-fit: cover; border-radius: 10px;">`
-                : `<div class="bag-typo-thumb">MSJ</div>`
+                : `<div class="bag-typo-thumb" style="width:64px;height:64px;min-width:64px;font-size:14px;">MSJ</div>`
               }
               <div>
                 <strong style="font-size:16px;">${item.name}</strong>
@@ -3561,7 +3584,7 @@
               </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap:wrap;">
               <select onchange="quickUpdateStatus('${item.id}', this.value)" style="width:145px;">
                 ${["In Stock", "Low Stock", "Coming Soon", "Sold Out"].map(st =>
                   `<option value="${st}" ${item.status === st ? "selected" : ""}>${st}</option>`
